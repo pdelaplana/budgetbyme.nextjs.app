@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+dist/
+build/
+*.config.js
+*.config.ts
+package.json
+package-lock.json
+tailwind.config.js
+postcss.config.js
+next.config.js
+biome.json
+tsconfig.json
