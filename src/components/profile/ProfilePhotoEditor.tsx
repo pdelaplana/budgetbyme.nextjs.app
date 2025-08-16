@@ -17,14 +17,10 @@
 import { CameraIcon } from '@heroicons/react/24/outline';
 import type { User } from 'firebase/auth';
 import Image from 'next/image';
-import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCamera } from '@/hooks/useCamera';
-import {
-  removePhotoFromFirebaseServer,
-  uploadPhotoBlobToFirebaseServer,
-  validateImageFile,
-} from '@/lib/photoUploadUtils';
+import { usePhotoUpload } from '@/hooks/media';
+import { useCamera } from '@/hooks/media/useCamera';
+import { validateImageFile } from '@/lib/media';
 
 interface ProfilePhotoEditorProps {
   user: User | null;
@@ -40,7 +36,8 @@ export default function ProfilePhotoEditor({
   hasPhoto = false,
 }: ProfilePhotoEditorProps) {
   const { updateUserProfile } = useAuth();
-  const [isUploading, setIsUploading] = useState(false);
+  const { uploadPhotoBlob, removePhoto, isUploading, error, clearError } =
+    usePhotoUpload();
   const { takePhoto } = useCamera();
 
   // Generate initials if no image is provided
@@ -57,7 +54,7 @@ export default function ProfilePhotoEditor({
   const handleTakePhoto = async () => {
     if (!user?.uid) return;
 
-    setIsUploading(true);
+    clearError(); // Clear any previous errors
     try {
       const photo = await takePhoto();
       if (photo?.blob) {
@@ -71,43 +68,40 @@ export default function ProfilePhotoEditor({
           return;
         }
 
-        // Upload blob to Firebase Storage using server action
-        const photoUrl = await uploadPhotoBlobToFirebaseServer(
-          photo.blob,
-          user.uid,
-        );
+        // Upload blob to Firebase Storage using the hook
+        const photoUrl = await uploadPhotoBlob(photo.blob, user.uid);
 
-        // Update Firebase Auth profile
-        await updateUserProfile({ photoURL: photoUrl });
+        if (photoUrl) {
+          // Update Firebase Auth profile
+          await updateUserProfile({ photoURL: photoUrl });
 
-        // Call custom update handler if provided
-        if (onPhotoUpdate) {
-          await onPhotoUpdate(photoUrl);
+          // Call custom update handler if provided
+          if (onPhotoUpdate) {
+            await onPhotoUpdate(photoUrl);
+          }
+
+          console.log('✅ Photo uploaded successfully via hook');
         }
-
-        console.log('✅ Photo uploaded successfully via server action');
       }
-    } catch (error) {
-      console.error('Failed to take photo:', error);
+    } catch (uploadError) {
+      console.error('Failed to take photo:', uploadError);
 
       // Enhanced error handling with more specific messages
       let errorMessage = 'Failed to take photo. Please try again.';
-      if (error instanceof Error) {
-        if (error.message.includes('upload')) {
+      if (uploadError instanceof Error) {
+        if (uploadError.message.includes('upload')) {
           errorMessage =
             'Failed to upload photo. Please check your connection and try again.';
-        } else if (error.message.includes('permission')) {
+        } else if (uploadError.message.includes('permission')) {
           errorMessage =
             'Camera permission denied. Please allow camera access and try again.';
-        } else if (error.message.includes('size')) {
+        } else if (uploadError.message.includes('size')) {
           errorMessage =
             'Photo is too large. Please try again with a smaller image.';
         }
       }
 
       alert(errorMessage);
-    } finally {
-      setIsUploading(false);
     }
   };
 
@@ -118,30 +112,32 @@ export default function ProfilePhotoEditor({
       if (onPhotoRemove) {
         await onPhotoRemove();
       } else {
-        // Default behavior - remove from Firebase using server action
+        // Default behavior - remove from Firebase using the hook
         if (user?.photoURL) {
-          await removePhotoFromFirebaseServer(user.photoURL);
+          const success = await removePhoto(user.photoURL);
 
-          // Update Firebase Auth profile to clear photoURL
-          await updateUserProfile({ photoURL: '' });
+          if (success) {
+            // Update Firebase Auth profile to clear photoURL
+            await updateUserProfile({ photoURL: '' });
 
-          // Call custom update handler if provided
-          if (onPhotoUpdate) {
-            await onPhotoUpdate('');
+            // Call custom update handler if provided
+            if (onPhotoUpdate) {
+              await onPhotoUpdate('');
+            }
+
+            console.log('✅ Photo removed successfully via hook');
           }
-
-          console.log('✅ Photo removed successfully via server action');
         }
       }
-    } catch (error) {
-      console.error('Failed to remove photo:', error);
+    } catch (removeError) {
+      console.error('Failed to remove photo:', removeError);
 
       // Enhanced error handling
       let errorMessage = 'Failed to remove photo. Please try again.';
-      if (error instanceof Error) {
-        if (error.message.includes('permission')) {
+      if (removeError instanceof Error) {
+        if (removeError.message.includes('permission')) {
           errorMessage = 'Permission denied. Unable to remove photo.';
-        } else if (error.message.includes('not found')) {
+        } else if (removeError.message.includes('not found')) {
           errorMessage = 'Photo not found. It may have already been removed.';
         }
       }
@@ -188,6 +184,7 @@ export default function ProfilePhotoEditor({
           Upload a photo to personalize your account
         </p>
         <div className='flex flex-col xs:flex-row gap-2'>
+          {error && <div className='text-sm text-red-600 mb-2'>{error}</div>}
           <button
             type='button'
             onClick={handleUploadButtonClick}
