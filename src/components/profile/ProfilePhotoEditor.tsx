@@ -16,7 +16,6 @@
 
 import { CameraIcon } from '@heroicons/react/24/outline';
 import type { User } from 'firebase/auth';
-import { updateProfile } from 'firebase/auth';
 import Image from 'next/image';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,7 +24,7 @@ import {
   removePhotoFromFirebaseServer,
   uploadPhotoBlobToFirebaseServer,
   validateImageFile,
-} from '@/lib/photo-upload-utils';
+} from '@/lib/photoUploadUtils';
 
 interface ProfilePhotoEditorProps {
   user: User | null;

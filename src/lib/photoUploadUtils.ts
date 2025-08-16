@@ -1,56 +1,8 @@
 import {
-  deleteObject,
-  getDownloadURL,
-  ref,
-  uploadBytes,
-} from 'firebase/storage';
-import { storage } from '@/lib/firebase';
-import {
   removePhoto,
   uploadPhoto,
   uploadPhotoBlob,
-} from '@/server/actions/uploadPhoto';
-
-/**
- * Upload photo to Firebase Storage (Client-side - may have CORS issues)
- * Consider using uploadPhotoToFirebaseServer for better reliability
- */
-export const uploadPhotoToFirebase = async (
-  file: File,
-  userId: string,
-): Promise<string> => {
-  try {
-    // Create a reference to Firebase Storage
-    const storageRef = ref(
-      storage,
-      `users/${userId}/profile_${Date.now()}.jpg`,
-    );
-
-    // Upload the file
-    const snapshot = await uploadBytes(storageRef, file);
-
-    // Get the download URL
-    const downloadURL = await getDownloadURL(snapshot.ref);
-
-    console.log('Photo uploaded successfully:', downloadURL);
-    return downloadURL;
-  } catch (error) {
-    console.error('Error uploading photo:', error);
-
-    // If CORS error, fallback to server action
-    if (
-      error instanceof Error &&
-      (error.message.includes('CORS') ||
-        error.message.includes('cross-origin') ||
-        error.name === 'FirebaseError')
-    ) {
-      console.log('🔄 CORS error detected, falling back to server upload...');
-      return uploadPhotoToFirebaseServer(file, userId);
-    }
-
-    throw new Error('Failed to upload photo');
-  }
-};
+} from '@/server/actions/photos';
 
 /**
  * Upload photo to Firebase Storage via server action (No CORS issues)
@@ -75,47 +27,6 @@ export const uploadPhotoToFirebaseServer = async (
     }
   } catch (error) {
     console.error('❌ Error uploading photo via server:', error);
-    throw new Error('Failed to upload photo');
-  }
-};
-
-/**
- * Upload photo blob (from camera) to Firebase Storage (Client-side)
- * Consider using uploadPhotoBlobToFirebaseServer for better reliability
- */
-export const uploadPhotoBlobToFirebase = async (
-  blob: Blob,
-  userId: string,
-): Promise<string> => {
-  try {
-    // Create a reference to Firebase Storage
-    const storageRef = ref(
-      storage,
-      `users/${userId}/images/profile_${Date.now()}.jpg`,
-    );
-
-    // Upload the blob
-    const snapshot = await uploadBytes(storageRef, blob);
-
-    // Get the download URL
-    const downloadURL = await getDownloadURL(snapshot.ref);
-
-    console.log('Photo blob uploaded successfully:', downloadURL);
-    return downloadURL;
-  } catch (error) {
-    console.error('Error uploading photo blob:', error);
-
-    // If CORS error, fallback to server action
-    if (
-      error instanceof Error &&
-      (error.message.includes('CORS') ||
-        error.message.includes('cross-origin') ||
-        error.name === 'FirebaseError')
-    ) {
-      console.log('🔄 CORS error detected, falling back to server upload...');
-      return uploadPhotoBlobToFirebaseServer(blob, userId);
-    }
-
     throw new Error('Failed to upload photo');
   }
 };
@@ -163,47 +74,6 @@ export const uploadPhotoBlobToFirebaseServer = async (
     }
 
     throw new Error('Failed to upload photo');
-  }
-};
-
-/**
- * Remove photo from Firebase Storage (Client-side)
- * Consider using removePhotoFromFirebaseServer for better reliability
- */
-export const removePhotoFromFirebase = async (
-  photoUrl: string,
-): Promise<void> => {
-  try {
-    // Extract the storage path from the URL
-    const url = new URL(photoUrl);
-    const pathMatch = url.pathname.match(/\/o\/(.+?)\?/);
-
-    if (!pathMatch) {
-      throw new Error('Invalid photo URL format');
-    }
-
-    const storagePath = decodeURIComponent(pathMatch[1]);
-    const storageRef = ref(storage, storagePath);
-
-    // Delete the file
-    await deleteObject(storageRef);
-
-    console.log('Photo removed successfully');
-  } catch (error) {
-    console.error('Error removing photo:', error);
-
-    // If CORS error, fallback to server action
-    if (
-      error instanceof Error &&
-      (error.message.includes('CORS') ||
-        error.message.includes('cross-origin') ||
-        error.name === 'FirebaseError')
-    ) {
-      console.log('🔄 CORS error detected, falling back to server removal...');
-      return removePhotoFromFirebaseServer(photoUrl);
-    }
-
-    throw new Error('Failed to remove photo');
   }
 };
 
