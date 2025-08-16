@@ -1,10 +1,10 @@
-'use client'
+'use client';
 
-import type React from 'react'
-import Logo from '@/components/ui/Logo'
+import type React from 'react';
+import Logo from '@/components/ui/Logo';
 
 interface AuthLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
@@ -34,5 +34,5 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

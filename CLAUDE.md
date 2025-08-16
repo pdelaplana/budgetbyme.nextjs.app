@@ -81,8 +81,8 @@ All routes except auth pages should redirect unauthenticated users to sign in.
 ### Data Structure
 ```
 /users/{userId}/events/{eventId}/expenses/{expenseId}
-/users/{userId}/events/{eventId}/payments/{paymentId}
-/users/{userId}/events/{eventId}/schedules/{scheduleId}
+/users/{userId}/events/{eventId}/categories/{paymentId}
+
 ```
 
 ### TanStack Query Usage

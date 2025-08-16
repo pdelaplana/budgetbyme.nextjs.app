@@ -1,6 +1,6 @@
 export interface Event {
-  id: string
-  name: string
+  id: string;
+  name: string;
   type:
     | 'wedding'
     | 'graduation'
@@ -8,22 +8,22 @@ export interface Event {
     | 'anniversary'
     | 'baby-shower'
     | 'retirement'
-    | 'other'
-  description?: string
-  eventDate: string
-  createdAt: string
-  totalBudget: number
-  totalSpent: number
-  spentPercentage: number
-  status: 'on-track' | 'over-budget' | 'under-budget' | 'completed'
+    | 'other';
+  description?: string;
+  eventDate: string;
+  createdAt: string;
+  totalBudget: number;
+  totalSpent: number;
+  spentPercentage: number;
+  status: 'on-track' | 'over-budget' | 'under-budget' | 'completed';
   categories: Array<{
-    id: string
-    name: string
-    budgeted: number
-    spent: number
-    percentage: number
-    color: string
-  }>
+    id: string;
+    name: string;
+    budgeted: number;
+    spent: number;
+    percentage: number;
+    color: string;
+  }>;
 }
 
 export const mockEvents: Event[] = [
@@ -313,7 +313,7 @@ export const mockEvents: Event[] = [
       },
     ],
   },
-]
+];
 
 export const getEventIcon = (type: Event['type']): string => {
   const icons = {
@@ -324,9 +324,9 @@ export const getEventIcon = (type: Event['type']): string => {
     'baby-shower': '🍼',
     retirement: '🎉',
     other: '🎊',
-  }
-  return icons[type]
-}
+  };
+  return icons[type];
+};
 
 export const getEventTypeLabel = (type: Event['type']): string => {
   const labels = {
@@ -337,9 +337,9 @@ export const getEventTypeLabel = (type: Event['type']): string => {
     'baby-shower': 'Baby Shower',
     retirement: 'Retirement',
     other: 'Other Event',
-  }
-  return labels[type]
-}
+  };
+  return labels[type];
+};
 
 export const getEventStatusColor = (status: Event['status']) => {
   const colors = {
@@ -363,6 +363,6 @@ export const getEventStatusColor = (status: Event['status']) => {
       text: 'text-gray-700',
       border: 'border-gray-200',
     },
-  }
-  return colors[status]
-}
+  };
+  return colors[status];
+};

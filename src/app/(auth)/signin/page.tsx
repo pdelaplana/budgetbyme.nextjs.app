@@ -1,66 +1,66 @@
-'use client'
+'use client';
 
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
-import type { FirebaseError } from 'firebase/app'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import ForgotPasswordModal from '@/components/modals/ForgotPasswordModal'
-import { useAuth } from '@/contexts/AuthContext'
-import { getAuthErrorMessage } from '@/lib/firebase/auth-utils'
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import type { FirebaseError } from 'firebase/app';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import ForgotPasswordModal from '@/components/modals/ForgotPasswordModal';
+import { useAuth } from '@/contexts/AuthContext';
+import { getAuthErrorMessage } from '@/lib/firebase/authUtils';
 
 interface SignInFormData {
-  email: string
-  password: string
+  email: string;
+  password: string;
 }
 
 export default function SignInPage() {
-  const router = useRouter()
-  const { signIn, signInWithGoogle } = useAuth()
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [authError, setAuthError] = useState('')
-  const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const router = useRouter();
+  const { signIn, signInWithGoogle } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [authError, setAuthError] = useState('');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<SignInFormData>()
+  } = useForm<SignInFormData>();
 
   const onSubmit = async (data: SignInFormData) => {
-    setIsLoading(true)
-    setAuthError('')
+    setIsLoading(true);
+    setAuthError('');
 
     try {
-      await signIn(data.email, data.password)
-      router.push('/')
+      await signIn(data.email, data.password);
+      router.push('/');
     } catch (error) {
-      const firebaseError = error as FirebaseError
-      setAuthError(getAuthErrorMessage(firebaseError))
+      const firebaseError = error as FirebaseError;
+      setAuthError(getAuthErrorMessage(firebaseError));
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleGoogleSignIn = async () => {
-    setIsLoading(true)
-    setAuthError('')
+    setIsLoading(true);
+    setAuthError('');
 
     try {
-      await signInWithGoogle()
-      router.push('/')
+      await signInWithGoogle();
+      router.push('/');
     } catch (error) {
-      const firebaseError = error as FirebaseError
-      setAuthError(getAuthErrorMessage(firebaseError))
+      const firebaseError = error as FirebaseError;
+      setAuthError(getAuthErrorMessage(firebaseError));
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleForgotPassword = () => {
-    setShowForgotPassword(true)
-  }
+    setShowForgotPassword(true);
+  };
 
   return (
     <div className='space-y-6'>
@@ -245,5 +245,5 @@ export default function SignInPage() {
         onClose={() => setShowForgotPassword(false)}
       />
     </div>
-  )
+  );
 }

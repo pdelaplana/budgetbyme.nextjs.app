@@ -1,67 +1,67 @@
-'use client'
+'use client';
 
-import { Dialog, Transition } from '@headlessui/react'
-import { CheckCircleIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import type { FirebaseError } from 'firebase/app'
-import { Fragment, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { useAuth } from '@/contexts/AuthContext'
-import { getAuthErrorMessage } from '@/lib/firebase/auth-utils'
+import { Dialog, Transition } from '@headlessui/react';
+import { CheckCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import type { FirebaseError } from 'firebase/app';
+import { Fragment, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useAuth } from '@/contexts/AuthContext';
+import { getAuthErrorMessage } from '@/lib/firebase/authUtils';
 
 interface ForgotPasswordModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 interface ForgotPasswordFormData {
-  email: string
+  email: string;
 }
 
 export default function ForgotPasswordModal({
   isOpen,
   onClose,
 }: ForgotPasswordModalProps) {
-  const { resetPassword } = useAuth()
-  const [isLoading, setIsLoading] = useState(false)
-  const [isEmailSent, setIsEmailSent] = useState(false)
-  const [emailSentTo, setEmailSentTo] = useState('')
-  const [resetError, setResetError] = useState('')
+  const { resetPassword } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isEmailSent, setIsEmailSent] = useState(false);
+  const [emailSentTo, setEmailSentTo] = useState('');
+  const [resetError, setResetError] = useState('');
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<ForgotPasswordFormData>()
+  } = useForm<ForgotPasswordFormData>();
 
   const onSubmit = async (data: ForgotPasswordFormData) => {
-    setIsLoading(true)
-    setResetError('')
+    setIsLoading(true);
+    setResetError('');
 
     try {
-      await resetPassword(data.email)
-      setEmailSentTo(data.email)
-      setIsEmailSent(true)
+      await resetPassword(data.email);
+      setEmailSentTo(data.email);
+      setIsEmailSent(true);
     } catch (error) {
-      const firebaseError = error as FirebaseError
-      setResetError(getAuthErrorMessage(firebaseError))
+      const firebaseError = error as FirebaseError;
+      setResetError(getAuthErrorMessage(firebaseError));
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleClose = () => {
-    setIsEmailSent(false)
-    setEmailSentTo('')
-    setResetError('')
-    reset()
-    onClose()
-  }
+    setIsEmailSent(false);
+    setEmailSentTo('');
+    setResetError('');
+    reset();
+    onClose();
+  };
 
   const handleResendEmail = () => {
     // TODO: Implement resend functionality
-    console.log('Resend email to:', emailSentTo)
-  }
+    console.log('Resend email to:', emailSentTo);
+  };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
@@ -221,5 +221,5 @@ export default function ForgotPasswordModal({
         </div>
       </Dialog>
     </Transition>
-  )
+  );
 }

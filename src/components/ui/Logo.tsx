@@ -1,11 +1,11 @@
-'use client'
+'use client';
 
-import React from 'react'
+import React from 'react';
 
 interface LogoProps {
-  variant?: 'full' | 'icon-only'
-  size?: 'sm' | 'md' | 'lg'
-  className?: string
+  variant?: 'full' | 'icon-only';
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
 }
 
 export default function Logo({
@@ -41,9 +41,9 @@ export default function Logo({
       width: variant === 'full' ? 220 : 80,
       height: 80,
     },
-  }
+  };
 
-  const config = sizeConfig[size]
+  const config = sizeConfig[size];
 
   return (
     <div className={`flex items-center ${className}`}>
@@ -51,14 +51,14 @@ export default function Logo({
         width={config.width}
         height={config.height}
         viewBox={`0 0 ${config.width} ${config.height}`}
-        className="flex-shrink-0"
+        className='flex-shrink-0'
       >
         {/* Green circle background */}
         <circle
           cx={config.circle}
           cy={config.circle}
           r={config.circleRadius}
-          fill="#059669"
+          fill='#059669'
         />
 
         {/* Letter "B" */}
@@ -74,8 +74,8 @@ export default function Logo({
               Q${22 * config.pathScale} ${20 * config.pathScale} ${22 * config.pathScale} ${16 * config.pathScale} 
               Q${22 * config.pathScale} ${12 * config.pathScale} ${19 * config.pathScale} ${12 * config.pathScale} 
               L${14 * config.pathScale} ${12 * config.pathScale}`}
-          fill="#F0FDF4"
-          stroke="none"
+          fill='#F0FDF4'
+          stroke='none'
         />
 
         {variant === 'full' && (
@@ -86,7 +86,7 @@ export default function Logo({
               y={16 * config.pathScale}
               width={4 * config.pathScale}
               height={2 * config.pathScale}
-              fill="#F0FDF4"
+              fill='#F0FDF4'
               rx={1 * config.pathScale}
             />
             <rect
@@ -94,7 +94,7 @@ export default function Logo({
               y={20 * config.pathScale}
               width={6 * config.pathScale}
               height={2 * config.pathScale}
-              fill="#F0FDF4"
+              fill='#F0FDF4'
               rx={1 * config.pathScale}
             />
             <rect
@@ -102,7 +102,7 @@ export default function Logo({
               y={24 * config.pathScale}
               width={3 * config.pathScale}
               height={2 * config.pathScale}
-              fill="#F0FDF4"
+              fill='#F0FDF4'
               rx={1 * config.pathScale}
             />
 
@@ -110,22 +110,22 @@ export default function Logo({
             <text
               x={45 * config.pathScale}
               y={16 * config.pathScale}
-              fontFamily="Inter, system-ui, -apple-system, sans-serif"
+              fontFamily='Inter, system-ui, -apple-system, sans-serif'
               fontSize={config.textSize}
-              fontWeight="800"
-              fill="#1F2937"
-              letterSpacing="-0.025em"
+              fontWeight='800'
+              fill='#1F2937'
+              letterSpacing='-0.025em'
             >
               Budget
             </text>
             <text
               x={45 * config.pathScale}
               y={30 * config.pathScale}
-              fontFamily="Inter, system-ui, -apple-system, sans-serif"
+              fontFamily='Inter, system-ui, -apple-system, sans-serif'
               fontSize={config.subtextSize}
-              fontWeight="500"
-              fill="#6B7280"
-              letterSpacing="0.025em"
+              fontWeight='500'
+              fill='#6B7280'
+              letterSpacing='0.025em'
             >
               By Me
             </text>
@@ -133,5 +133,5 @@ export default function Logo({
         )}
       </svg>
     </div>
-  )
+  );
 }

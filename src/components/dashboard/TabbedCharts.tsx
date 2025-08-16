@@ -1,48 +1,48 @@
-'use client'
+'use client';
 
 import {
   CalendarIcon,
   ChartBarIcon,
   ChartPieIcon,
   PresentationChartLineIcon,
-} from '@heroicons/react/24/outline'
-import { useState } from 'react'
-import BudgetGaugeChart from '@/components/charts/BudgetGaugeChart'
-import CategoryBreakdownChart from '@/components/charts/CategoryBreakdownChart'
-import PaymentTimelineChart from '@/components/charts/PaymentTimelineChart'
-import QuickStatsChart from '@/components/charts/QuickStatsChart'
+} from '@heroicons/react/24/outline';
+import { useState } from 'react';
+import BudgetGaugeChart from '@/components/charts/BudgetGaugeChart';
+import CategoryBreakdownChart from '@/components/charts/CategoryBreakdownChart';
+import PaymentTimelineChart from '@/components/charts/PaymentTimelineChart';
+import QuickStatsChart from '@/components/charts/QuickStatsChart';
 
 interface CategoryData {
-  id: string
-  name: string
-  budgeted: number
-  spent: number
-  percentage: number
-  color: string
+  id: string;
+  name: string;
+  budgeted: number;
+  spent: number;
+  percentage: number;
+  color: string;
 }
 
 interface TimelineDataPoint {
-  date: string
-  budgeted: number
-  actual: number
+  date: string;
+  budgeted: number;
+  actual: number;
 }
 
 interface TabbedChartsProps {
   budgetData: {
-    totalBudget: number
-    totalSpent: number
-    percentage: number
-    status: 'under-budget' | 'on-track' | 'approaching-limit' | 'over-budget'
-  }
-  timelineData: TimelineDataPoint[]
-  categoryData: CategoryData[]
+    totalBudget: number;
+    totalSpent: number;
+    percentage: number;
+    status: 'under-budget' | 'on-track' | 'approaching-limit' | 'over-budget';
+  };
+  timelineData: TimelineDataPoint[];
+  categoryData: CategoryData[];
   quickStatsData: {
-    totalBudget: number
-    totalSpent: number
-    categories: number
-    paymentsDue: number
-    eventDate: string
-  }
+    totalBudget: number;
+    totalSpent: number;
+    categories: number;
+    paymentsDue: number;
+    eventDate: string;
+  };
 }
 
 export default function TabbedCharts({
@@ -51,7 +51,7 @@ export default function TabbedCharts({
   categoryData,
   quickStatsData,
 }: TabbedChartsProps) {
-  const [activeTab, setActiveTab] = useState(0)
+  const [activeTab, setActiveTab] = useState(0);
 
   const tabs = [
     {
@@ -78,7 +78,7 @@ export default function TabbedCharts({
       icon: PresentationChartLineIcon,
       description: 'Key metrics',
     },
-  ]
+  ];
 
   const renderChart = () => {
     switch (activeTab) {
@@ -90,34 +90,34 @@ export default function TabbedCharts({
             percentage={budgetData.percentage}
             status={budgetData.status}
           />
-        )
+        );
       case 1:
-        return <PaymentTimelineChart data={timelineData} />
+        return <PaymentTimelineChart data={timelineData} />;
       case 2:
-        return <CategoryBreakdownChart data={categoryData} />
+        return <CategoryBreakdownChart data={categoryData} />;
       case 3:
-        return <QuickStatsChart data={quickStatsData} />
+        return <QuickStatsChart data={quickStatsData} />;
       default:
-        return null
+        return null;
     }
-  }
+  };
 
   return (
-    <div className="card">
+    <div className='card'>
       {/* Tab Navigation - Responsive */}
-      <div className="border-b border-gray-200 overflow-x-auto overflow-y-hidden">
+      <div className='border-b border-gray-200 overflow-x-auto overflow-y-hidden'>
         <nav
-          className="-mb-px flex space-x-2 sm:space-x-8 min-w-max px-1"
-          aria-label="Chart tabs"
+          className='-mb-px flex space-x-2 sm:space-x-8 min-w-max px-1'
+          aria-label='Chart tabs'
         >
           {tabs.map((tab) => {
-            const Icon = tab.icon
-            const isActive = activeTab === tab.id
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
 
             return (
               <button
                 key={tab.id}
-                type="button"
+                type='button'
                 onClick={() => setActiveTab(tab.id)}
                 className={`group inline-flex items-center py-3 sm:py-4 px-2 sm:px-1 border-b-2 font-medium text-xs sm:text-sm transition-all duration-200 whitespace-nowrap ${
                   isActive
@@ -133,34 +133,34 @@ export default function TabbedCharts({
                       : 'text-gray-400 group-hover:text-gray-500'
                   }`}
                 />
-                <div className="text-left">
-                  <div className="truncate max-w-[80px] sm:max-w-none">
+                <div className='text-left'>
+                  <div className='truncate max-w-[80px] sm:max-w-none'>
                     {tab.name}
                   </div>
-                  <div className="text-xs text-gray-400 font-normal hidden lg:block">
+                  <div className='text-xs text-gray-400 font-normal hidden lg:block'>
                     {tab.description}
                   </div>
                 </div>
               </button>
-            )
+            );
           })}
         </nav>
       </div>
 
       {/* Chart Content - Responsive Container */}
-      <div className="p-2 sm:p-4 lg:pt-6 lg:px-6">
-        <div className="transition-all duration-300 ease-in-out min-h-[300px] sm:min-h-[350px] lg:min-h-[400px]">
+      <div className='p-2 sm:p-4 lg:pt-6 lg:px-6'>
+        <div className='transition-all duration-300 ease-in-out min-h-[300px] sm:min-h-[350px] lg:min-h-[400px]'>
           {renderChart()}
         </div>
       </div>
 
       {/* Mobile Swipe Indicator */}
-      <div className="flex justify-center pb-2 sm:hidden">
-        <div className="flex space-x-2">
+      <div className='flex justify-center pb-2 sm:hidden'>
+        <div className='flex space-x-2'>
           {tabs.map((tab) => (
             <button
               key={`indicator-${tab.id}`}
-              type="button"
+              type='button'
               onClick={() => setActiveTab(tab.id)}
               className={`h-1.5 rounded-full transition-all duration-200 ${
                 activeTab === tab.id
@@ -174,15 +174,15 @@ export default function TabbedCharts({
       </div>
 
       {/* Touch Swipe Gestures Hint */}
-      <div className="text-center text-xs text-gray-400 pb-2 sm:hidden">
+      <div className='text-center text-xs text-gray-400 pb-2 sm:hidden'>
         Swipe left/right or tap tabs to switch charts
       </div>
 
       {/* Keyboard Navigation Hint */}
-      <div className="sr-only">
+      <div className='sr-only'>
         Use left and right arrow keys to navigate between charts. On mobile,
         swipe left or right to change charts.
       </div>
     </div>
-  )
+  );
 }

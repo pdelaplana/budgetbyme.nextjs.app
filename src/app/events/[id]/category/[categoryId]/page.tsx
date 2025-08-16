@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import {
   ArrowLeftIcon,
@@ -14,18 +14,18 @@ import {
   PencilIcon,
   PlusIcon,
   TrashIcon,
-} from '@heroicons/react/24/outline'
-import { useParams, useRouter } from 'next/navigation'
-import React, { useState } from 'react'
-import DashboardLayout from '@/components/dashboard/DashboardLayout'
-import AddCategoryModal from '@/components/modals/AddCategoryModal'
-import AddExpenseModal from '@/components/modals/AddExpenseModal'
-import PaymentScheduleModal from '@/components/modals/PaymentScheduleModal'
+} from '@heroicons/react/24/outline';
+import { useParams, useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import AddCategoryModal from '@/components/modals/AddCategoryModal';
+import AddExpenseModal from '@/components/modals/AddExpenseModal';
+import PaymentScheduleModal from '@/components/modals/PaymentScheduleModal';
 import ActionDropdown, {
   ActionDropdownOption,
-} from '@/components/ui/ActionDropdown'
-import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs'
-import { useEvents } from '@/contexts/EventsContext'
+} from '@/components/ui/ActionDropdown';
+import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
+import { useEvents } from '@/contexts/EventsContext';
 
 // Mock data - in real app this would come from API based on event ID and category ID
 const mockCategories = {
@@ -84,7 +84,7 @@ const mockCategories = {
     color: '#EA580C',
     description: 'DJ, band, sound system, and entertainment services',
   },
-}
+};
 
 // Mock expenses for each category (simplified for demo)
 const mockExpenses = {
@@ -169,48 +169,48 @@ const mockExpenses = {
     },
   ],
   '6': [],
-}
+};
 
 export default function CategoryPage() {
-  const router = useRouter()
-  const params = useParams()
-  const eventId = params?.id as string
-  const categoryId = params?.categoryId as string
-  const { events } = useEvents()
+  const router = useRouter();
+  const params = useParams();
+  const eventId = params?.id as string;
+  const categoryId = params?.categoryId as string;
+  const { events } = useEvents();
 
-  const [searchTerm, setSearchTerm] = useState('')
-  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'name'>('date')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-  const [showAddExpense, setShowAddExpense] = useState(false)
-  const [showPaymentSchedule, setShowPaymentSchedule] = useState(false)
-  const [selectedExpense, setSelectedExpense] = useState<any>(null)
-  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false)
-  const [isEditCategoryMode, setIsEditCategoryMode] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'name'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [showAddExpense, setShowAddExpense] = useState(false);
+  const [showPaymentSchedule, setShowPaymentSchedule] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState<any>(null);
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [isEditCategoryMode, setIsEditCategoryMode] = useState(false);
 
   // Find the current event
-  const currentEvent = events.find((event) => event.id === eventId)
-  const category = mockCategories[categoryId as keyof typeof mockCategories]
-  const expenses = mockExpenses[categoryId as keyof typeof mockExpenses] || []
+  const currentEvent = events.find((event) => event.id === eventId);
+  const category = mockCategories[categoryId as keyof typeof mockCategories];
+  const expenses = mockExpenses[categoryId as keyof typeof mockExpenses] || [];
 
   if (!currentEvent || !category) {
     return (
       <DashboardLayout>
-        <div className="text-center py-12">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+        <div className='text-center py-12'>
+          <h1 className='text-2xl font-semibold text-gray-900 mb-2'>
             Category Not Found
           </h1>
-          <p className="text-gray-600 mb-6">
+          <p className='text-gray-600 mb-6'>
             The requested budget category could not be found.
           </p>
           <button
             onClick={() => router.push(`/events/${eventId}/dashboard`)}
-            className="btn-primary"
+            className='btn-primary'
           >
             Return to Dashboard
           </button>
         </div>
       </DashboardLayout>
-    )
+    );
   }
 
   const formatCurrency = (amount: number) => {
@@ -219,16 +219,16 @@ export default function CategoryPage() {
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount)
-  }
+    }).format(amount);
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
-    })
-  }
+    });
+  };
 
   const getCategoryIcon = (name: string) => {
     const icons: Record<string, string> = {
@@ -238,18 +238,18 @@ export default function CategoryPage() {
       Attire: '👗',
       'Flowers & Decorations': '💐',
       'Music & Entertainment': '🎵',
-    }
-    return icons[name] || '🎉'
-  }
+    };
+    return icons[name] || '🎉';
+  };
 
   const handleExpenseClick = (expense: any) => {
-    router.push(`/events/${eventId}/expense/${expense.id}`)
-  }
+    router.push(`/events/${eventId}/expense/${expense.id}`);
+  };
 
   const handleEditCategory = () => {
-    setIsEditCategoryMode(true)
-    setShowAddCategoryModal(true)
-  }
+    setIsEditCategoryMode(true);
+    setShowAddCategoryModal(true);
+  };
 
   const handleDeleteCategory = () => {
     if (
@@ -257,12 +257,12 @@ export default function CategoryPage() {
         'Are you sure you want to delete this category? This action cannot be undone and will remove all associated expenses.',
       )
     ) {
-      console.log('Delete category:', categoryId)
-      router.push(`/events/${eventId}/dashboard`)
+      console.log('Delete category:', categoryId);
+      router.push(`/events/${eventId}/dashboard`);
     }
-  }
+  };
 
-  const remaining = category.budgeted - category.spent
+  const remaining = category.budgeted - category.spent;
 
   // Breadcrumb items
   const breadcrumbItems: BreadcrumbItem[] = [
@@ -275,36 +275,36 @@ export default function CategoryPage() {
       label: category.name,
       current: true,
     },
-  ]
+  ];
 
   return (
     <DashboardLayout>
       {/* Breadcrumbs */}
-      <div className="mb-3 sm:mb-4">
+      <div className='mb-3 sm:mb-4'>
         <Breadcrumbs items={breadcrumbItems} />
       </div>
 
       {/* Category Header */}
-      <div className="mb-4 sm:mb-6">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-3 sm:space-x-4 flex-1 min-w-0">
-            <span className="text-3xl sm:text-4xl flex-shrink-0">
+      <div className='mb-4 sm:mb-6'>
+        <div className='flex items-start justify-between'>
+          <div className='flex items-start space-x-3 sm:space-x-4 flex-1 min-w-0'>
+            <span className='text-3xl sm:text-4xl flex-shrink-0'>
               {getCategoryIcon(category.name)}
             </span>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
+            <div className='flex-1 min-w-0'>
+              <h1 className='text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight'>
                 {category.name}
               </h1>
-              <p className="text-sm sm:text-base text-gray-600 mt-1">
+              <p className='text-sm sm:text-base text-gray-600 mt-1'>
                 {category.description}
               </p>
             </div>
           </div>
 
           {/* Action Dropdown - Aligned with title, anchored right */}
-          <div className="flex-shrink-0 ml-4">
+          <div className='flex-shrink-0 ml-4'>
             <ActionDropdown
-              variant="mobile-only"
+              variant='mobile-only'
               primaryAction={{
                 label: 'Add Expense',
                 icon: PlusIcon,
@@ -328,9 +328,9 @@ export default function CategoryPage() {
             />
 
             {/* Desktop Action Dropdown */}
-            <div className="hidden sm:block">
+            <div className='hidden sm:block'>
               <ActionDropdown
-                variant="desktop-split"
+                variant='desktop-split'
                 primaryAction={{
                   label: 'Add Expense',
                   icon: PlusIcon,
@@ -358,31 +358,31 @@ export default function CategoryPage() {
       </div>
 
       {/* Budget Overview Card */}
-      <div className="card mb-4 sm:mb-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
-          <div className="lg:col-span-2">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">
+      <div className='card mb-4 sm:mb-6'>
+        <div className='grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6'>
+          <div className='lg:col-span-2'>
+            <h3 className='text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4'>
               Budget Overview
             </h3>
-            <div className="space-y-2 sm:space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm sm:text-base text-gray-600">
+            <div className='space-y-2 sm:space-y-3'>
+              <div className='flex justify-between items-center'>
+                <span className='text-sm sm:text-base text-gray-600'>
                   Budgeted:
                 </span>
-                <span className="font-semibold text-sm sm:text-base">
+                <span className='font-semibold text-sm sm:text-base'>
                   {formatCurrency(category.budgeted)}
                 </span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm sm:text-base text-gray-600">
+              <div className='flex justify-between items-center'>
+                <span className='text-sm sm:text-base text-gray-600'>
                   Spent:
                 </span>
-                <span className="font-semibold text-sm sm:text-base">
+                <span className='font-semibold text-sm sm:text-base'>
                   {formatCurrency(category.spent)}
                 </span>
               </div>
-              <div className="flex justify-between items-center border-t pt-2 sm:pt-3">
-                <span className="text-sm sm:text-base text-gray-600">
+              <div className='flex justify-between items-center border-t pt-2 sm:pt-3'>
+                <span className='text-sm sm:text-base text-gray-600'>
                   {remaining >= 0 ? 'Remaining:' : 'Over budget:'}
                 </span>
                 <span
@@ -394,23 +394,23 @@ export default function CategoryPage() {
             </div>
           </div>
 
-          <div className="lg:col-span-2 mt-4 lg:mt-0">
-            <h4 className="text-sm font-medium text-gray-500 mb-2">Progress</h4>
-            <div className="flex items-center justify-center lg:justify-center h-16 sm:h-20">
-              <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
+          <div className='lg:col-span-2 mt-4 lg:mt-0'>
+            <h4 className='text-sm font-medium text-gray-500 mb-2'>Progress</h4>
+            <div className='flex items-center justify-center lg:justify-center h-16 sm:h-20'>
+              <div className='text-center'>
+                <div className='text-2xl sm:text-3xl font-bold text-gray-900 mb-1'>
                   {category.percentage}%
                 </div>
-                <div className="w-24 sm:w-32 bg-gray-200 rounded-full h-2 sm:h-3">
+                <div className='w-24 sm:w-32 bg-gray-200 rounded-full h-2 sm:h-3'>
                   <div
-                    className="h-2 sm:h-3 rounded-full transition-all duration-500"
+                    className='h-2 sm:h-3 rounded-full transition-all duration-500'
                     style={{
                       width: `${Math.min(category.percentage, 100)}%`,
                       backgroundColor: category.color,
                     }}
                   />
                 </div>
-                <div className="text-xs text-gray-500 mt-1">of budget used</div>
+                <div className='text-xs text-gray-500 mt-1'>of budget used</div>
               </div>
             </div>
           </div>
@@ -418,53 +418,58 @@ export default function CategoryPage() {
       </div>
 
       {/* Expenses List */}
-      <div className="card">
-        <div className="card-header">
-          <h2 className="text-base sm:text-lg lg:text-heading font-semibold text-gray-900">
+      <div className='card'>
+        <div className='card-header'>
+          <h2 className='text-base sm:text-lg lg:text-heading font-semibold text-gray-900'>
             Expenses ({expenses.length})
           </h2>
         </div>
 
         {expenses.length === 0 ? (
-          <div className="text-center py-8 sm:py-12">
-            <div className="text-gray-400 mb-4">
-              <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">💸</div>
-              <h3 className="text-lg sm:text-xl font-medium text-gray-600 mb-2">
+          <div className='text-center py-8 sm:py-12'>
+            <div className='text-gray-400 mb-4'>
+              <div className='text-4xl sm:text-6xl mb-3 sm:mb-4'>💸</div>
+              <h3 className='text-lg sm:text-xl font-medium text-gray-600 mb-2'>
                 No expenses yet
               </h3>
-              <p className="text-sm sm:text-base text-gray-500 px-4">
+              <p className='text-sm sm:text-base text-gray-500 px-4'>
                 Start by adding your first expense to this category
               </p>
             </div>
             <button
               onClick={() => setShowAddExpense(true)}
-              className="btn-primary w-full sm:w-auto"
+              className='btn-primary w-full sm:w-auto'
             >
-              <PlusIcon className="h-4 w-4 mr-2" />
+              <PlusIcon className='h-4 w-4 mr-2' />
               Add First Expense
             </button>
           </div>
         ) : (
-          <div className="space-y-2 sm:space-y-3">
+          <div className='space-y-2 sm:space-y-3'>
             {expenses.map((expense) => {
               // Calculate payment status and progress
               const hasPaymentSchedule =
-                expense.hasPaymentSchedule && 'paymentSchedule' in expense && expense.paymentSchedule
+                expense.hasPaymentSchedule &&
+                'paymentSchedule' in expense &&
+                expense.paymentSchedule;
               const totalScheduled = hasPaymentSchedule
                 ? (expense as any).paymentSchedule.reduce(
                     (sum: number, payment: any) => sum + payment.amount,
                     0,
                   )
-                : expense.amount
+                : expense.amount;
               const totalPaid = hasPaymentSchedule
                 ? (expense as any).paymentSchedule
                     .filter((p: any) => p.isPaid)
-                    .reduce((sum: number, payment: any) => sum + payment.amount, 0)
-                : 0
-              const remainingBalance = totalScheduled - totalPaid
+                    .reduce(
+                      (sum: number, payment: any) => sum + payment.amount,
+                      0,
+                    )
+                : 0;
+              const remainingBalance = totalScheduled - totalPaid;
               const progressPercentage =
-                totalScheduled > 0 ? (totalPaid / totalScheduled) * 100 : 0
-              const isFullyPaid = remainingBalance === 0
+                totalScheduled > 0 ? (totalPaid / totalScheduled) * 100 : 0;
+              const isFullyPaid = remainingBalance === 0;
 
               // Find next due payment
               const nextDuePayment = hasPaymentSchedule
@@ -475,58 +480,58 @@ export default function CategoryPage() {
                         new Date(a.dueDate).getTime() -
                         new Date(b.dueDate).getTime(),
                     )[0]
-                : null
+                : null;
 
               return (
                 <div
                   key={expense.id}
                   onClick={() => handleExpenseClick(expense)}
-                  className="group p-3 sm:p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:shadow-md hover:bg-gray-50/50 transition-all duration-200 cursor-pointer"
+                  className='group p-3 sm:p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:shadow-md hover:bg-gray-50/50 transition-all duration-200 cursor-pointer'
                 >
-                  <div className="flex flex-col space-y-3">
+                  <div className='flex flex-col space-y-3'>
                     {/* Header with name and amount */}
-                    <div className="flex items-start justify-between">
-                      <h3 className="text-sm sm:text-base font-semibold text-gray-900 leading-tight flex-1 min-w-0 pr-3 group-hover:text-primary-700 transition-colors duration-200">
+                    <div className='flex items-start justify-between'>
+                      <h3 className='text-sm sm:text-base font-semibold text-gray-900 leading-tight flex-1 min-w-0 pr-3 group-hover:text-primary-700 transition-colors duration-200'>
                         {expense.name}
                       </h3>
-                      <span className="text-base sm:text-lg font-bold text-gray-900 flex-shrink-0">
+                      <span className='text-base sm:text-lg font-bold text-gray-900 flex-shrink-0'>
                         {formatCurrency(expense.amount)}
                       </span>
                     </div>
 
                     {/* Description and date */}
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-1 sm:space-y-0">
-                      <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 sm:line-clamp-1 flex-1 min-w-0 sm:pr-4">
+                    <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-1 sm:space-y-0'>
+                      <p className='text-xs sm:text-sm text-gray-600 line-clamp-2 sm:line-clamp-1 flex-1 min-w-0 sm:pr-4'>
                         {expense.description}
                       </p>
-                      <span className="text-xs sm:text-sm text-gray-500 flex-shrink-0">
+                      <span className='text-xs sm:text-sm text-gray-500 flex-shrink-0'>
                         {formatDate(expense.date)}
                       </span>
                     </div>
 
                     {/* Payment Status and Progress */}
-                    <div className="space-y-2">
+                    <div className='space-y-2'>
                       {/* Payment Status */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
+                      <div className='flex items-center justify-between'>
+                        <div className='flex items-center space-x-2'>
                           {isFullyPaid ? (
                             <>
-                              <CheckCircleIcon className="h-4 w-4 text-success-600" />
-                              <span className="text-xs font-medium text-success-700">
+                              <CheckCircleIcon className='h-4 w-4 text-success-600' />
+                              <span className='text-xs font-medium text-success-700'>
                                 Fully Paid
                               </span>
                             </>
                           ) : nextDuePayment ? (
                             <>
-                              <ClockIcon className="h-4 w-4 text-warning-600" />
-                              <span className="text-xs font-medium text-warning-700">
+                              <ClockIcon className='h-4 w-4 text-warning-600' />
+                              <span className='text-xs font-medium text-warning-700'>
                                 Next due: {formatDate(nextDuePayment.dueDate)}
                               </span>
                             </>
                           ) : (
                             <>
-                              <ExclamationTriangleIcon className="h-4 w-4 text-gray-500" />
-                              <span className="text-xs font-medium text-gray-600">
+                              <ExclamationTriangleIcon className='h-4 w-4 text-gray-500' />
+                              <span className='text-xs font-medium text-gray-600'>
                                 Payment Pending
                               </span>
                             </>
@@ -534,7 +539,7 @@ export default function CategoryPage() {
                         </div>
 
                         {!isFullyPaid && (
-                          <span className="text-xs font-medium text-gray-700">
+                          <span className='text-xs font-medium text-gray-700'>
                             {formatCurrency(remainingBalance)} remaining
                           </span>
                         )}
@@ -542,22 +547,22 @@ export default function CategoryPage() {
 
                       {/* Progress Bar (only show if has payment schedule) */}
                       {hasPaymentSchedule && (
-                        <div className="space-y-1">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-gray-500">
+                        <div className='space-y-1'>
+                          <div className='flex justify-between items-center'>
+                            <span className='text-xs text-gray-500'>
                               Payment Progress
                             </span>
-                            <span className="text-xs font-medium text-gray-700">
+                            <span className='text-xs font-medium text-gray-700'>
                               {Math.round(progressPercentage)}%
                             </span>
                           </div>
-                          <div className="w-full bg-gray-200 rounded-full h-1.5">
+                          <div className='w-full bg-gray-200 rounded-full h-1.5'>
                             <div
-                              className="bg-primary-600 h-1.5 rounded-full transition-all duration-300"
+                              className='bg-primary-600 h-1.5 rounded-full transition-all duration-300'
                               style={{ width: `${progressPercentage}%` }}
                             />
                           </div>
-                          <div className="text-xs text-gray-500">
+                          <div className='text-xs text-gray-500'>
                             {formatCurrency(totalPaid)} of{' '}
                             {formatCurrency(totalScheduled)} paid
                           </div>
@@ -566,7 +571,7 @@ export default function CategoryPage() {
                     </div>
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
         )}
@@ -589,8 +594,8 @@ export default function CategoryPage() {
       <AddCategoryModal
         isOpen={showAddCategoryModal}
         onClose={() => {
-          setShowAddCategoryModal(false)
-          setIsEditCategoryMode(false)
+          setShowAddCategoryModal(false);
+          setIsEditCategoryMode(false);
         }}
         editingCategory={
           isEditCategoryMode
@@ -605,12 +610,12 @@ export default function CategoryPage() {
         }
         isEditMode={isEditCategoryMode}
         onUpdateCategory={(categoryId, categoryData) => {
-          console.log('Update category:', categoryId, categoryData)
+          console.log('Update category:', categoryId, categoryData);
         }}
         onAddCategory={(categoryData) => {
-          console.log('Add new category:', categoryData)
+          console.log('Add new category:', categoryData);
         }}
       />
     </DashboardLayout>
-  )
+  );
 }
