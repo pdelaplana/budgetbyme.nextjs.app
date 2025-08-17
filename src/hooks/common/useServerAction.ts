@@ -51,67 +51,70 @@ export function useServerAction<T extends unknown[], R>(
       let attempts = 0;
       const maxAttempts = retryCount + 1;
 
-      while (attempts < maxAttempts) {
-        try {
-          if (enableLogging) {
-            console.log(`🚀 Calling server action: ${actionName}`, {
-              args,
-              attempt: attempts + 1,
-              maxAttempts,
-            });
-          }
-
-          const result = await action(...args);
-
-          if (enableLogging) {
-            console.log(`✅ Server action success: ${actionName}`, { result });
-          }
-
-          setLastResult(result);
-          return result;
-        } catch (actionError) {
-          attempts++;
-          const isLastAttempt = attempts >= maxAttempts;
-
-          if (enableLogging) {
-            console.error(
-              `❌ Server action failed: ${actionName} (attempt ${attempts}/${maxAttempts})`,
-              actionError,
-            );
-          }
-
-          if (enableSentry && isLastAttempt) {
-            Sentry.captureException(actionError, {
-              tags: {
-                type: 'server-action-error',
-                action: actionName,
-              },
-              extra: {
+      try {
+        while (attempts < maxAttempts) {
+          try {
+            if (enableLogging) {
+              console.log(`🚀 Calling server action: ${actionName}`, {
                 args,
-                attempts,
+                attempt: attempts + 1,
                 maxAttempts,
-              },
-            });
-          }
+              });
+            }
 
-          if (isLastAttempt) {
-            const errorMessage =
-              actionError instanceof Error
-                ? actionError.message
-                : `Server action failed: ${actionName}`;
-            setError(errorMessage);
-            return null;
-          }
+            const result = await action(...args);
 
-          // Wait before retrying
-          if (retryDelay > 0) {
-            await new Promise((resolve) => setTimeout(resolve, retryDelay));
-          }
-        } finally {
-          if (attempts >= maxAttempts) {
-            setIsLoading(false);
+            if (enableLogging) {
+              console.log(`✅ Server action success: ${actionName}`, {
+                result,
+              });
+            }
+
+            setLastResult(result);
+            return result;
+          } catch (actionError) {
+            attempts++;
+            const isLastAttempt = attempts >= maxAttempts;
+
+            if (enableLogging) {
+              console.error(
+                `❌ Server action failed: ${actionName} (attempt ${attempts}/${maxAttempts})`,
+                actionError,
+              );
+            }
+
+            if (enableSentry && isLastAttempt) {
+              Sentry.captureException(actionError, {
+                tags: {
+                  type: 'server-action-error',
+                  action: actionName,
+                },
+                extra: {
+                  args,
+                  attempts,
+                  maxAttempts,
+                },
+              });
+            }
+
+            if (isLastAttempt) {
+              const errorMessage =
+                actionError instanceof Error
+                  ? actionError.message
+                  : `Server action failed: ${actionName}`;
+              setError(errorMessage);
+              return null;
+            }
+
+            // Wait before retrying
+            if (retryDelay > 0) {
+              await new Promise((resolve) => setTimeout(resolve, retryDelay));
+            }
           }
         }
+      } finally {
+        // Always reset loading state when execution completes
+        setIsLoading(false);
       }
 
       return null;

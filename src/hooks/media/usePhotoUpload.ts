@@ -2,14 +2,9 @@
 
 import { useCallback, useState } from 'react';
 import { useServerAction } from '@/hooks/common';
-import {
-  removePhoto,
-  uploadPhoto,
-  uploadPhotoBlob,
-} from '@/server/actions/photos';
+import { removePhoto, uploadPhotoBlob } from '@/server/actions/photos';
 
 export interface UsePhotoUploadReturn {
-  uploadPhoto: (file: File, userId: string) => Promise<string | null>;
   uploadPhotoBlob: (blob: Blob, userId: string) => Promise<string | null>;
   removePhoto: (photoUrl: string) => Promise<boolean>;
   isUploading: boolean;
@@ -25,13 +20,7 @@ export interface UsePhotoUploadReturn {
 export const usePhotoUpload = (): UsePhotoUploadReturn => {
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  // Server action hooks for each operation
-  const uploadPhotoAction = useServerAction(uploadPhoto, {
-    actionName: 'uploadPhoto',
-    enableLogging: true,
-    enableSentry: true,
-  });
-
+  // Server action hooks for blob upload and photo removal only
   const uploadPhotoBlobAction = useServerAction(uploadPhotoBlob, {
     actionName: 'uploadPhotoBlob',
     enableLogging: true,
@@ -44,69 +33,17 @@ export const usePhotoUpload = (): UsePhotoUploadReturn => {
     enableSentry: true,
   });
 
-  // Combined loading state from all actions
+  // Combined loading state from blob upload and removal actions only
   const isUploading =
-    uploadPhotoAction.isLoading ||
-    uploadPhotoBlobAction.isLoading ||
-    removePhotoAction.isLoading;
+    uploadPhotoBlobAction.isLoading || removePhotoAction.isLoading;
 
   // Combined error (prioritize the most recent error)
-  const error =
-    uploadPhotoAction.error ||
-    uploadPhotoBlobAction.error ||
-    removePhotoAction.error;
+  const error = uploadPhotoBlobAction.error || removePhotoAction.error;
 
   const clearError = useCallback(() => {
-    uploadPhotoAction.clearError();
     uploadPhotoBlobAction.clearError();
     removePhotoAction.clearError();
-  }, [uploadPhotoAction, uploadPhotoBlobAction, removePhotoAction]);
-
-  /**
-   * Upload photo file to Firebase Storage via server action
-   */
-  const uploadPhotoFile = useCallback(
-    async (file: File, userId: string): Promise<string | null> => {
-      setUploadProgress(0);
-
-      try {
-        console.log('🔄 Starting photo upload...', {
-          fileName: file.name,
-          fileSize: file.size,
-          fileType: file.type,
-          userId,
-        });
-
-        // Simulate upload progress (since we can't track FormData upload progress easily)
-        setUploadProgress(25);
-
-        const formData = new FormData();
-        formData.append('photo', file);
-        formData.append('userId', userId);
-
-        setUploadProgress(50);
-
-        const result = await uploadPhotoAction.execute(formData);
-
-        setUploadProgress(75);
-
-        if (result?.success && result.url) {
-          setUploadProgress(100);
-          console.log('✅ Photo uploaded successfully:', result.url);
-          return result.url;
-        } else {
-          console.error('❌ Server action returned error:', result?.error);
-          return null;
-        }
-      } catch (err) {
-        console.error('❌ Error uploading photo:', err);
-        return null;
-      } finally {
-        setUploadProgress(0);
-      }
-    },
-    [uploadPhotoAction],
-  );
+  }, [uploadPhotoBlobAction, removePhotoAction]);
 
   /**
    * Upload photo blob (from camera) to Firebase Storage via server action
@@ -180,7 +117,6 @@ export const usePhotoUpload = (): UsePhotoUploadReturn => {
   );
 
   return {
-    uploadPhoto: uploadPhotoFile,
     uploadPhotoBlob: uploadPhotoBlobFile,
     removePhoto: removePhotoFile,
     isUploading,

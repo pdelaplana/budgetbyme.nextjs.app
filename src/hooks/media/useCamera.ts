@@ -51,10 +51,20 @@ export const useCamera = () => {
 
       console.warn('⚠️ [Camera] No webPath received from camera');
       return null;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('❌ [Camera] Capacitor camera failed:', error);
-      console.log('🔄 [Camera] Falling back to web implementation...');
 
+      // Check if user cancelled - don't fallback if they did
+      if (
+        error instanceof Error &&
+        (error.message?.includes('cancelled') ||
+          error.message?.includes('canceled'))
+      ) {
+        console.log('👤 [Camera] User cancelled - no fallback');
+        return null;
+      }
+
+      console.log('🔄 [Camera] Falling back to web implementation...');
       // Fallback to web implementation for browsers/PWA
       return await fallbackWebCamera();
     } finally {
@@ -87,8 +97,19 @@ export const useCamera = () => {
       }
 
       return null;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error taking camera photo:', error);
+
+      // Check if user cancelled - don't fallback if they did
+      if (
+        error instanceof Error &&
+        (error.message?.includes('cancelled') ||
+          error.message?.includes('canceled'))
+      ) {
+        console.log('👤 [Camera] User cancelled camera photo - no fallback');
+        return null;
+      }
+
       return await fallbackWebCamera();
     } finally {
       setIsCapturing(false);
@@ -119,8 +140,21 @@ export const useCamera = () => {
       }
 
       return null;
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error selecting from gallery:', error);
+
+      // Check if user cancelled - don't fallback if they did
+      if (
+        error instanceof Error &&
+        (error.message?.includes('cancelled') ||
+          error.message?.includes('canceled'))
+      ) {
+        console.log(
+          '👤 [Camera] User cancelled gallery selection - no fallback',
+        );
+        return null;
+      }
+
       return await fallbackFileInput();
     } finally {
       setIsCapturing(false);
