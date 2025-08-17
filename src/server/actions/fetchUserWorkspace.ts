@@ -2,12 +2,10 @@
 
 import * as Sentry from '@sentry/nextjs';
 import type { UserWorkspace } from '@/types/UserWorkspace';
+import { userWorkspaceConverter } from '../lib/converters/userWorkspaceConverter';
 import { db } from '../lib/firebase-admin';
 import { withSentryServerAction } from '../lib/sentryServerAction';
-import {
-  convertUserWorkspaceFromFirestore,
-  type UserWorkspaceDocument,
-} from '../types/UserWorkspaceDocument';
+import type { UserWorkspaceDocument } from '../types/UserWorkspaceDocument';
 
 export const fetchUserWorkspace = withSentryServerAction(
   'fetchUserWorkspace',
@@ -36,7 +34,7 @@ export const fetchUserWorkspace = withSentryServerAction(
         return null; // Workspace document doesn't exist yet
       }
 
-      const userWorkspace = convertUserWorkspaceFromFirestore(
+      const userWorkspace = userWorkspaceConverter.fromFirestore(
         workspaceDoc.id,
         workspaceDoc.data() as UserWorkspaceDocument,
       );

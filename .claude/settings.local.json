@@ -9,7 +9,8 @@
       "mcp__context7__resolve-library-id",
       "mcp__context7__get-library-docs",
       "WebSearch",
-      "Bash(npm view:*)"
+      "Bash(npm view:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": []
   }

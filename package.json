@@ -7,6 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
     "biome:check": "biome check .",
     "biome:fix": "biome check --write .",
     "biome:format": "biome format --write .",
@@ -37,12 +41,18 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.1.4",
+    "@testing-library/jest-dom": "^6.7.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
+    "@vitejs/plugin-react": "^5.0.0",
     "eslint": "^8",
     "eslint-config-next": "^15.4.6",
-    "typescript": "^5"
+    "jsdom": "^26.1.0",
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   },
   "overrides": {
     "undici": "5.28.4"

@@ -4,11 +4,9 @@ import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
 import { db } from '@/server/lib/firebase-admin';
 import type { UserWorkspace } from '@/types/UserWorkspace';
+import { userWorkspaceConverter } from '../lib/converters/userWorkspaceConverter';
 import { withSentryServerAction } from '../lib/sentryServerAction';
-import {
-  convertUserWorkspaceFromFirestore,
-  type UserWorkspaceDocument,
-} from '../types/UserWorkspaceDocument';
+import type { UserWorkspaceDocument } from '../types/UserWorkspaceDocument';
 
 interface AddUserWorkspaceDto {
   userId: string;
@@ -61,7 +59,7 @@ export const setupUserWorkspace = withSentryServerAction(
             'User workspace already exists:',
             addUserWorkspaceDto.userId,
           );
-          const workspace = convertUserWorkspaceFromFirestore(
+          const workspace = userWorkspaceConverter.fromFirestore(
             workspaceDoc.id,
             workspaceDoc.data() as UserWorkspaceDocument,
           );
@@ -125,7 +123,7 @@ export const setupUserWorkspace = withSentryServerAction(
 
       // Convert to UserWorkspace type and return
       try {
-        const workspace = convertUserWorkspaceFromFirestore(
+        const workspace = userWorkspaceConverter.fromFirestore(
           workspaceRef.id,
           newWorkspace,
         );

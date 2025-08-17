@@ -1,33 +1,6 @@
 import type { Currency } from './currencies';
 import type { Entity } from './Entity';
 
-export type EventType =
-  | 'wedding'
-  | 'graduation'
-  | 'birthday'
-  | 'anniversary'
-  | 'baby-shower'
-  | 'retirement'
-  | 'other';
-
-export type EventStatus =
-  | 'on-track'
-  | 'over-budget'
-  | 'under-budget'
-  | 'completed';
-
-export interface Event extends Entity {
-  id: string;
-  name: string;
-  type: EventType;
-  description?: string;
-  eventDate: string;
-  totalBudgetedAmount: number;
-  totalSpentAmount: number;
-  spentPercentage: number;
-  status: EventStatus;
-}
-
 export interface Budget extends Entity {
   name: string;
   budgetedAmount: number;
