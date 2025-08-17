@@ -34,10 +34,11 @@ export default function ConfirmDialog({
 
     if (isOpen) {
       // Calculate scrollbar width before hiding overflow
-      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-      
+      const scrollbarWidth =
+        window.innerWidth - document.documentElement.clientWidth;
+
       document.addEventListener('keydown', handleEscape);
-      
+
       // Prevent background scrolling while preserving scrollbar space
       document.body.style.overflow = 'hidden';
       document.body.style.paddingRight = `${scrollbarWidth}px`;
