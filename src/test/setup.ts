@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 
 // Mock Firebase Admin
 vi.mock('firebase-admin/firestore', () => ({
