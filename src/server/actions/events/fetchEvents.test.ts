@@ -1,8 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Currency, CurrencyImplementation } from '@/types/currencies';
 import type { Event } from '@/types/Event';
-import { eventConverter } from '../../lib/converters/eventConverter';
 import { db } from '../../lib/firebase-admin';
 import type { EventDocument } from '../../types/EventDocument';
 import { fetchEvents } from './fetchEvents';
@@ -11,13 +9,6 @@ import { fetchEvents } from './fetchEvents';
 vi.mock('../../lib/firebase-admin', () => ({
   db: {
     collection: vi.fn(),
-  },
-}));
-
-// Mock eventConverter
-vi.mock('../../lib/converters/eventConverter', () => ({
-  eventConverter: {
-    fromFirestore: vi.fn(),
   },
 }));
 
@@ -92,12 +83,15 @@ describe('fetchEvents', () => {
 
     const result = await fetchEvents(mockUserId);
 
-    expect(result).toEqual([
-      {
-        id: 'event456',
-        document: mockEventData,
-      },
-    ]);
+    // Now expects full Event objects with server-side conversion
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      id: 'event456',
+      name: 'Test Event',
+      type: 'wedding',
+      spentPercentage: 50, // (500/1000) * 100
+      currency: 'AUD',
+    });
     expect(db.collection).toHaveBeenCalledWith('workspaces');
     expect(mockDoc).toHaveBeenCalledWith(mockUserId);
     expect(mockCollection).toHaveBeenCalledWith('events');
@@ -114,7 +108,6 @@ describe('fetchEvents', () => {
     const result = await fetchEvents(mockUserId);
 
     expect(result).toEqual([]);
-    expect(eventConverter.fromFirestore).not.toHaveBeenCalled();
   });
 
   it('should throw error when userId is missing', async () => {
@@ -154,15 +147,21 @@ describe('fetchEvents', () => {
 
     const result = await fetchEvents(mockUserId);
 
-    expect(result).toEqual([
-      {
-        id: 'event456',
-        document: mockEventData,
-      },
-      {
-        id: 'event789',
-        document: mockEventData2,
-      },
-    ]);
+    // Now expects full Event objects with server-side conversion
+    expect(result).toHaveLength(2);
+    expect(result[0]).toMatchObject({
+      id: 'event456',
+      name: 'Test Event',
+      type: 'wedding',
+      spentPercentage: 50, // (500/1000) * 100
+      currency: 'AUD',
+    });
+    expect(result[1]).toMatchObject({
+      id: 'event789',
+      name: 'Second Event', 
+      type: 'birthday',
+      spentPercentage: 50,
+      currency: 'AUD',
+    });
   });
 });

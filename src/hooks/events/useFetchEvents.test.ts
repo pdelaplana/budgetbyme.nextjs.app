@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
-import { Timestamp } from 'firebase-admin/firestore';
 import {
   beforeEach,
   describe,
@@ -11,7 +10,6 @@ import {
   vi,
 } from 'vitest';
 import { fetchEvents } from '@/server/actions/events';
-import { eventConverter } from '@/server/lib/converters/eventConverter';
 import type { Event } from '@/types/Event';
 import { useFetchEvents } from './useFetchEvents';
 
@@ -20,15 +18,7 @@ vi.mock('@/server/actions/events', () => ({
   fetchEvents: vi.fn(),
 }));
 
-// Mock the eventConverter
-vi.mock('@/server/lib/converters/eventConverter', () => ({
-  eventConverter: {
-    fromFirestore: vi.fn(),
-  },
-}));
-
 const mockFetchEvents = fetchEvents as MockedFunction<typeof fetchEvents>;
-const mockEventConverter = vi.mocked(eventConverter);
 
 // Mock data
 const mockEvents: Event[] = [
@@ -42,7 +32,7 @@ const mockEvents: Event[] = [
     totalSpentAmount: 10000,
     spentPercentage: 20,
     status: 'on-track',
-    currency: { code: 'AUD', symbol: 'A$' } as Event['currency'],
+    currency: 'AUD' as Event['currency'],
     _createdDate: new Date(),
     _createdBy: 'user123',
     _updatedDate: new Date(),
@@ -58,7 +48,7 @@ const mockEvents: Event[] = [
     totalSpentAmount: 2000,
     spentPercentage: 40,
     status: 'on-track',
-    currency: { code: 'AUD', symbol: 'A$' } as Event['currency'],
+    currency: 'AUD' as Event['currency'],
     _createdDate: new Date(),
     _createdBy: 'user123',
     _updatedDate: new Date(),
@@ -85,29 +75,8 @@ describe('useFetchEvents', () => {
   });
 
   it('should fetch events successfully', async () => {
-    const mockTimestamp = Timestamp.fromDate(new Date('2024-12-25'));
-    const mockRawEvents = [
-      {
-        id: 'event1',
-        document: {
-          name: 'Wedding 1',
-          type: 'wedding',
-          description: 'First wedding',
-          eventDate: mockTimestamp,
-          totalBudgetedAmount: 50000,
-          totalSpentAmount: 10000,
-          status: 'on-track',
-          currency: 'AUD',
-          _createdDate: mockTimestamp,
-          _createdBy: 'user123',
-          _updatedDate: mockTimestamp,
-          _updatedBy: 'user123',
-        },
-      },
-    ];
-
-    mockFetchEvents.mockResolvedValueOnce(mockRawEvents);
-    mockEventConverter.fromFirestore.mockReturnValue(mockEvents[0]);
+    // Now fetchEvents returns Event[] directly
+    mockFetchEvents.mockResolvedValueOnce(mockEvents);
 
     const { result } = renderHook(() => useFetchEvents('user123'), {
       wrapper: TestWrapper,
@@ -122,7 +91,7 @@ describe('useFetchEvents', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.data).toEqual([mockEvents[0]]);
+    expect(result.current.data).toEqual(mockEvents);
     expect(result.current.error).toBe(null);
     expect(mockFetchEvents).toHaveBeenCalledWith('user123');
   });
@@ -172,28 +141,8 @@ describe('useFetchEvents', () => {
   });
 
   it('should use correct query key', async () => {
-    const mockTimestamp = Timestamp.fromDate(new Date('2024-12-25'));
-    const mockRawEvents = [
-      {
-        id: 'event1',
-        document: {
-          name: 'Wedding 1',
-          type: 'wedding',
-          eventDate: mockTimestamp,
-          totalBudgetedAmount: 50000,
-          totalSpentAmount: 10000,
-          status: 'on-track',
-          currency: 'AUD',
-          _createdDate: mockTimestamp,
-          _createdBy: 'user123',
-          _updatedDate: mockTimestamp,
-          _updatedBy: 'user123',
-        },
-      },
-    ];
-
-    mockFetchEvents.mockResolvedValueOnce(mockRawEvents);
-    mockEventConverter.fromFirestore.mockReturnValue(mockEvents[0]);
+    // Now fetchEvents returns Event[] directly
+    mockFetchEvents.mockResolvedValueOnce([mockEvents[0]]);
 
     const { result } = renderHook(() => useFetchEvents('user123'), {
       wrapper: TestWrapper,

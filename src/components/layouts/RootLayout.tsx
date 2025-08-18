@@ -115,7 +115,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <AddEventModal
         isOpen={showAddEventModal}
         onClose={() => setShowAddEventModal(false)}
-        onAddEvent={handleAddEvent}
       />
     </div>
   );

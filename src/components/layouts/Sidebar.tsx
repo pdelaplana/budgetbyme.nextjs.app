@@ -169,8 +169,8 @@ export default function Sidebar({
                         <div className='flex justify-between text-xs text-gray-500 mb-1'>
                           <span>Budget Progress</span>
                           <span>
-                            ${event.totalSpent.toLocaleString()} / $
-                            {event.totalBudget.toLocaleString()}
+                            ${event.totalSpentAmount.toLocaleString()} / $
+                            {event.totalBudgetedAmount.toLocaleString()}
                           </span>
                         </div>
                         <div className='w-full bg-gray-200 rounded-full h-1.5'>

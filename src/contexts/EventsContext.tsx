@@ -2,7 +2,9 @@
 
 import type React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { type Event, mockEvents } from '@/lib/mockData/events';
+import { useAuth } from '@/contexts/AuthContext';
+import { useFetchEvents } from '@/hooks/events';
+import type { Event } from '@/types/Event';
 
 interface EventsContextType {
   events: Event[];
@@ -10,6 +12,8 @@ interface EventsContextType {
   updateEvent: (eventId: string, updates: Partial<Event>) => void;
   deleteEvent: (eventId: string) => void;
   isLoading: boolean;
+  error: string | null;
+  refetch: () => void;
 }
 
 const EventsContext = createContext<EventsContextType | undefined>(undefined);
@@ -19,85 +23,31 @@ interface EventsProviderProps {
 }
 
 export function EventsProvider({ children }: EventsProviderProps) {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
+  
+  // Use the real useFetchEvents hook
+  const {
+    data: events = [],
+    isLoading,
+    error,
+    refetch,
+  } = useFetchEvents(user?.uid || '');
 
-  // Initialize events and load from localStorage
-  useEffect(() => {
-    const initializeEvents = () => {
-      try {
-        // Try to load from localStorage first
-        const savedEvents = localStorage.getItem('budgetbyme-events');
-
-        let eventsToUse = mockEvents;
-
-        if (savedEvents) {
-          const parsedEvents = JSON.parse(savedEvents);
-          if (Array.isArray(parsedEvents) && parsedEvents.length > 0) {
-            eventsToUse = parsedEvents;
-          }
-        }
-
-        setEvents(eventsToUse);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error loading events from localStorage:', error);
-        // Fallback to mock data
-        setEvents(mockEvents);
-        setIsLoading(false);
-      }
-    };
-
-    initializeEvents();
-  }, []);
-
-  // Save events to localStorage whenever they change
-  useEffect(() => {
-    if (!isLoading && events.length > 0) {
-      try {
-        localStorage.setItem('budgetbyme-events', JSON.stringify(events));
-      } catch (error) {
-        console.error('Error saving events to localStorage:', error);
-      }
-    }
-  }, [events, isLoading]);
-
+  // These functions are now placeholder - actual mutations should be handled
+  // by the respective mutation hooks (useAddEventMutation, etc.)
   const addEvent = (eventData: Omit<Event, 'id' | 'createdAt'>) => {
-    const newEvent: Event = {
-      ...eventData,
-      id: `event-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      createdAt: new Date().toISOString(),
-      categories: eventData.categories || [],
-    };
-
-    setEvents((prev) => [...prev, newEvent]);
-
-    // Navigate to the new event's dashboard
-    window.location.href = `/events/${newEvent.id}/dashboard`;
+    console.warn('addEvent called on EventsContext - use useAddEventMutation hook instead');
+    // The AddEventModal already uses the proper mutation hook
   };
 
   const updateEvent = (eventId: string, updates: Partial<Event>) => {
-    setEvents((prev) =>
-      prev.map((event) =>
-        event.id === eventId ? { ...event, ...updates } : event,
-      ),
-    );
+    console.warn('updateEvent called on EventsContext - use useUpdateEventMutation hook instead');
+    // TODO: Implement useUpdateEventMutation hook when needed
   };
 
   const deleteEvent = (eventId: string) => {
-    setEvents((prev) => {
-      const filteredEvents = prev.filter((event) => event.id !== eventId);
-
-      // If we have remaining events, navigate to the first one's dashboard
-      if (filteredEvents.length > 0) {
-        window.location.href = `/events/${filteredEvents[0].id}/dashboard`;
-      } else {
-        // If no events left, could navigate to a welcome page or event creation
-        window.location.href = '/profile';
-      }
-
-      return filteredEvents;
-    });
+    console.warn('deleteEvent called on EventsContext - use useDeleteEventMutation hook instead');
+    // TODO: Implement useDeleteEventMutation hook when needed
   };
 
   const contextValue: EventsContextType = {
@@ -106,6 +56,8 @@ export function EventsProvider({ children }: EventsProviderProps) {
     updateEvent,
     deleteEvent,
     isLoading,
+    error: error?.message || null,
+    refetch,
   };
 
   return (

@@ -12,9 +12,9 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAddEventMutation } from '@/hooks/events';
 import {
-  type Event,
   getEventIcon,
   getEventTypeLabel,
+  type Event,
 } from '@/lib/mockData/events';
 
 interface EventFormData {
@@ -28,9 +28,6 @@ interface EventFormData {
 interface AddEventModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddEvent: (
-    eventData: Omit<Event, 'id' | 'createdAt' | 'categories'>,
-  ) => void;
 }
 
 const eventTypes: Event['type'][] = [
@@ -46,7 +43,6 @@ const eventTypes: Event['type'][] = [
 export default function AddEventModal({
   isOpen,
   onClose,
-  onAddEvent,
 }: AddEventModalProps) {
   const [formData, setFormData] = useState<EventFormData>({
     name: '',

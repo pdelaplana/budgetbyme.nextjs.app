@@ -1,6 +1,8 @@
 'use server';
 
 import * as Sentry from '@sentry/nextjs';
+import type { Currency } from '@/types/currencies';
+import type { Event, EventStatus, EventType } from '@/types/Event';
 import { db } from '../../lib/firebase-admin';
 import { withSentryServerAction } from '../../lib/sentryServerAction';
 import type { EventDocument } from '../../types/EventDocument';
@@ -11,10 +13,7 @@ import type { EventDocument } from '../../types/EventDocument';
  */
 export const fetchEvent = withSentryServerAction(
   'fetchEvent',
-  async (
-    userId: string,
-    eventId: string,
-  ): Promise<{ id: string; document: EventDocument }> => {
+  async (userId: string, eventId: string): Promise<Event> => {
     if (!userId) throw new Error('User ID is required');
     if (!eventId) throw new Error('Event ID is required');
 
@@ -66,9 +65,29 @@ export const fetchEvent = withSentryServerAction(
         },
       });
 
+      const data = eventDoc.data() as EventDocument;
+
+      // Calculate spent percentage
+      const spentPercentage =
+        data.totalBudgetedAmount > 0
+          ? Math.round((data.totalSpentAmount / data.totalBudgetedAmount) * 100)
+          : 0;
+
       return {
         id: eventDoc.id,
-        document: eventDoc.data() as EventDocument,
+        name: data.name,
+        type: data.type as EventType,
+        description: data.description,
+        eventDate: data.eventDate.toDate(),
+        totalBudgetedAmount: data.totalBudgetedAmount,
+        totalSpentAmount: data.totalSpentAmount,
+        spentPercentage,
+        status: data.status as EventStatus,
+        currency: (data.currency || 'AUD') as unknown as Currency,
+        _createdDate: data._createdDate.toDate(),
+        _createdBy: data._createdBy,
+        _updatedDate: data._updatedDate.toDate(),
+        _updatedBy: data._updatedBy,
       };
     } catch (error) {
       Sentry.captureException(error, {

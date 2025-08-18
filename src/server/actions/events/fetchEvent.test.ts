@@ -1,8 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Currency, CurrencyImplementation } from '@/types/currencies';
 import type { Event } from '@/types/Event';
-import { eventConverter } from '../../lib/converters/eventConverter';
 import { db } from '../../lib/firebase-admin';
 import type { EventDocument } from '../../types/EventDocument';
 import { fetchEvent } from './fetchEvent';
@@ -11,13 +9,6 @@ import { fetchEvent } from './fetchEvent';
 vi.mock('../../lib/firebase-admin', () => ({
   db: {
     collection: vi.fn(),
-  },
-}));
-
-// Mock eventConverter
-vi.mock('../../lib/converters/eventConverter', () => ({
-  eventConverter: {
-    fromFirestore: vi.fn(),
   },
 }));
 
@@ -68,7 +59,7 @@ describe('fetchEvent', () => {
     totalSpentAmount: 500,
     spentPercentage: 50,
     status: 'on-track',
-    currency: CurrencyImplementation.AUD,
+    currency: 'AUD',
     _createdDate: new Date('2023-11-01'),
     _createdBy: 'user123',
     _updatedDate: new Date('2023-11-01'),
@@ -106,9 +97,13 @@ describe('fetchEvent', () => {
 
     const result = await fetchEvent(mockUserId, mockEventId);
 
-    expect(result).toEqual({
+    // Now expects full Event object with server-side conversion
+    expect(result).toMatchObject({
       id: mockEventId,
-      document: mockEventData,
+      name: 'Test Event',
+      type: 'wedding',
+      spentPercentage: 50, // (500/1000) * 100
+      currency: 'AUD',
     });
     expect(db.collection).toHaveBeenCalledWith('workspaces');
     expect(mockDoc).toHaveBeenCalledWith(mockUserId);

@@ -72,7 +72,7 @@ export default function ProfilePage() {
         name: user.displayName || '',
         preferences: {
           language: 'en',
-          currency: Currency.USD.code,
+          currency: 'USD',
         },
       };
       await setupUserWorkspace(workspaceData);
