@@ -2,7 +2,7 @@
 
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useParams, useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import ExpensesList from '@/components/dashboard/ExpensesList';
 import TabbedCharts from '@/components/dashboard/TabbedCharts';
@@ -56,7 +56,13 @@ export default function EventDashboardPage() {
   const router = useRouter();
   const params = useParams();
   const eventId = params?.id as string;
-  const { events } = useEvents();
+  const { 
+    events, 
+    selectedEvent, 
+    selectEventById, 
+    isLoading, 
+    isLoadingSelectedEvent 
+  } = useEvents();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
@@ -66,8 +72,29 @@ export default function EventDashboardPage() {
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [isEditCategoryMode, setIsEditCategoryMode] = useState(false);
 
-  // Find the current event
-  const currentEvent = events.find((event) => event.id === eventId);
+  // Set the selected event when the component mounts or eventId changes
+  useEffect(() => {
+    if (eventId && events.length > 0) {
+      selectEventById(eventId);
+    }
+  }, [eventId, events, selectEventById]);
+
+  // Use selectedEvent instead of finding it manually
+  const currentEvent = selectedEvent;
+
+  // Safety check - don't render if currentEvent is null
+  if (!currentEvent) {
+    return (
+      <DashboardLayout>
+        <div className='flex items-center justify-center py-12'>
+          <div className='text-center'>
+            <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4'></div>
+            <p className='text-gray-600'>Loading event...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const dropdownItems = [
     { id: 'add-expense', label: 'Add Expense', icon: '💰' },
@@ -141,14 +168,34 @@ export default function EventDashboardPage() {
     console.log('Delete expense:', expenseId);
   };
 
-  // Show loading state if event not found
-  if (!currentEvent) {
+  // Show loading state while events are being fetched or selected event is loading
+  if (isLoading || (eventId && events.length > 0 && !currentEvent)) {
     return (
       <DashboardLayout>
         <div className='flex items-center justify-center py-12'>
           <div className='text-center'>
             <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4'></div>
             <p className='text-gray-600'>Loading event...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Show 404 state if event not found after events are loaded
+  if (eventId && events.length > 0 && !currentEvent) {
+    return (
+      <DashboardLayout>
+        <div className='flex items-center justify-center py-12'>
+          <div className='text-center'>
+            <h2 className='text-2xl font-bold text-gray-900 mb-2'>Event Not Found</h2>
+            <p className='text-gray-600 mb-4'>The event you're looking for doesn't exist or you don't have access to it.</p>
+            <button
+              onClick={() => router.push('/events')}
+              className='btn-primary'
+            >
+              Back to Events
+            </button>
           </div>
         </div>
       </DashboardLayout>
@@ -176,8 +223,8 @@ export default function EventDashboardPage() {
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className='btn-primary flex items-center gap-2 px-3 sm:px-4 py-2'
               >
-                <span className='hidden sm:inline'>Add Expense</span>
-                <span className='sm:hidden'>Add</span>
+                <span className='hidden sm:inline'>Actions</span>
+                <span className='sm:hidden'>Actions</span>
                 <ChevronDownIcon
                   className={`h-4 w-4 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`}
                 />
@@ -217,8 +264,8 @@ export default function EventDashboardPage() {
       <div className='mb-6 sm:mb-8'>
         <TabbedCharts
           budgetData={{
-            totalBudget: currentEvent.totalBudget,
-            totalSpent: currentEvent.totalSpent,
+            totalBudget: currentEvent.totalBudgetedAmount,
+            totalSpent: currentEvent.totalSpentAmount,
             percentage: currentEvent.spentPercentage,
             status:
               currentEvent.status === 'completed'
@@ -228,11 +275,11 @@ export default function EventDashboardPage() {
                   : (currentEvent.status as any),
           }}
           timelineData={mockTimelineData}
-          categoryData={currentEvent.categories}
+          categoryData={[]}
           quickStatsData={{
-            totalBudget: currentEvent.totalBudget,
-            totalSpent: currentEvent.totalSpent,
-            categories: currentEvent.categories.length,
+            totalBudget: currentEvent.totalBudgetedAmount,
+            totalSpent: currentEvent.totalSpentAmount,
+            categories: 0,
             paymentsDue: mockPayments.length,
             eventDate: currentEvent.eventDate,
           }}
@@ -258,21 +305,42 @@ export default function EventDashboardPage() {
             Budget Categories
           </h2>
         </div>
-        <ExpensesList
-          categories={currentEvent.categories}
-          onCategoryClick={handleCategoryClick}
-        />
+        
+        {/* Empty state for categories */}
+        <div className='p-6 text-center'>
+          <div className='mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 mb-4'>
+            <svg className='h-6 w-6 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' />
+            </svg>
+          </div>
+          <h3 className='text-lg font-medium text-gray-900 mb-2'>
+            No Budget Categories Yet
+          </h3>
+          <p className='text-gray-600 mb-6 max-w-md mx-auto'>
+            Start organizing your event budget by creating categories like "Venue", "Catering", "Photography", etc. This will help you track expenses more effectively.
+          </p>
+          <div className='space-y-3'>
+            <button
+              onClick={() => setShowAddCategoryModal(true)}
+              className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors duration-200'
+            >
+              <svg className='h-4 w-4 mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
+              </svg>
+              Create Your First Category
+            </button>
+            <div className='text-xs text-gray-500'>
+              Popular categories: Venue • Catering • Photography • Flowers • Music
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Add Expense Modal */}
       <AddExpenseModal
         isOpen={showAddExpenseModal}
         onClose={() => setShowAddExpenseModal(false)}
-        categories={currentEvent.categories.map((cat) => ({
-          id: cat.id,
-          name: cat.name,
-          color: cat.color,
-        }))}
+        categories={[]}
       />
 
       {/* Expense Detail Modal */}

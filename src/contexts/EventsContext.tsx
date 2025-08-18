@@ -8,10 +8,14 @@ import type { Event } from '@/types/Event';
 
 interface EventsContextType {
   events: Event[];
+  selectedEvent: Event | null;
+  setSelectedEvent: (event: Event | null) => void;
+  selectEventById: (eventId: string) => void;
   addEvent: (event: Omit<Event, 'id' | 'createdAt'>) => void;
   updateEvent: (eventId: string, updates: Partial<Event>) => void;
   deleteEvent: (eventId: string) => void;
   isLoading: boolean;
+  isLoadingSelectedEvent: boolean;
   error: string | null;
   refetch: () => void;
 }
@@ -33,6 +37,32 @@ export function EventsProvider({ children }: EventsProviderProps) {
     refetch,
   } = useFetchEvents(user?.uid || '');
 
+  // Selected event state
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [isLoadingSelectedEvent, setIsLoadingSelectedEvent] = useState(false);
+
+  // Function to select event by ID (useful for URL-based navigation)
+  const selectEventById = (eventId: string) => {
+    const event = events.find(e => e.id === eventId);
+    if (event) {
+      setSelectedEvent(event);
+    } else {
+      // If event not found in current events, we might need to fetch it
+      // For now, we'll set to null and let the component handle the 404 case
+      setSelectedEvent(null);
+    }
+  };
+
+  // Update selected event when events list changes (e.g., after refetch)
+  useEffect(() => {
+    if (selectedEvent && events.length > 0) {
+      const updatedEvent = events.find(e => e.id === selectedEvent.id);
+      if (updatedEvent) {
+        setSelectedEvent(updatedEvent);
+      }
+    }
+  }, [events, selectedEvent]);
+
   // These functions are now placeholder - actual mutations should be handled
   // by the respective mutation hooks (useAddEventMutation, etc.)
   const addEvent = (eventData: Omit<Event, 'id' | 'createdAt'>) => {
@@ -52,10 +82,14 @@ export function EventsProvider({ children }: EventsProviderProps) {
 
   const contextValue: EventsContextType = {
     events,
+    selectedEvent,
+    setSelectedEvent,
+    selectEventById,
     addEvent,
     updateEvent,
     deleteEvent,
     isLoading,
+    isLoadingSelectedEvent,
     error: error?.message || null,
     refetch,
   };

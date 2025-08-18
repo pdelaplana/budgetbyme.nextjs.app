@@ -14,8 +14,14 @@ import { useEvents } from '@/contexts/EventsContext';
 
 export default function EventsPage() {
   const router = useRouter();
-  const { events, isLoading, error, refetch } = useEvents();
+  const { events, isLoading, error, refetch, setSelectedEvent } = useEvents();
   const [showAddEvent, setShowAddEvent] = useState(false);
+
+  const handleEventClick = (event: any) => {
+    // Set the selected event in context before navigating
+    setSelectedEvent(event);
+    router.push(`/events/${event.id}/dashboard`);
+  };
 
   if (isLoading) {
     return (
@@ -90,9 +96,7 @@ export default function EventsPage() {
                   {events.map((event) => (
                     <div
                       key={event.id}
-                      onClick={() =>
-                        router.push(`/events/${event.id}/dashboard`)
-                      }
+                      onClick={() => handleEventClick(event)}
                       className='group relative bg-white border border-gray-200 rounded-lg p-6 hover:border-primary-300 hover:shadow-md transition-all duration-200 cursor-pointer'
                     >
                       <div className='space-y-3'>
