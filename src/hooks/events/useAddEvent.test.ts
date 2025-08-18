@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import type { AddEventDto } from '@/server/actions/events';
 import { addEvent } from '@/server/actions/events';
-import { Currency } from '@/types/currencies';
+import { CurrencyImplementation } from '@/types/currencies';
 import type { Event } from '@/types/Event';
 import { useAddEvent, useAddEventWithCallback } from './useAddEvent';
 
@@ -40,7 +40,7 @@ describe('useAddEvent', () => {
     totalSpentAmount: 0,
     spentPercentage: 0,
     status: 'on-track',
-    currency: Currency.AUD,
+    currency: CurrencyImplementation.AUD,
     _createdDate: new Date(),
     _createdBy: 'user123',
     _updatedDate: new Date(),

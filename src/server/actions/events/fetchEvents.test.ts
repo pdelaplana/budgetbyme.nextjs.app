@@ -57,23 +57,6 @@ describe('fetchEvents', () => {
     _updatedBy: 'user123',
   };
 
-  const mockEvent: Event = {
-    id: 'event456',
-    name: 'Test Event',
-    type: 'wedding',
-    description: 'A test event',
-    eventDate: new Date('2023-11-01'),
-    totalBudgetedAmount: 1000,
-    totalSpentAmount: 500,
-    spentPercentage: 50,
-    status: 'on-track',
-    currency: CurrencyImplementation.AUD,
-    _createdDate: new Date('2023-11-01'),
-    _createdBy: 'user123',
-    _updatedDate: new Date('2023-11-01'),
-    _updatedBy: 'user123',
-  };
-
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -107,20 +90,18 @@ describe('fetchEvents', () => {
       ],
     });
 
-    // Mock converter
-    vi.mocked(eventConverter.fromFirestore).mockReturnValue(mockEvent);
-
     const result = await fetchEvents(mockUserId);
 
-    expect(result).toEqual([mockEvent]);
+    expect(result).toEqual([
+      {
+        id: 'event456',
+        document: mockEventData,
+      },
+    ]);
     expect(db.collection).toHaveBeenCalledWith('workspaces');
     expect(mockDoc).toHaveBeenCalledWith(mockUserId);
     expect(mockCollection).toHaveBeenCalledWith('events');
     expect(mockOrderBy).toHaveBeenCalledWith('eventDate', 'asc');
-    expect(eventConverter.fromFirestore).toHaveBeenCalledWith(
-      'event456',
-      mockEventData,
-    );
   });
 
   it('should return empty array when no events found', async () => {
@@ -156,13 +137,6 @@ describe('fetchEvents', () => {
       type: 'birthday',
     };
 
-    const mockEvent2: Event = {
-      ...mockEvent,
-      id: 'event789',
-      name: 'Second Event',
-      type: 'birthday',
-    };
-
     // Mock successful document fetch with multiple docs
     mockGet.mockResolvedValue({
       empty: false,
@@ -178,24 +152,17 @@ describe('fetchEvents', () => {
       ],
     });
 
-    // Mock converter for both calls
-    vi.mocked(eventConverter.fromFirestore)
-      .mockReturnValueOnce(mockEvent)
-      .mockReturnValueOnce(mockEvent2);
-
     const result = await fetchEvents(mockUserId);
 
-    expect(result).toEqual([mockEvent, mockEvent2]);
-    expect(eventConverter.fromFirestore).toHaveBeenCalledTimes(2);
-    expect(eventConverter.fromFirestore).toHaveBeenNthCalledWith(
-      1,
-      'event456',
-      mockEventData,
-    );
-    expect(eventConverter.fromFirestore).toHaveBeenNthCalledWith(
-      2,
-      'event789',
-      mockEventData2,
-    );
+    expect(result).toEqual([
+      {
+        id: 'event456',
+        document: mockEventData,
+      },
+      {
+        id: 'event789',
+        document: mockEventData2,
+      },
+    ]);
   });
 });

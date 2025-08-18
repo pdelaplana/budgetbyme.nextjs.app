@@ -1,8 +1,6 @@
 'use server';
 
 import * as Sentry from '@sentry/nextjs';
-import type { Event } from '@/types/Event';
-import { eventConverter } from '../../lib/converters/eventConverter';
 import { db } from '../../lib/firebase-admin';
 import { withSentryServerAction } from '../../lib/sentryServerAction';
 import type { EventDocument } from '../../types/EventDocument';
@@ -13,7 +11,10 @@ import type { EventDocument } from '../../types/EventDocument';
  */
 export const fetchEvent = withSentryServerAction(
   'fetchEvent',
-  async (userId: string, eventId: string): Promise<Event | null> => {
+  async (
+    userId: string,
+    eventId: string,
+  ): Promise<{ id: string; document: EventDocument }> => {
     if (!userId) throw new Error('User ID is required');
     if (!eventId) throw new Error('Event ID is required');
 
@@ -51,14 +52,8 @@ export const fetchEvent = withSentryServerAction(
             eventId,
           },
         });
-        return null; // Event doesn't exist or user doesn't have access
+        throw new Error('Event not found');
       }
-
-      // Convert from Firestore format to Event (serializable for client-server communication)
-      const event = eventConverter.fromFirestore(
-        eventDoc.id,
-        eventDoc.data() as EventDocument,
-      );
 
       // Add success breadcrumb
       Sentry.addBreadcrumb({
@@ -68,11 +63,13 @@ export const fetchEvent = withSentryServerAction(
         data: {
           userId,
           eventId,
-          eventName: event.name,
         },
       });
 
-      return event;
+      return {
+        id: eventDoc.id,
+        document: eventDoc.data() as EventDocument,
+      };
     } catch (error) {
       Sentry.captureException(error, {
         tags: {

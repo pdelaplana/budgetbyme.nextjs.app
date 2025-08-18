@@ -13,7 +13,9 @@ import type { EventDocument } from '../../types/EventDocument';
  */
 export const fetchEvents = withSentryServerAction(
   'fetchEvents',
-  async (userId: string): Promise<Event[]> => {
+  async (
+    userId: string,
+  ): Promise<{ id: string; document: EventDocument }[]> => {
     if (!userId) throw new Error('User ID is required');
 
     try {
@@ -52,11 +54,11 @@ export const fetchEvents = withSentryServerAction(
       }
 
       // Convert all documents from Firestore format to Event (serializable for client-server communication)
-      const events = snapshot.docs.map((doc) => {
-        return eventConverter.fromFirestore(
-          doc.id,
-          doc.data() as EventDocument,
-        );
+      const eventsData = snapshot.docs.map((doc) => {
+        return {
+          id: doc.id,
+          document: doc.data() as EventDocument,
+        };
       });
 
       // Add success breadcrumb
@@ -66,11 +68,11 @@ export const fetchEvents = withSentryServerAction(
         level: 'info',
         data: {
           userId,
-          eventCount: events.length,
+          eventCount: eventsData.length,
         },
       });
 
-      return events;
+      return eventsData;
     } catch (error) {
       Sentry.captureException(error, {
         tags: {

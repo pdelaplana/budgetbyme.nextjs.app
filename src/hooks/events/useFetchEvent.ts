@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { fetchEvent } from '@/server/actions/events';
+import { eventConverter } from '@/server/lib/converters/eventConverter';
 
 /**
  * React Query hook for fetching a single event by ID
@@ -16,7 +17,8 @@ export function useFetchEvent(userId: string, eventId: string) {
     queryKey: ['fetchEvent', userId, eventId],
     queryFn: async () => {
       if (!userId || !eventId) return Promise.resolve(null);
-      return await fetchEvent(userId, eventId);
+      const { id, document } = await fetchEvent(userId, eventId);
+      return eventConverter.fromFirestore(id, document);
     },
     enabled: !!userId && !!eventId,
     staleTime: 5 * 60 * 1000, // 5 minutes

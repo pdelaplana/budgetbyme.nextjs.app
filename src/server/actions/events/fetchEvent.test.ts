@@ -104,19 +104,15 @@ describe('fetchEvent', () => {
       data: () => mockEventData,
     });
 
-    // Mock converter
-    vi.mocked(eventConverter.fromFirestore).mockReturnValue(mockEvent);
-
     const result = await fetchEvent(mockUserId, mockEventId);
 
-    expect(result).toEqual(mockEvent);
+    expect(result).toEqual({
+      id: mockEventId,
+      document: mockEventData,
+    });
     expect(db.collection).toHaveBeenCalledWith('workspaces');
     expect(mockDoc).toHaveBeenCalledWith(mockUserId);
     expect(mockCollection).toHaveBeenCalledWith('events');
-    expect(eventConverter.fromFirestore).toHaveBeenCalledWith(
-      mockEventId,
-      mockEventData,
-    );
   });
 
   it('should return null when event does not exist', async () => {
@@ -125,10 +121,9 @@ describe('fetchEvent', () => {
       exists: false,
     });
 
-    const result = await fetchEvent(mockUserId, mockEventId);
-
-    expect(result).toBeNull();
-    expect(eventConverter.fromFirestore).not.toHaveBeenCalled();
+    await expect(fetchEvent(mockUserId, mockEventId)).rejects.toThrow(
+      'Event not found',
+    );
   });
 
   it('should throw error when userId is missing', async () => {

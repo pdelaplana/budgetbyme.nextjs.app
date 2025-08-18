@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { renderHook } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
+import { Timestamp } from 'firebase-admin/firestore';
 import {
   beforeEach,
   describe,
@@ -10,6 +11,7 @@ import {
   vi,
 } from 'vitest';
 import { fetchEvent } from '@/server/actions/events';
+import { eventConverter } from '@/server/lib/converters/eventConverter';
 import type { Event } from '@/types/Event';
 import { useFetchEvent } from './useFetchEvent';
 
@@ -18,7 +20,15 @@ vi.mock('@/server/actions/events', () => ({
   fetchEvent: vi.fn(),
 }));
 
+// Mock the eventConverter
+vi.mock('@/server/lib/converters/eventConverter', () => ({
+  eventConverter: {
+    fromFirestore: vi.fn(),
+  },
+}));
+
 const mockFetchEvent = fetchEvent as MockedFunction<typeof fetchEvent>;
+const mockEventConverter = vi.mocked(eventConverter);
 
 // Mock data
 const mockEvent: Event = {
@@ -57,7 +67,27 @@ describe('useFetchEvent', () => {
   });
 
   it('should fetch single event successfully', async () => {
-    mockFetchEvent.mockResolvedValueOnce(mockEvent);
+    const mockTimestamp = Timestamp.fromDate(new Date('2024-12-25'));
+    const mockRawEvent = {
+      id: 'event123',
+      document: {
+        name: 'Test Wedding',
+        type: 'wedding',
+        description: 'A beautiful wedding celebration',
+        eventDate: mockTimestamp,
+        totalBudgetedAmount: 50000,
+        totalSpentAmount: 10000,
+        status: 'on-track',
+        currency: 'AUD',
+        _createdDate: mockTimestamp,
+        _createdBy: 'user123',
+        _updatedDate: mockTimestamp,
+        _updatedBy: 'user123',
+      },
+    };
+
+    mockFetchEvent.mockResolvedValueOnce(mockRawEvent);
+    mockEventConverter.fromFirestore.mockReturnValue(mockEvent);
 
     const { result } = renderHook(() => useFetchEvent('user123', 'event123'), {
       wrapper: TestWrapper,
@@ -78,7 +108,7 @@ describe('useFetchEvent', () => {
   });
 
   it('should return null when event not found', async () => {
-    mockFetchEvent.mockResolvedValueOnce(null);
+    mockFetchEvent.mockRejectedValueOnce(new Error('Event not found'));
 
     const { result } = renderHook(
       () => useFetchEvent('user123', 'nonexistent'),
@@ -88,12 +118,15 @@ describe('useFetchEvent', () => {
     );
 
     // Wait for the query to resolve
-    await vi.waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+    await vi.waitFor(
+      () => {
+        expect(result.current.isError).toBe(true);
+      },
+      { timeout: 5000 },
+    );
 
-    expect(result.current.data).toBe(null);
-    expect(result.current.error).toBe(null);
+    expect(result.current.data).toBeUndefined();
+    expect(result.current.error).toBeTruthy();
     expect(mockFetchEvent).toHaveBeenCalledWith('user123', 'nonexistent');
   });
 
@@ -151,7 +184,26 @@ describe('useFetchEvent', () => {
   });
 
   it('should use correct query key', async () => {
-    mockFetchEvent.mockResolvedValueOnce(mockEvent);
+    const mockTimestamp = Timestamp.fromDate(new Date('2024-12-25'));
+    const mockRawEvent = {
+      id: 'event123',
+      document: {
+        name: 'Test Wedding',
+        type: 'wedding',
+        eventDate: mockTimestamp,
+        totalBudgetedAmount: 50000,
+        totalSpentAmount: 10000,
+        status: 'on-track',
+        currency: 'AUD',
+        _createdDate: mockTimestamp,
+        _createdBy: 'user123',
+        _updatedDate: mockTimestamp,
+        _updatedBy: 'user123',
+      },
+    };
+
+    mockFetchEvent.mockResolvedValueOnce(mockRawEvent);
+    mockEventConverter.fromFirestore.mockReturnValue(mockEvent);
 
     const { result } = renderHook(() => useFetchEvent('user123', 'event123'), {
       wrapper: TestWrapper,
