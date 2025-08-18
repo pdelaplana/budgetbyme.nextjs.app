@@ -1,7 +1,7 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { EventDocument } from '@/server/types/EventDocument';
-import { Currency } from '@/types/currencies';
+import { CurrencyImplementation } from '@/types/currencies';
 import type { Event } from '@/types/Event';
 import { eventConverter } from './eventConverter';
 
@@ -57,7 +57,7 @@ describe('eventConverter', () => {
         totalSpentAmount: 35000,
         spentPercentage: 70,
         status: 'on-track',
-        currency: Currency.USD,
+        currency: CurrencyImplementation.USD,
         _createdDate: createdDate,
         _createdBy: 'user123',
         _updatedDate: updatedDate,
@@ -103,7 +103,7 @@ describe('eventConverter', () => {
         totalBudgetedAmount: 2000,
         totalSpentAmount: 500,
         status: 'under-budget',
-        currency: Currency.AUD,
+        currency: CurrencyImplementation.AUD,
         // Missing dates and other fields
       };
 
@@ -140,7 +140,7 @@ describe('eventConverter', () => {
         totalBudgetedAmount: 0,
         totalSpentAmount: 0,
         status: 'completed',
-        currency: Currency.USD,
+        currency: CurrencyImplementation.USD,
       };
 
       // Act
@@ -159,7 +159,7 @@ describe('eventConverter', () => {
         type: 'other',
         eventDate: new Date('2024-08-15T00:00:00Z'),
         status: 'on-track',
-        currency: Currency.PHP,
+        currency: CurrencyImplementation.PHP,
       };
 
       // Act
@@ -223,7 +223,7 @@ describe('eventConverter', () => {
         totalSpentAmount: 35000,
         spentPercentage: 70, // Calculated: (35000 / 50000) * 100
         status: 'on-track',
-        currency: Currency.USD, // Converted from string
+        currency: CurrencyImplementation.USD, // Converted from string
         _createdDate: createdDate,
         _createdBy: 'user123',
         _updatedDate: updatedDate,
@@ -371,7 +371,7 @@ describe('eventConverter', () => {
         totalSpentAmount: 2800,
         spentPercentage: 93,
         status: 'on-track',
-        currency: Currency.USD,
+        currency: CurrencyImplementation.USD,
         _createdDate: new Date('2024-01-15T10:30:00Z'),
         _createdBy: 'test-user',
         _updatedDate: new Date('2024-01-20T14:45:00Z'),
@@ -435,7 +435,7 @@ describe('eventConverter', () => {
         totalBudgetedAmount: 1000000,
         totalSpentAmount: 999999,
         status: 'on-track',
-        currency: Currency.USD,
+        currency: CurrencyImplementation.USD,
       };
 
       // Act
@@ -457,7 +457,7 @@ describe('eventConverter', () => {
         totalBudgetedAmount: 15000,
         totalSpentAmount: 12000,
         status: 'under-budget',
-        currency: Currency.PHP,
+        currency: CurrencyImplementation.PHP,
       };
 
       // Act

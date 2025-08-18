@@ -2,8 +2,6 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
-import type { Event } from '@/types/Event';
-import { eventConverter } from '../../lib/converters/eventConverter';
 import { db } from '../../lib/firebase-admin';
 import { withSentryServerAction } from '../../lib/sentryServerAction';
 import type { EventDocument } from '../../types/EventDocument';
@@ -27,7 +25,7 @@ export interface UpdateEventDto {
  */
 export const updateEvent = withSentryServerAction(
   'updateEvent',
-  async (updateEventDto: UpdateEventDto): Promise<Event> => {
+  async (updateEventDto: UpdateEventDto): Promise<string> => {
     if (!updateEventDto.userId) throw new Error('User ID is required');
     if (!updateEventDto.eventId) throw new Error('Event ID is required');
 
@@ -125,13 +123,7 @@ export const updateEvent = withSentryServerAction(
         },
       });
 
-      // Return the updated event
-      const updatedEvent = eventConverter.fromFirestore(
-        eventRef.id,
-        updatedEventDocument as EventDocument,
-      );
-
-      return updatedEvent;
+      return eventRef.id;
     } catch (error) {
       console.error('Error updating event:', error);
 

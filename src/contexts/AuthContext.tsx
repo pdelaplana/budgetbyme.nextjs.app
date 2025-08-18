@@ -15,7 +15,7 @@ import type React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { auth } from '@/lib/firebase';
 import { setupUserWorkspace } from '@/server/actions/setupUserWorkspace';
-import { Currency } from '@/types/currencies';
+import { CurrencyImplementation } from '@/types/currencies';
 
 interface AuthContextType {
   user: User | null;
@@ -82,7 +82,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         name: fullName,
         preferences: {
           language: 'en',
-          currency: Currency.USD.code,
+          currency: CurrencyImplementation.USD.code,
         },
       });
 

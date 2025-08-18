@@ -51,7 +51,7 @@ export const fetchEvents = withSentryServerAction(
         return [];
       }
 
-      // Convert all documents from Firestore format to Event
+      // Convert all documents from Firestore format to Event (serializable for client-server communication)
       const events = snapshot.docs.map((doc) => {
         return eventConverter.fromFirestore(
           doc.id,

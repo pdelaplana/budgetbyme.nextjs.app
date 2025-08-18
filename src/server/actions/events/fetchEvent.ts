@@ -54,7 +54,7 @@ export const fetchEvent = withSentryServerAction(
         return null; // Event doesn't exist or user doesn't have access
       }
 
-      // Convert from Firestore format to Event
+      // Convert from Firestore format to Event (serializable for client-server communication)
       const event = eventConverter.fromFirestore(
         eventDoc.id,
         eventDoc.data() as EventDocument,

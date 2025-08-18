@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import type { EventDocument } from '@/server/types/EventDocument';
-import { Currency } from '@/types/currencies';
+import { type Currency, CurrencyImplementation } from '@/types/currencies';
 import type { Event, EventStatus, EventType } from '@/types/Event';
 import type { DocumentConverter } from './common';
 
@@ -13,7 +13,7 @@ export const eventConverter: DocumentConverter<EventDocument, Event> = {
       id,
       _createdDate,
       _updatedDate,
-      spentPercentage: _, // Exclude calculated field from storage
+      spentPercentage: _,
       ...firestoreFields
     } = event;
 
@@ -48,12 +48,15 @@ export const eventConverter: DocumentConverter<EventDocument, Event> = {
         ? Math.round((rest.totalSpentAmount / totalBudgetedAmount) * 100)
         : 0;
 
+    const currency = rest.currency
+      ? (CurrencyImplementation.fromCode(rest.currency) as Currency)
+      : CurrencyImplementation.AUD;
     return {
       ...rest,
       id: id,
       // Map field name difference with null safety
       eventDate: rest.eventDate?.toDate() || new Date(),
-      currency: Currency.fromCode(rest.currency) || Currency.AUD,
+      currency,
       totalBudgetedAmount,
       spentPercentage,
       // Ensure proper typing

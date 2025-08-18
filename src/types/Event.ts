@@ -1,3 +1,4 @@
+// Remove Currency class import to avoid serialization issues
 import type { Currency } from './currencies';
 import type { Entity } from './Entity';
 

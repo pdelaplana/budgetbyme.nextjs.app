@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { Currency } from '@/types/currencies';
+import { Currency, CurrencyImplementation } from '@/types/currencies';
 import type { Event } from '@/types/Event';
 import { eventConverter } from '../../lib/converters/eventConverter';
 import { db } from '../../lib/firebase-admin';
@@ -67,7 +67,7 @@ describe('fetchEvents', () => {
     totalSpentAmount: 500,
     spentPercentage: 50,
     status: 'on-track',
-    currency: Currency.AUD,
+    currency: CurrencyImplementation.AUD,
     _createdDate: new Date('2023-11-01'),
     _createdBy: 'user123',
     _updatedDate: new Date('2023-11-01'),

@@ -13,7 +13,7 @@ export interface AddEventDto {
   name: string;
   type: string;
   description?: string;
-  eventDate: Date;
+  eventDate: string | Date; // Accept both string and Date for flexibility
   totalBudgetedAmount: number;
   currency: string;
   status?: string;
@@ -25,7 +25,7 @@ export interface AddEventDto {
  */
 export const addEvent = withSentryServerAction(
   'addEvent',
-  async (addEventDto: AddEventDto): Promise<Event> => {
+  async (addEventDto: AddEventDto): Promise<string> => {
     if (!addEventDto.userId) throw new Error('User ID is required');
     if (!addEventDto.name?.trim()) throw new Error('Event name is required');
     if (!addEventDto.eventDate) throw new Error('Event date is required');
@@ -68,7 +68,11 @@ export const addEvent = withSentryServerAction(
         name: addEventDto.name.trim(),
         type: addEventDto.type,
         description: addEventDto.description?.trim(),
-        eventDate: Timestamp.fromDate(addEventDto.eventDate),
+        eventDate: Timestamp.fromDate(
+          typeof addEventDto.eventDate === 'string'
+            ? new Date(addEventDto.eventDate)
+            : addEventDto.eventDate,
+        ),
         totalBudgetedAmount: addEventDto.totalBudgetedAmount,
         totalSpentAmount: 0, // Start with zero spent
         status: addEventDto.status, // Default status
@@ -94,13 +98,7 @@ export const addEvent = withSentryServerAction(
         },
       });
 
-      // Return the created event
-      const createdEvent = eventConverter.fromFirestore(
-        newEventRef.id,
-        newEventDocument as EventDocument,
-      );
-
-      return createdEvent;
+      return newEventRef.id;
     } catch (error) {
       console.error('Error creating event:', error);
 

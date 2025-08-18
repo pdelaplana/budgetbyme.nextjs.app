@@ -2,6 +2,7 @@
 
 import type React from 'react';
 import { useEffect } from 'react';
+import { Toaster } from 'sonner';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { EventsProvider } from '@/contexts/EventsContext';
 import QueryProvider from './ReactQueryProvider';
@@ -44,7 +45,10 @@ export default function ClientProvider({ children }: ClientProviderProps) {
   return (
     <QueryProvider>
       <AuthProvider>
-        <EventsProvider>{children}</EventsProvider>
+        <EventsProvider>
+          {children}
+          <Toaster position="top-right" richColors />
+        </EventsProvider>
       </AuthProvider>
     </QueryProvider>
   );
