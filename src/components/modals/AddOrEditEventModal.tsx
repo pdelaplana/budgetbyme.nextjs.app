@@ -10,7 +10,7 @@ import {
 import React, { use, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAddEventMutation } from '@/hooks/events';
+import { useAddEventMutation, useUpdateEventMutation } from '@/hooks/events';
 import type { Event } from '@/types/Event';
 import {
   getEventIcon,
@@ -59,7 +59,10 @@ export default function AddOrEditEventModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { user } = useAuth();
-  const { mutateAsync, isPending } = useAddEventMutation();
+  const { mutateAsync: addMutateAsync, isPending: isAddPending } = useAddEventMutation();
+  const { mutateAsync: updateMutateAsync, isPending: isUpdatePending } = useUpdateEventMutation();
+  
+  const isPending = isAddPending || isUpdatePending;
 
   // Prevent body scroll when modal is open
   useEffect(() => {
@@ -160,28 +163,48 @@ export default function AddOrEditEventModal({
     }
 
     if (!user) {
-      toast.error('You must be signed in to create an event.');
+      toast.error('You must be signed in to ' + (isEditMode ? 'update' : 'create') + ' an event.');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const addEventDTO = {
-        userId: user.uid,
-        name: formData.name.trim(),
-        type: formData.type,
-        description: formData.description.trim(),
-        eventDate: formData.eventDate, // Keep as string, let server action handle Date conversion
-        totalBudgetedAmount: Number(formData.totalBudget),
-        currency: 'AUD',
-        status: 'on-track',
-      };
+      let eventId: string;
 
-      const eventId = await mutateAsync({
-        userId: user.uid,
-        addEventDTO,
-      });
+      if (isEditMode && editingEvent) {
+        // Update existing event
+        const updateEventDTO = {
+          userId: user.uid,
+          eventId: editingEvent.id,
+          name: formData.name.trim(),
+          type: formData.type,
+          description: formData.description.trim(),
+          eventDate: new Date(formData.eventDate),
+          totalBudgetedAmount: Number(formData.totalBudget),
+          currency: 'AUD',
+          status: 'on-track',
+        };
+
+        eventId = await updateMutateAsync(updateEventDTO);
+      } else {
+        // Create new event
+        const addEventDTO = {
+          userId: user.uid,
+          name: formData.name.trim(),
+          type: formData.type,
+          description: formData.description.trim(),
+          eventDate: formData.eventDate, // Keep as string, let server action handle Date conversion
+          totalBudgetedAmount: Number(formData.totalBudget),
+          currency: 'AUD',
+          status: 'on-track',
+        };
+
+        eventId = await addMutateAsync({
+          userId: user.uid,
+          addEventDTO,
+        });
+      }
 
       // Show success toast
       toast.success(

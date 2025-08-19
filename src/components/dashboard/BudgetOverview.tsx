@@ -1,0 +1,63 @@
+'use client';
+
+import React from 'react';
+import TabbedCharts from '@/components/dashboard/TabbedCharts';
+import type { Event } from '@/types/Event';
+
+interface BudgetOverviewProps {
+  event: Event;
+  categories: any[];
+}
+
+// Generate timeline data based on current event totals and event date
+const generateTimelineData = (event: Event) => {
+  const eventDate = new Date(event.eventDate);
+  const currentDate = new Date();
+  const monthsUntilEvent = Math.max(1, Math.ceil((eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+  
+  // Create timeline showing gradual budget allocation leading up to event
+  const timeline = [];
+  const monthlyBudget = event.totalBudgetedAmount / Math.max(monthsUntilEvent, 6); // Spread over 6 months or time until event
+  
+  for (let i = 0; i < Math.min(monthsUntilEvent + 2, 12); i++) {
+    const month = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
+    const monthStr = month.toISOString().slice(0, 7); // YYYY-MM format
+    
+    timeline.push({
+      date: monthStr,
+      budgeted: Math.round(monthlyBudget * (i + 1)),
+      actual: i === 0 ? event.totalSpentAmount : 0, // Only show actual spending for current month
+    });
+  }
+  
+  return timeline;
+};
+
+export default function BudgetOverview({ event, categories }: BudgetOverviewProps) {
+  return (
+    <div className='mb-6 sm:mb-8'>
+      <TabbedCharts
+        budgetData={{
+          totalBudget: event.totalBudgetedAmount,
+          totalSpent: event.totalSpentAmount,
+          percentage: event.spentPercentage,
+          status:
+            event.status === 'completed'
+              ? 'on-track'
+              : event.status === 'under-budget'
+                ? 'under-budget'
+                : (event.status as any),
+        }}
+        timelineData={generateTimelineData(event)}
+        categoryData={categories}
+        quickStatsData={{
+          totalBudget: event.totalBudgetedAmount,
+          totalSpent: event.totalSpentAmount,
+          categories: categories.length,
+          paymentsDue: 0, // Will be updated when expense system is implemented
+          eventDate: event.eventDate,
+        }}
+      />
+    </div>
+  );
+}

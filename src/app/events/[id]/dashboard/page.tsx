@@ -4,9 +4,9 @@ import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import ExpensesList from '@/components/dashboard/ExpensesList';
-import TabbedCharts from '@/components/dashboard/TabbedCharts';
-import UpcomingPayments from '@/components/dashboard/UpcomingPayments';
+import BudgetOverview from '@/components/dashboard/BudgetOverview';
+import PaymentsSection from '@/components/dashboard/PaymentsSection';
+import BudgetCategoriesSection from '@/components/dashboard/BudgetCategoriesSection';
 import AddCategoryModal from '@/components/modals/AddCategoryModal';
 import AddOrEditEventModal from '@/components/modals/AddOrEditEventModal';
 import AddExpenseModal from '@/components/modals/AddExpenseModal';
@@ -14,45 +14,7 @@ import ExpenseDetailModal from '@/components/modals/ExpenseDetailModal';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
 
-// Mock payments data
-const mockPayments = [
-  {
-    id: '1',
-    name: 'Venue Balance',
-    amount: 2500,
-    dueDate: '2024-03-15',
-    daysUntilDue: 3,
-    category: 'Venue & Reception',
-    priority: 'high' as const,
-  },
-  {
-    id: '2',
-    name: 'Catering Deposit',
-    amount: 1800,
-    dueDate: '2024-03-20',
-    daysUntilDue: 8,
-    category: 'Catering & Beverages',
-    priority: 'medium' as const,
-  },
-  {
-    id: '3',
-    name: 'Photography Session',
-    amount: 500,
-    dueDate: '2024-03-25',
-    daysUntilDue: 13,
-    category: 'Photography & Video',
-    priority: 'low' as const,
-  },
-];
 
-const mockTimelineData = [
-  { date: '2024-01', budgeted: 1000, actual: 800 },
-  { date: '2024-02', budgeted: 2500, actual: 2200 },
-  { date: '2024-03', budgeted: 4000, actual: 3800 },
-  { date: '2024-04', budgeted: 6000, actual: 0 },
-  { date: '2024-05', budgeted: 8000, actual: 0 },
-  { date: '2024-06', budgeted: 12000, actual: 0 },
-];
 
 export default function EventDashboardPage() {
   const router = useRouter();
@@ -286,80 +248,17 @@ export default function EventDashboardPage() {
       </div>
 
       {/* Charts Section - Responsive */}
-      <div className='mb-6 sm:mb-8'>
-        <TabbedCharts
-          budgetData={{
-            totalBudget: currentEvent.totalBudgetedAmount,
-            totalSpent: currentEvent.totalSpentAmount,
-            percentage: currentEvent.spentPercentage,
-            status:
-              currentEvent.status === 'completed'
-                ? 'on-track'
-                : currentEvent.status === 'under-budget'
-                  ? 'under-budget'
-                  : (currentEvent.status as any),
-          }}
-          timelineData={mockTimelineData}
-          categoryData={categories}
-          quickStatsData={{
-            totalBudget: currentEvent.totalBudgetedAmount,
-            totalSpent: currentEvent.totalSpentAmount,
-            categories: categories.length,
-            paymentsDue: mockPayments.length,
-            eventDate: currentEvent.eventDate,
-          }}
-        />
-      </div>
+      <BudgetOverview event={currentEvent} categories={categories} />
 
       {/* Upcoming Payments Widget - Compact */}
-      <div className='mb-4 sm:mb-6'>
-        <div className='card'>
-          <div className='border-b border-gray-200 pb-3 mb-4'>
-            <h2 className='text-base sm:text-lg font-semibold text-gray-900'>
-              Due Soon ({mockPayments.length})
-            </h2>
-          </div>
-          <UpcomingPayments payments={mockPayments} />
-        </div>
-      </div>
+      <PaymentsSection onGetStarted={() => setShowAddCategoryModal(true)} />
 
       {/* Budget Categories List */}
-      <div className='card'>
-        <div className='card-header'>
-          <h2 className='text-heading font-semibold text-gray-900'>
-            Budget Categories
-          </h2>
-        </div>
-        
-        {/* Empty state for categories */}
-        <div className='p-6 text-center'>
-          <div className='mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 mb-4'>
-            <svg className='h-6 w-6 text-gray-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10' />
-            </svg>
-          </div>
-          <h3 className='text-lg font-medium text-gray-900 mb-2'>
-            No Budget Categories Yet
-          </h3>
-          <p className='text-gray-600 mb-6 max-w-md mx-auto'>
-            Start organizing your event budget by creating categories like "Venue", "Catering", "Photography", etc. This will help you track expenses more effectively.
-          </p>
-          <div className='space-y-3'>
-            <button
-              onClick={() => setShowAddCategoryModal(true)}
-              className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors duration-200'
-            >
-              <svg className='h-4 w-4 mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
-              </svg>
-              Create Your First Category
-            </button>
-            <div className='text-xs text-gray-500'>
-              Popular categories: Venue • Catering • Photography • Flowers • Music
-            </div>
-          </div>
-        </div>
-      </div>
+      <BudgetCategoriesSection 
+        categories={categories}
+        onCategoryClick={handleCategoryClick}
+        onCreateFirstCategory={() => setShowAddCategoryModal(true)}
+      />
 
       {/* Add Expense Modal */}
       <AddExpenseModal
