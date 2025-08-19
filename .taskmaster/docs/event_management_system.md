@@ -227,9 +227,45 @@ Server Actions (⚠️ Needed):
 
 ## 6. Implementation Details
 
+### State Management Architecture
+
+#### Context Hierarchy
+```
+EventsContext (Global)
+    ↓ selectedEvent
+EventDetailsContext (Event Detail Pages)
+    ↓ event + related data + operations
+Dashboard/Categories/Expenses Pages
+```
+
+**EventsContext Responsibilities:**
+- Global event list management (`events[]`)
+- Selected event state (`selectedEvent`)
+- Event selection operations (`selectEventById`, `setSelectedEvent`)
+- Events list fetching and caching
+
+**EventDetailsContext Responsibilities:**
+- Single event focus (syncs with EventsContext.selectedEvent)
+- Related data management (expenses, categories, payments)
+- Event-specific operations (update event, CRUD operations)
+- Granular loading states and error handling
+- Optimistic updates for better UX
+
+#### Context Integration
+```typescript
+// EventDetailsContext automatically syncs with EventsContext
+const { selectedEvent } = useEvents();
+const { event, expenses, categories, updateEvent } = useEventDetails();
+// event === selectedEvent (automatically synced)
+```
+
 ### Component Architecture (Current + Enhancements)
 ```
 src/
+├── contexts/ (🔄 Enhanced Architecture)
+│   ├── EventsContext.tsx (✅ Global events list management)
+│   ├── EventDetailsContext.tsx (🔄 NEW - Single event + related data)
+│   └── index.ts
 ├── hooks/
 │   └── events/ (✅ Complete with tests)
 │       ├── index.ts
@@ -252,11 +288,14 @@ src/
 │       ├── AddEventModal.tsx (⚠️ exists but NOT connected to hooks)
 │       ├── EditEventModal.tsx (⚠️ needs creation + hook integration)
 │       └── InviteCollaboratorModal.tsx
-├── pages/ (⚠️ UI Integration Critical)
+├── app/
 │   ├── events/
-│   │   ├── page.tsx (⚠️ needs useFetchEvents integration)
+│   │   ├── page.tsx (✅ Uses EventsContext)
 │   │   └── [id]/
-│   │       └── page.tsx (⚠️ needs useFetchEvent integration)
+│   │       ├── layout.tsx (🔄 NEW - EventDetailsProvider wrapper)
+│   │       ├── dashboard/page.tsx (🔄 Uses EventDetailsContext)
+│   │       ├── categories/page.tsx (🔄 Uses EventDetailsContext)
+│   │       └── expenses/page.tsx (🔄 Uses EventDetailsContext)
 ├── server/
 │   └── actions/
 │       └── events/ (✅ Partially complete)

@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import type React from 'react';
 import { useState } from 'react';
 import Sidebar from '@/components/layouts/Sidebar';
-import AddEventModal from '@/components/modals/AddEventModal';
+import AddOrEditEventModal from '@/components/modals/AddOrEditEventModal';
 import { useEvents } from '@/contexts/EventsContext';
 
 interface RootLayoutProps {
@@ -112,7 +112,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       </div>
 
       {/* Add Event Modal */}
-      <AddEventModal
+      <AddOrEditEventModal
         isOpen={showAddEventModal}
         onClose={() => setShowAddEventModal(false)}
       />

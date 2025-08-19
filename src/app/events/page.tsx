@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import RootLayout from '@/components/layouts/RootLayout';
-import AddEventModal from '@/components/modals/AddEventModal';
+import AddOrEditEventModal from '@/components/modals/AddOrEditEventModal';
 import { useEvents } from '@/contexts/EventsContext';
 
 export default function EventsPage() {
@@ -266,7 +266,7 @@ export default function EventsPage() {
         </div>
 
         {/* Add Event Modal */}
-        <AddEventModal
+        <AddOrEditEventModal
           isOpen={showAddEvent}
           onClose={() => setShowAddEvent(false)}
         />

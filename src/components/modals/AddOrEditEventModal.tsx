@@ -11,10 +11,10 @@ import React, { use, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAddEventMutation } from '@/hooks/events';
+import type { Event } from '@/types/Event';
 import {
   getEventIcon,
   getEventTypeLabel,
-  type Event,
 } from '@/lib/mockData/events';
 
 interface EventFormData {
@@ -25,9 +25,11 @@ interface EventFormData {
   totalBudget: string;
 }
 
-interface AddEventModalProps {
+interface AddOrEditEventModalProps {
   isOpen: boolean;
   onClose: () => void;
+  editingEvent?: Event | null;
+  isEditMode?: boolean;
 }
 
 const eventTypes: Event['type'][] = [
@@ -40,10 +42,12 @@ const eventTypes: Event['type'][] = [
   'other',
 ];
 
-export default function AddEventModal({
+export default function AddOrEditEventModal({
   isOpen,
   onClose,
-}: AddEventModalProps) {
+  editingEvent,
+  isEditMode = false,
+}: AddOrEditEventModalProps) {
   const [formData, setFormData] = useState<EventFormData>({
     name: '',
     type: 'other',
@@ -69,6 +73,21 @@ export default function AddEventModal({
       document.body.style.overflow = 'unset';
     };
   }, [isOpen]);
+
+  // Populate form when editing event
+  useEffect(() => {
+    if (isOpen && isEditMode && editingEvent) {
+      setFormData({
+        name: editingEvent.name,
+        type: editingEvent.type,
+        description: editingEvent.description || '',
+        eventDate: editingEvent.eventDate instanceof Date 
+          ? editingEvent.eventDate.toISOString().split('T')[0]
+          : new Date(editingEvent.eventDate).toISOString().split('T')[0],
+        totalBudget: editingEvent.totalBudgetedAmount.toString(),
+      });
+    }
+  }, [isOpen, isEditMode, editingEvent]);
 
   // Reset form when modal closes
   useEffect(() => {
@@ -166,7 +185,9 @@ export default function AddEventModal({
 
       // Show success toast
       toast.success(
-        `"${formData.name.trim()}" has been created successfully! You can now start adding expenses and tracking your budget.`,
+        isEditMode
+          ? `"${formData.name.trim()}" has been updated successfully!`
+          : `"${formData.name.trim()}" has been created successfully! You can now start adding expenses and tracking your budget.`,
       );
 
       // Reset form and close modal immediately
@@ -240,11 +261,18 @@ export default function AddEventModal({
               <CalendarIcon className='h-6 w-6 text-primary-600 flex-shrink-0' />
               <div className='flex-1 min-w-0'>
                 <h2 className='text-lg sm:text-xl font-semibold text-gray-900'>
-                  <span className='hidden sm:inline'>Create New Event</span>
-                  <span className='sm:hidden'>New Event</span>
+                  <span className='hidden sm:inline'>
+                    {isEditMode ? 'Edit Event' : 'Create New Event'}
+                  </span>
+                  <span className='sm:hidden'>
+                    {isEditMode ? 'Edit Event' : 'New Event'}
+                  </span>
                 </h2>
                 <p className='text-sm text-gray-600'>
-                  Set up a new event to track your budget and expenses
+                  {isEditMode 
+                    ? 'Update your event details and budget information'
+                    : 'Set up a new event to track your budget and expenses'
+                  }
                 </p>
               </div>
             </div>
@@ -453,13 +481,13 @@ export default function AddEventModal({
             >
               <span className='hidden sm:inline'>
                 {isSubmitting || isPending
-                  ? 'Creating Event...'
-                  : 'Create Event'}
+                  ? (isEditMode ? 'Updating Event...' : 'Creating Event...')
+                  : (isEditMode ? 'Update Event' : 'Create Event')}
               </span>
               <span className='sm:hidden'>
                 {isSubmitting || isPending
-                  ? 'Creating...'
-                  : 'Create'}
+                  ? (isEditMode ? 'Updating...' : 'Creating...')
+                  : (isEditMode ? 'Update' : 'Create')}
               </span>
             </button>
           </div>

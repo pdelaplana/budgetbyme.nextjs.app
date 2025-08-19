@@ -8,8 +8,10 @@ import ExpensesList from '@/components/dashboard/ExpensesList';
 import TabbedCharts from '@/components/dashboard/TabbedCharts';
 import UpcomingPayments from '@/components/dashboard/UpcomingPayments';
 import AddCategoryModal from '@/components/modals/AddCategoryModal';
+import AddOrEditEventModal from '@/components/modals/AddOrEditEventModal';
 import AddExpenseModal from '@/components/modals/AddExpenseModal';
 import ExpenseDetailModal from '@/components/modals/ExpenseDetailModal';
+import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
 
 // Mock payments data
@@ -56,13 +58,14 @@ export default function EventDashboardPage() {
   const router = useRouter();
   const params = useParams();
   const eventId = params?.id as string;
+  const { events, isLoading, selectEventById } = useEvents();
   const { 
-    events, 
-    selectedEvent, 
-    selectEventById, 
-    isLoading, 
-    isLoadingSelectedEvent 
-  } = useEvents();
+    event: currentEvent,
+    isEventLoading,
+    eventError,
+    categories,
+    expenses
+  } = useEventDetails();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
@@ -71,16 +74,14 @@ export default function EventDashboardPage() {
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [isEditCategoryMode, setIsEditCategoryMode] = useState(false);
+  const [showEditEventModal, setShowEditEventModal] = useState(false);
 
-  // Set the selected event when the component mounts or eventId changes
+  // Set the selected event when events are loaded and we have an eventId
   useEffect(() => {
-    if (eventId && events.length > 0) {
+    if (eventId && events.length > 0 && !isLoading) {
       selectEventById(eventId);
     }
-  }, [eventId, events, selectEventById]);
-
-  // Use selectedEvent instead of finding it manually
-  const currentEvent = selectedEvent;
+  }, [eventId, events.length, isLoading, selectEventById]);
 
   // Safety check - don't render if currentEvent is null
   if (!currentEvent) {
@@ -97,6 +98,7 @@ export default function EventDashboardPage() {
   }
 
   const dropdownItems = [
+    { id: 'edit-event', label: 'Edit Event', icon: '✏️' },
     { id: 'add-expense', label: 'Add Expense', icon: '💰' },
     { id: 'add-payment', label: 'Record Payment', icon: '💳' },
     { id: 'add-category', label: 'New Category', icon: '📊' },
@@ -107,6 +109,9 @@ export default function EventDashboardPage() {
     setDropdownOpen(false);
 
     switch (actionId) {
+      case 'edit-event':
+        setShowEditEventModal(true);
+        break;
       case 'add-expense':
         setShowAddExpenseModal(true);
         break;
@@ -168,8 +173,8 @@ export default function EventDashboardPage() {
     console.log('Delete expense:', expenseId);
   };
 
-  // Show loading state while events are being fetched or selected event is loading
-  if (isLoading || (eventId && events.length > 0 && !currentEvent)) {
+  // Show loading state while events list or individual event is being loaded
+  if (isLoading || isEventLoading) {
     return (
       <DashboardLayout>
         <div className='flex items-center justify-center py-12'>
@@ -182,8 +187,28 @@ export default function EventDashboardPage() {
     );
   }
 
+  // Show error state if there's an error
+  if (eventError) {
+    return (
+      <DashboardLayout>
+        <div className='flex items-center justify-center py-12'>
+          <div className='text-center'>
+            <h2 className='text-2xl font-bold text-gray-900 mb-2'>Error Loading Event</h2>
+            <p className='text-gray-600 mb-4'>{eventError}</p>
+            <button
+              onClick={() => router.push('/events')}
+              className='btn-primary'
+            >
+              Back to Events
+            </button>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   // Show 404 state if event not found after events are loaded
-  if (eventId && events.length > 0 && !currentEvent) {
+  if (!currentEvent && !isLoading && events.length >= 0) {
     return (
       <DashboardLayout>
         <div className='flex items-center justify-center py-12'>
@@ -275,11 +300,11 @@ export default function EventDashboardPage() {
                   : (currentEvent.status as any),
           }}
           timelineData={mockTimelineData}
-          categoryData={[]}
+          categoryData={categories}
           quickStatsData={{
             totalBudget: currentEvent.totalBudgetedAmount,
             totalSpent: currentEvent.totalSpentAmount,
-            categories: 0,
+            categories: categories.length,
             paymentsDue: mockPayments.length,
             eventDate: currentEvent.eventDate,
           }}
@@ -340,7 +365,7 @@ export default function EventDashboardPage() {
       <AddExpenseModal
         isOpen={showAddExpenseModal}
         onClose={() => setShowAddExpenseModal(false)}
-        categories={[]}
+        categories={categories}
       />
 
       {/* Expense Detail Modal */}
@@ -367,6 +392,14 @@ export default function EventDashboardPage() {
         isEditMode={isEditCategoryMode}
         onUpdateCategory={handleUpdateCategory}
         onAddCategory={handleAddCategory}
+      />
+
+      {/* Edit Event Modal */}
+      <AddOrEditEventModal
+        isOpen={showEditEventModal}
+        onClose={() => setShowEditEventModal(false)}
+        editingEvent={currentEvent}
+        isEditMode={true}
       />
     </DashboardLayout>
   );

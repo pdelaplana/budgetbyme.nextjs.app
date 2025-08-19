@@ -3,14 +3,14 @@
 import type React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useFetchEvents } from '@/hooks/events';
+import { useFetchEvents, useFetchEvent } from '@/hooks/events';
 import type { Event } from '@/types/Event';
 
 interface EventsContextType {
   events: Event[];
   selectedEvent: Event | null;
   setSelectedEvent: (event: Event | null) => void;
-  selectEventById: (eventId: string) => void;
+  selectEventById: (eventId: string) => Promise<void>;
   addEvent: (event: Omit<Event, 'id' | 'createdAt'>) => void;
   updateEvent: (eventId: string, updates: Partial<Event>) => void;
   deleteEvent: (eventId: string) => void;
