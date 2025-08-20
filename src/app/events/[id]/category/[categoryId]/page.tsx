@@ -16,9 +16,9 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline';
 import { useParams, useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import AddCategoryModal from '@/components/modals/AddCategoryModal';
+import AddOrEditCategoryModal from '@/components/modals/AddOrEditCategoryModal';
 import AddExpenseModal from '@/components/modals/AddExpenseModal';
 import PaymentScheduleModal from '@/components/modals/PaymentScheduleModal';
 import ActionDropdown, {
@@ -26,6 +26,7 @@ import ActionDropdown, {
 } from '@/components/ui/ActionDropdown';
 import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 import { useEvents } from '@/contexts/EventsContext';
+import { useEventDetails } from '@/contexts/EventDetailsContext';
 
 // Mock data - in real app this would come from API based on event ID and category ID
 const mockCategories = {
@@ -176,7 +177,15 @@ export default function CategoryPage() {
   const params = useParams();
   const eventId = params?.id as string;
   const categoryId = params?.categoryId as string;
-  const { events } = useEvents();
+  const { events, isLoading, selectEventById } = useEvents();
+  const { event: currentEvent, categories, isCategoriesLoading, isEventLoading } = useEventDetails();
+
+  // Auto-select event when accessing directly via URL
+  useEffect(() => {
+    if (eventId && events.length > 0 && !isLoading) {
+      selectEventById(eventId);
+    }
+  }, [eventId, events.length, isLoading, selectEventById]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'date' | 'amount' | 'name'>('date');
@@ -187,12 +196,29 @@ export default function CategoryPage() {
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [isEditCategoryMode, setIsEditCategoryMode] = useState(false);
 
-  // Find the current event
-  const currentEvent = events.find((event) => event.id === eventId);
-  const category = mockCategories[categoryId as keyof typeof mockCategories];
-  const expenses = mockExpenses[categoryId as keyof typeof mockExpenses] || [];
+  // Find the current category from EventDetailsContext
+  const category = categories.find((cat) => cat.id === categoryId);
+  const expenses = []; // TODO: Implement expenses from EventDetailsContext when available
 
-  if (!currentEvent || !category) {
+  // Loading state - show while event or categories are being fetched
+  if (isLoading || isEventLoading || isCategoriesLoading || !currentEvent) {
+    return (
+      <DashboardLayout>
+        <div className='text-center py-12'>
+          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4'></div>
+          <h1 className='text-xl font-semibold text-gray-900 mb-2'>
+            Loading Category...
+          </h1>
+          <p className='text-sm text-gray-600'>
+            Please wait while we load your category details
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Not found state - only check for category since currentEvent is already verified above
+  if (!category) {
     return (
       <DashboardLayout>
         <div className='text-center py-12'>
@@ -214,12 +240,14 @@ export default function CategoryPage() {
   }
 
   const formatCurrency = (amount: number) => {
+    // Ensure amount is a valid number
+    const validAmount = isNaN(amount) || amount == null ? 0 : amount;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(validAmount);
   };
 
   const formatDate = (dateString: string) => {
@@ -262,7 +290,8 @@ export default function CategoryPage() {
     }
   };
 
-  const remaining = category.budgeted - category.spent;
+  const remaining = category ? (category.budgetedAmount ?? 0) - (category.spentAmount ?? 0) : 0;
+  const percentage = category && (category.budgetedAmount ?? 0) > 0 ? Math.round(((category.spentAmount ?? 0) / (category.budgetedAmount ?? 0)) * 100) : 0;
 
   // Breadcrumb items
   const breadcrumbItems: BreadcrumbItem[] = [
@@ -289,14 +318,14 @@ export default function CategoryPage() {
         <div className='flex items-start justify-between'>
           <div className='flex items-start space-x-3 sm:space-x-4 flex-1 min-w-0'>
             <span className='text-3xl sm:text-4xl flex-shrink-0'>
-              {getCategoryIcon(category.name)}
+              {category.icon || '🎉'}
             </span>
             <div className='flex-1 min-w-0'>
               <h1 className='text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight'>
                 {category.name}
               </h1>
               <p className='text-sm sm:text-base text-gray-600 mt-1'>
-                {category.description}
+                {category.description || 'Track and manage expenses for this budget category'}
               </p>
             </div>
           </div>
@@ -370,7 +399,7 @@ export default function CategoryPage() {
                   Budgeted:
                 </span>
                 <span className='font-semibold text-sm sm:text-base'>
-                  {formatCurrency(category.budgeted)}
+                  {formatCurrency(category.budgetedAmount ?? 0)}
                 </span>
               </div>
               <div className='flex justify-between items-center'>
@@ -378,7 +407,7 @@ export default function CategoryPage() {
                   Spent:
                 </span>
                 <span className='font-semibold text-sm sm:text-base'>
-                  {formatCurrency(category.spent)}
+                  {formatCurrency(category.spentAmount ?? 0)}
                 </span>
               </div>
               <div className='flex justify-between items-center border-t pt-2 sm:pt-3'>
@@ -399,13 +428,13 @@ export default function CategoryPage() {
             <div className='flex items-center justify-center lg:justify-center h-16 sm:h-20'>
               <div className='text-center'>
                 <div className='text-2xl sm:text-3xl font-bold text-gray-900 mb-1'>
-                  {category.percentage}%
+                  {percentage}%
                 </div>
                 <div className='w-24 sm:w-32 bg-gray-200 rounded-full h-2 sm:h-3'>
                   <div
                     className='h-2 sm:h-3 rounded-full transition-all duration-500'
                     style={{
-                      width: `${Math.min(category.percentage, 100)}%`,
+                      width: `${Math.min(percentage, 100)}%`,
                       backgroundColor: category.color,
                     }}
                   />
@@ -436,13 +465,15 @@ export default function CategoryPage() {
                 Start by adding your first expense to this category
               </p>
             </div>
-            <button
-              onClick={() => setShowAddExpense(true)}
-              className='btn-primary w-full sm:w-auto'
-            >
-              <PlusIcon className='h-4 w-4 mr-2' />
-              Add First Expense
-            </button>
+            <div className='flex justify-center'>
+              <button
+                onClick={() => setShowAddExpense(true)}
+                className='btn-primary w-full sm:w-auto sm:min-w-[180px] flex items-center justify-center'
+              >
+                <PlusIcon className='h-4 w-4 mr-2 flex-shrink-0' />
+                <span>Add First Expense</span>
+              </button>
+            </div>
           </div>
         ) : (
           <div className='space-y-2 sm:space-y-3'>
@@ -591,30 +622,25 @@ export default function CategoryPage() {
       />
 
       {/* Add/Edit Category Modal */}
-      <AddCategoryModal
+      <AddOrEditCategoryModal
         isOpen={showAddCategoryModal}
         onClose={() => {
           setShowAddCategoryModal(false);
           setIsEditCategoryMode(false);
         }}
         editingCategory={
-          isEditCategoryMode
+          isEditCategoryMode && category
             ? {
-                id: category.id,
-                name: category.name,
-                budget: category.budgeted,
-                description: category.description,
-                color: category.color,
+                id: category.id || '',
+                name: category.name || '',
+                budgetedAmount: category.budgetedAmount ?? 0,
+                description: category.description || '',
+                color: category.color || '#059669',
+                icon: category.icon || '🎉',
               }
             : null
         }
         isEditMode={isEditCategoryMode}
-        onUpdateCategory={(categoryId, categoryData) => {
-          console.log('Update category:', categoryId, categoryData);
-        }}
-        onAddCategory={(categoryData) => {
-          console.log('Add new category:', categoryData);
-        }}
       />
     </DashboardLayout>
   );

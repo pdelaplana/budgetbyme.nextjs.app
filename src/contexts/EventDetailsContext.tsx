@@ -3,7 +3,10 @@
 import type React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useEvents } from '@/contexts/EventsContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useFetchCategories } from '@/hooks/categories';
 import type { Event } from '@/types/Event';
+import type { BudgetCategory } from '@/types/BudgetCategory';
 
 interface EventDetailsContextType {
   // Core event data
@@ -11,26 +14,24 @@ interface EventDetailsContextType {
   isEventLoading: boolean;
   eventError: string | null;
   
-  // Related data (future expansion)
-  expenses: any[];
-  categories: any[];
+  // Related data
+  expenses: any[]; // Future: will be Expense[]
+  categories: BudgetCategory[];
   
   // Loading states
   isExpensesLoading: boolean;
   isCategoriesLoading: boolean;
+  categoriesError: string | null;
   
   // Operations
   refreshEvent: () => Promise<void>;
+  refreshCategories: () => Promise<void>;
   updateEvent: (updates: Partial<Event>) => Promise<void>;
   
-  // Future operations (placeholders)
+  // Future operations (placeholders for expenses)
   addExpense: (expense: any) => Promise<void>;
   updateExpense: (id: string, updates: any) => Promise<void>;
   deleteExpense: (id: string) => Promise<void>;
-  
-  addCategory: (category: any) => Promise<void>;
-  updateCategory: (id: string, updates: any) => Promise<void>;
-  deleteCategory: (id: string) => Promise<void>;
 }
 
 const EventDetailsContext = createContext<EventDetailsContextType | undefined>(undefined);
@@ -41,44 +42,53 @@ interface EventDetailsProviderProps {
 
 export function EventDetailsProvider({ children }: EventDetailsProviderProps) {
   const { selectedEvent, isLoadingSelectedEvent, refetch } = useEvents();
+  const { user } = useAuth();
   
   // Local state for event details
   const [event, setEvent] = useState<Event | null>(null);
   const [eventError, setEventError] = useState<string | null>(null);
   
-  // Related data (future implementation)
+  // Related data (future implementation for expenses)
   const [expenses, setExpenses] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  
-  // Loading states
   const [isExpensesLoading, setIsExpensesLoading] = useState(false);
-  const [isCategoriesLoading, setIsCategoriesLoading] = useState(false);
+  
+  // Categories data from React Query
+  const {
+    data: categories = [],
+    isLoading: isCategoriesLoading,
+    error: categoriesQueryError,
+    refetch: refetchCategories,
+  } = useFetchCategories(user?.uid || '', event?.id || '');
+  
+  const categoriesError = categoriesQueryError?.message || null;
   
   // Sync with EventsContext selectedEvent
   useEffect(() => {
     setEvent(selectedEvent);
     setEventError(null);
     
-    // Clear related data when event changes
+    // Clear expenses data when event changes (categories are handled by React Query)
     if (selectedEvent?.id !== event?.id) {
       setExpenses([]);
-      setCategories([]);
     }
   }, [selectedEvent, event?.id]);
   
-  // Future: Load related data when event changes
-  useEffect(() => {
-    if (event?.id) {
-      // TODO: Load expenses and categories for this event
-      // loadEventRelatedData(event.id);
-    }
-  }, [event?.id]);
+  // Categories are automatically loaded by the useFetchCategories hook
+  // when user and event IDs change
   
   const refreshEvent = async () => {
     try {
       await refetch();
     } catch (error) {
       setEventError(error instanceof Error ? error.message : 'Failed to refresh event');
+    }
+  };
+  
+  const refreshCategories = async () => {
+    try {
+      await refetchCategories();
+    } catch (error) {
+      console.error('Failed to refresh categories:', error);
     }
   };
   
@@ -101,35 +111,20 @@ export function EventDetailsProvider({ children }: EventDetailsProviderProps) {
     }
   };
   
-  // Future operation placeholders
+  // Future operation placeholders (expenses only)
   const addExpense = async (expense: any) => {
-    // TODO: Implement expense operations
+    // TODO: Implement expense operations when expense system is ready
     console.log('Add expense:', expense);
   };
   
   const updateExpense = async (id: string, updates: any) => {
-    // TODO: Implement expense operations
+    // TODO: Implement expense operations when expense system is ready
     console.log('Update expense:', id, updates);
   };
   
   const deleteExpense = async (id: string) => {
-    // TODO: Implement expense operations
+    // TODO: Implement expense operations when expense system is ready
     console.log('Delete expense:', id);
-  };
-  
-  const addCategory = async (category: any) => {
-    // TODO: Implement category operations
-    console.log('Add category:', category);
-  };
-  
-  const updateCategory = async (id: string, updates: any) => {
-    // TODO: Implement category operations
-    console.log('Update category:', id, updates);
-  };
-  
-  const deleteCategory = async (id: string) => {
-    // TODO: Implement category operations
-    console.log('Delete category:', id);
   };
   
   const contextValue: EventDetailsContextType = {
@@ -145,18 +140,17 @@ export function EventDetailsProvider({ children }: EventDetailsProviderProps) {
     // Loading states
     isExpensesLoading,
     isCategoriesLoading,
+    categoriesError,
     
     // Operations
     refreshEvent,
+    refreshCategories,
     updateEvent,
     
-    // Future operations
+    // Future operations (expense placeholders)
     addExpense,
     updateExpense,
     deleteExpense,
-    addCategory,
-    updateCategory,
-    deleteCategory,
   };
   
   return (

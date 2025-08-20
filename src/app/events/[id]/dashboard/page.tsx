@@ -7,7 +7,7 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import BudgetOverview from '@/components/dashboard/BudgetOverview';
 import PaymentsSection from '@/components/dashboard/PaymentsSection';
 import BudgetCategoriesSection from '@/components/dashboard/BudgetCategoriesSection';
-import AddCategoryModal from '@/components/modals/AddCategoryModal';
+import AddOrEditCategoryModal from '@/components/modals/AddOrEditCategoryModal';
 import AddOrEditEventModal from '@/components/modals/AddOrEditEventModal';
 import AddExpenseModal from '@/components/modals/AddExpenseModal';
 import ExpenseDetailModal from '@/components/modals/ExpenseDetailModal';
@@ -280,7 +280,7 @@ export default function EventDashboardPage() {
       />
 
       {/* Add/Edit Category Modal */}
-      <AddCategoryModal
+      <AddOrEditCategoryModal
         isOpen={showAddCategoryModal}
         onClose={() => {
           setShowAddCategoryModal(false);

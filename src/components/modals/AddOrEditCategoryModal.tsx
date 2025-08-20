@@ -8,27 +8,33 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import React, { useState } from 'react';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import { useAddCategoryMutation, useUpdateCategoryMutation } from '@/hooks/categories';
+import { useEventDetails } from '@/contexts/EventDetailsContext';
+import { useAuth } from '@/contexts/AuthContext';
+import IconSelector from '@/components/ui/IconSelector';
 
 interface CategoryFormData {
   name: string;
   budget: string;
   description: string;
   color: string;
+  icon: string;
 }
 
-interface AddCategoryModalProps {
+interface AddOrEditCategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
   editingCategory?: {
     id: string;
     name: string;
-    budget: number;
+    budgetedAmount: number;
     description?: string;
     color: string;
+    icon: string;
   } | null;
   isEditMode?: boolean;
-  onUpdateCategory?: (categoryId: string, categoryData: any) => void;
-  onAddCategory?: (categoryData: any) => void;
 }
 
 const PRESET_COLORS = [
@@ -46,31 +52,77 @@ const PRESET_COLORS = [
   '#7C2D12', // amber-800
 ];
 
-export default function AddCategoryModal({
+export default function AddOrEditCategoryModal({
   isOpen,
   onClose,
   editingCategory,
   isEditMode = false,
-  onUpdateCategory,
-  onAddCategory,
-}: AddCategoryModalProps) {
+}: AddOrEditCategoryModalProps) {
+  // Hooks
+  const { user } = useAuth();
+  const { event } = useEventDetails();
+  const router = useRouter();
+  const addCategoryMutation = useAddCategoryMutation({
+    onSuccess: (categoryId) => {
+      // Close modal immediately for better UX
+      handleClose();
+      
+      // Show success toast
+      toast.success('Category created successfully!');
+      
+      // Navigate after a brief delay to allow query invalidation to start
+      if (event?.id && categoryId) {
+        setTimeout(() => {
+          router.push(`/events/${event.id}/category/${categoryId}`);
+        }, 100);
+      }
+    },
+    onError: (error) => {
+      console.error('Failed to add category:', error);
+      toast.error(error.message || 'Failed to create category. Please try again.');
+    },
+  });
+  const updateCategoryMutation = useUpdateCategoryMutation({
+    onSuccess: () => {
+      console.log('✅ Update category success handler called - isSubmitting:', updateCategoryMutation.isPending);
+      
+      // Show success toast first
+      toast.success('Category updated successfully!');
+      
+      // Force close the modal immediately without checking isSubmitting
+      console.log('🚪 Force closing modal from success handler');
+      handleClose(true);
+      
+      // No need to navigate - stay on the same category page
+    },
+    onError: (error) => {
+      console.error('❌ Failed to update category:', error);
+      toast.error(error.message || 'Failed to update category. Please try again.');
+    },
+  });
+
+  // Form state
   const [formData, setFormData] = useState<CategoryFormData>({
     name: '',
     budget: '',
     description: '',
     color: PRESET_COLORS[0],
+    icon: '🎉',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Loading state from mutations
+  const isSubmitting = addCategoryMutation.isPending || updateCategoryMutation.isPending;
 
   // Pre-populate form when editing
   React.useEffect(() => {
     if (editingCategory && isEditMode) {
       setFormData({
-        name: editingCategory.name,
-        budget: editingCategory.budget.toString(),
+        name: editingCategory.name || '',
+        budget: (editingCategory.budgetedAmount ?? 0).toString(),
         description: editingCategory.description || '',
-        color: editingCategory.color,
+        color: editingCategory.color || PRESET_COLORS[0],
+        icon: editingCategory.icon || '🎉',
       });
     } else if (!isOpen) {
       // Reset form when modal closes
@@ -79,6 +131,7 @@ export default function AddCategoryModal({
         budget: '',
         description: '',
         color: PRESET_COLORS[0],
+        icon: '🎉',
       });
       setErrors({});
     }
@@ -119,12 +172,16 @@ export default function AddCategoryModal({
 
     if (!formData.budget.trim()) {
       newErrors.budget = 'Budget amount is required';
-    } else if (isNaN(Number(formData.budget)) || Number(formData.budget) <= 0) {
-      newErrors.budget = 'Please enter a valid budget amount';
+    } else if (isNaN(Number(formData.budget)) || Number(formData.budget) < 0) {
+      newErrors.budget = 'Please enter a valid budget amount (zero or positive)';
     }
 
     if (!formData.color) {
       newErrors.color = 'Please select a color';
+    }
+
+    if (!formData.icon) {
+      newErrors.icon = 'Please select an icon';
     }
 
     setErrors(newErrors);
@@ -133,55 +190,83 @@ export default function AddCategoryModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🚀 Form submitted - isEditMode:', isEditMode, 'editingCategory:', editingCategory?.id);
 
     if (!validateForm()) {
+      console.log('❌ Form validation failed');
       return;
     }
 
-    setIsSubmitting(true);
+    // Validate required context
+    if (!user?.uid) {
+      console.error('User not authenticated');
+      return;
+    }
+
+    if (!event?.id) {
+      console.error('No event selected');
+      return;
+    }
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (isEditMode && editingCategory) {
+        console.log('🔄 Attempting to update category:', editingCategory.id);
+        // Update existing category
+        const updateDto = {
+          userId: user.uid,
+          eventId: event.id,
+          categoryId: editingCategory.id,
+          name: formData.name.trim(),
+          description: formData.description.trim() || undefined,
+          budgetedAmount: Number(formData.budget),
+          color: formData.color.trim(),
+          icon: formData.icon,
+        };
 
-      const categoryData = {
-        ...formData,
-        budget: Number(formData.budget),
-      };
+        console.log('📦 Update DTO:', updateDto);
+        await updateCategoryMutation.mutateAsync(updateDto);
+        console.log('✅ Update mutation completed');
+      } else {
+        // Add new category
+        const addDto = {
+          userId: user.uid,
+          eventId: event.id,
+          name: formData.name.trim(),
+          description: formData.description.trim() || undefined,
+          budgetedAmount: Number(formData.budget),
+          color: formData.color.trim(),
+          icon: formData.icon,
+        };
 
-      if (isEditMode && editingCategory && onUpdateCategory) {
-        console.log('Updating category:', editingCategory.id, categoryData);
-        onUpdateCategory(editingCategory.id, categoryData);
-      } else if (onAddCategory) {
-        console.log('Adding new category:', categoryData);
-        onAddCategory(categoryData);
+        await addCategoryMutation.mutateAsync({
+          userId: user.uid,
+          eventId: event.id,
+          addCategoryDto: addDto,
+        });
       }
 
-      // Reset form and close modal
-      setFormData({
-        name: '',
-        budget: '',
-        description: '',
-        color: PRESET_COLORS[0],
-      });
-      onClose();
+      // Success handling is done in mutation callbacks
     } catch (error) {
+      // Error handling is done in mutation callbacks
       console.error('Error submitting category:', error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
-  const handleClose = () => {
-    if (!isSubmitting) {
+  const handleClose = (force = false) => {
+    console.log('🚪 handleClose called - isSubmitting:', isSubmitting, 'force:', force);
+    if (!isSubmitting || force) {
+      console.log('✅ Closing modal - clearing form and calling onClose');
       setFormData({
         name: '',
         budget: '',
         description: '',
         color: PRESET_COLORS[0],
+        icon: '🎉',
       });
       setErrors({});
       onClose();
+    } else {
+      console.log('❌ Modal not closing because isSubmitting is true');
     }
   };
 
@@ -231,7 +316,9 @@ export default function AddCategoryModal({
           <form
             id='category-form'
             onSubmit={handleSubmit}
-            className='space-y-6 sm:space-y-8'
+            className={`space-y-6 sm:space-y-8 transition-opacity duration-200 ${
+              isSubmitting ? 'opacity-50 pointer-events-none' : 'opacity-100'
+            }`}
           >
             {/* Category Name */}
             <div>
@@ -279,6 +366,20 @@ export default function AddCategoryModal({
               {errors.budget && (
                 <p className='mt-1 text-sm text-red-600'>{errors.budget}</p>
               )}
+            </div>
+
+            {/* Icon Selection */}
+            <div>
+              <label className='form-label'>
+                <TagIcon className='h-4 w-4 inline mr-2' />
+                Category Icon
+              </label>
+              <IconSelector
+                value={formData.icon}
+                onChange={(icon) => handleInputChange('icon', icon)}
+                disabled={isSubmitting}
+                error={errors.icon}
+              />
             </div>
 
             {/* Color Selection */}
@@ -338,10 +439,13 @@ export default function AddCategoryModal({
                 Preview
               </h4>
               <div className='flex items-center gap-3'>
-                <div
-                  className='w-4 h-4 rounded-full flex-shrink-0'
-                  style={{ backgroundColor: formData.color }}
-                />
+                <div className='flex items-center gap-2'>
+                  <span className='text-lg'>{formData.icon}</span>
+                  <div
+                    className='w-4 h-4 rounded-full flex-shrink-0'
+                    style={{ backgroundColor: formData.color }}
+                  />
+                </div>
                 <div className='flex-1 min-w-0'>
                   <p className='font-medium text-gray-900'>
                     {formData.name || 'Category Name'}
@@ -371,26 +475,17 @@ export default function AddCategoryModal({
             <button
               type='submit'
               form='category-form'
-              className='btn-primary flex-1 order-1 sm:order-2'
+              className='btn-primary flex-1 order-1 sm:order-2 flex items-center justify-center'
               disabled={isSubmitting}
             >
+              {isSubmitting && (
+                <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'></div>
+              )}
               <span className='hidden sm:inline'>
-                {isSubmitting
-                  ? isEditMode
-                    ? 'Updating Category...'
-                    : 'Adding Category...'
-                  : isEditMode
-                    ? 'Update Category'
-                    : 'Add Category'}
+                {isEditMode ? 'Update Category' : 'Add Category'}
               </span>
               <span className='sm:hidden'>
-                {isSubmitting
-                  ? isEditMode
-                    ? 'Updating...'
-                    : 'Adding...'
-                  : isEditMode
-                    ? 'Update'
-                    : 'Add'}
+                {isEditMode ? 'Update' : 'Add'}
               </span>
             </button>
           </div>

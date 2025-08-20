@@ -1,8 +1,10 @@
-import type { Entity } from './Entityntity';
+import type { Entity } from './Entity';
 
 export interface BudgetCategory extends Entity {
   name: string;
-  budgettedAmount: number;
+  description: string;
+  budgetedAmount: number;
   spentAmount: number;
   color: string;
+  icon: string;
 }

@@ -1,0 +1,112 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions for authentication and ownership
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isValidUserId(userId) {
+      return userId is string && userId.size() > 0;
+    }
+    
+    function hasValidTimestamps() {
+      return resource.data._createdDate is timestamp 
+        && resource.data._updatedDate is timestamp
+        && resource.data._createdBy is string
+        && resource.data._updatedBy is string;
+    }
+
+    // User workspaces - only the user can access their own workspace
+    match /workspaces/{userId} {
+      allow read, write: if isOwner(userId) && isValidUserId(userId);
+      
+      // Events within a user's workspace
+      match /events/{eventId} {
+        allow read, write: if isOwner(userId);
+        
+        // Budget categories within an event
+        match /categories/{categoryId} {
+          allow read, write: if isOwner(userId);
+          
+          // Validation for category documents
+          allow create: if isOwner(userId) 
+            && request.resource.data.keys().hasAll([
+              'name', 'budgettedAmount', 'spentAmount', 'color',
+              '_createdDate', '_createdBy', '_updatedDate', '_updatedBy'
+            ])
+            && request.resource.data.name is string
+            && request.resource.data.name.size() > 0
+            && request.resource.data.name.size() <= 100
+            && request.resource.data.budgettedAmount is number
+            && request.resource.data.budgettedAmount >= 0
+            && request.resource.data.spentAmount is number
+            && request.resource.data.spentAmount >= 0
+            && request.resource.data.color is string
+            && request.resource.data.color.size() > 0
+            && request.resource.data.color.matches('^#[0-9A-Fa-f]{6}$')
+            && request.resource.data._createdBy == request.auth.uid
+            && request.resource.data._updatedBy == request.auth.uid;
+            
+          allow update: if isOwner(userId)
+            && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['name', 'description', 'budgettedAmount', 'color', '_updatedDate', '_updatedBy'])
+            && request.resource.data._updatedBy == request.auth.uid
+            && (
+              !request.resource.data.diff(resource.data).affectedKeys().hasAny(['name']) ||
+              (request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100)
+            )
+            && (
+              !request.resource.data.diff(resource.data).affectedKeys().hasAny(['budgettedAmount']) ||
+              (request.resource.data.budgettedAmount is number && request.resource.data.budgettedAmount >= 0)
+            )
+            && (
+              !request.resource.data.diff(resource.data).affectedKeys().hasAny(['color']) ||
+              (request.resource.data.color is string && request.resource.data.color.matches('^#[0-9A-Fa-f]{6}$'))
+            );
+        }
+        
+        // Expenses within an event (future implementation)
+        match /expenses/{expenseId} {
+          allow read, write: if isOwner(userId);
+          
+          // Basic validation for expense documents
+          allow create: if isOwner(userId)
+            && request.resource.data.keys().hasAll([
+              'description', 'amount', 'category', 'date',
+              '_createdDate', '_createdBy', '_updatedDate', '_updatedBy'
+            ])
+            && request.resource.data.description is string
+            && request.resource.data.description.size() > 0
+            && request.resource.data.amount is number
+            && request.resource.data.amount > 0
+            && request.resource.data.category is map
+            && request.resource.data.category.keys().hasAll(['id', 'name', 'color'])
+            && request.resource.data._createdBy == request.auth.uid
+            && request.resource.data._updatedBy == request.auth.uid;
+        }
+        
+        // Payment schedules within an event (future implementation)
+        match /paymentSchedules/{scheduleId} {
+          allow read, write: if isOwner(userId);
+        }
+        
+        // Payments within an event (future implementation)
+        match /payments/{paymentId} {
+          allow read, write: if isOwner(userId);
+        }
+      }
+    }
+    
+    // Global deny rule for any other paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

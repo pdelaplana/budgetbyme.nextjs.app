@@ -1,10 +1,11 @@
 'use client';
 
 import React from 'react';
-import ExpensesList from '@/components/dashboard/ExpensesList';
+import BudgetCategoriesList from '@/components/dashboard/BudgetCategoriesList';
+import type { BudgetCategory } from '@/types/BudgetCategory';
 
 interface BudgetCategoriesSectionProps {
-  categories: any[];
+  categories: BudgetCategory[];
   onCategoryClick: (categoryId: string) => void;
   onCreateFirstCategory: () => void;
 }
@@ -25,9 +26,10 @@ export default function BudgetCategoriesSection({
       </div>
       
       {hasCategories ? (
-        <ExpensesList
+        <BudgetCategoriesList
           categories={categories}
           onCategoryClick={onCategoryClick}
+          onCreateCategory={onCreateFirstCategory}
         />
       ) : (
         /* Empty state for categories */

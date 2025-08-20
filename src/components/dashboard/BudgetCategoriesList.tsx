@@ -1,33 +1,29 @@
 'use client';
 
-import { ChevronRightIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon, PlusIcon } from '@heroicons/react/24/outline';
 import React from 'react';
+import type { BudgetCategory } from '@/types/BudgetCategory';
 
-interface Category {
-  id: string;
-  name: string;
-  budgeted: number;
-  spent: number;
-  percentage: number;
-  color: string;
-}
-
-interface ExpensesListProps {
-  categories: Category[];
+interface BudgetCategoriesListProps {
+  categories: BudgetCategory[];
   onCategoryClick?: (categoryId: string) => void;
+  onCreateCategory?: () => void;
 }
 
-export default function ExpensesList({
+export default function BudgetCategoriesList({
   categories,
   onCategoryClick,
-}: ExpensesListProps) {
+  onCreateCategory,
+}: BudgetCategoriesListProps) {
   const formatCurrency = (amount: number) => {
+    // Ensure amount is a valid number
+    const validAmount = isNaN(amount) || amount == null ? 0 : amount;
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(validAmount);
   };
 
   const getCategoryIcon = (name: string) => {
@@ -56,7 +52,7 @@ export default function ExpensesList({
     return 'danger-100';
   };
 
-  const handleCategoryClick = (category: Category) => {
+  const handleCategoryClick = (category: BudgetCategory) => {
     if (onCategoryClick) {
       onCategoryClick(category.id);
     }
@@ -65,9 +61,14 @@ export default function ExpensesList({
   return (
     <div className='space-y-3 sm:space-y-4'>
       {categories.map((category) => {
-        const remaining = category.budgeted - category.spent;
-        const progressColor = getProgressColor(category.percentage);
-        const progressBgColor = getProgressBgColor(category.percentage);
+        // Calculate values from BudgetCategory properties with safety checks
+        const budgeted = category.budgetedAmount ?? 0;
+        const spent = category.spentAmount ?? 0;
+        const percentage = budgeted > 0 ? Math.round((spent / budgeted) * 100) : 0;
+        const remaining = budgeted - spent;
+        
+        const progressColor = getProgressColor(percentage);
+        const progressBgColor = getProgressBgColor(percentage);
 
         return (
           <div
@@ -79,7 +80,7 @@ export default function ExpensesList({
               {/* Category Info */}
               <div className='flex items-center flex-1 min-w-0'>
                 <span className='text-lg sm:text-2xl mr-3 sm:mr-4 flex-shrink-0'>
-                  {getCategoryIcon(category.name)}
+                  {category.icon || '🎉'}
                 </span>
                 <div className='flex-1 min-w-0'>
                   <div className='flex items-center justify-between mb-2'>
@@ -93,15 +94,15 @@ export default function ExpensesList({
                   <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3'>
                     <div className='text-xs sm:text-sm text-gray-600 mb-1 sm:mb-0'>
                       <span className='font-medium text-gray-900'>
-                        {formatCurrency(category.spent)}
+                        {formatCurrency(spent)}
                       </span>
                       {' of '}
                       <span className='font-medium text-gray-700'>
-                        {formatCurrency(category.budgeted)}
+                        {formatCurrency(budgeted)}
                       </span>
                     </div>
                     <div className='text-xs sm:text-sm font-medium text-gray-900 self-start sm:self-auto'>
-                      {category.percentage}%
+                      {percentage}%
                     </div>
                   </div>
 
@@ -111,7 +112,7 @@ export default function ExpensesList({
                       <div
                         className={`h-2 rounded-full transition-all duration-500 bg-${progressColor}`}
                         style={{
-                          width: `${Math.min(category.percentage, 100)}%`,
+                          width: `${Math.min(percentage, 100)}%`,
                         }}
                       />
                     </div>
@@ -140,6 +141,28 @@ export default function ExpensesList({
         );
       })}
 
+      {/* Add Category Button */}
+      {onCreateCategory && (
+        <div
+          onClick={onCreateCategory}
+          className='group p-3 sm:p-4 rounded-lg border-2 border-dashed border-gray-300 hover:border-primary-400 hover:bg-primary-50 transition-all duration-200 cursor-pointer'
+        >
+          <div className='flex items-center justify-center'>
+            <div className='flex items-center space-x-3 text-gray-500 group-hover:text-primary-600'>
+              <div className='flex-shrink-0'>
+                <PlusIcon className='h-6 w-6' />
+              </div>
+              <div className='text-center'>
+                <p className='text-sm font-medium'>Add New Category</p>
+                <p className='text-xs text-gray-400 group-hover:text-primary-500'>
+                  Create a budget category for your event
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Summary Footer */}
       <div className='mt-6 pt-4 border-t border-gray-200'>
         <div className='flex justify-between items-center'>
@@ -149,19 +172,19 @@ export default function ExpensesList({
           <div className='text-right'>
             <div className='text-body font-semibold text-gray-900'>
               {formatCurrency(
-                categories.reduce((sum, cat) => sum + cat.spent, 0),
+                categories.reduce((sum, cat) => sum + (cat.spentAmount ?? 0), 0),
               )}
               {' of '}
               {formatCurrency(
-                categories.reduce((sum, cat) => sum + cat.budgeted, 0),
+                categories.reduce((sum, cat) => sum + (cat.budgetedAmount ?? 0), 0),
               )}
             </div>
             <div className='text-body-sm text-gray-600'>
-              {Math.round(
-                (categories.reduce((sum, cat) => sum + cat.spent, 0) /
-                  categories.reduce((sum, cat) => sum + cat.budgeted, 0)) *
-                  100,
-              )}
+              {(() => {
+                const totalSpent = categories.reduce((sum, cat) => sum + (cat.spentAmount ?? 0), 0);
+                const totalBudgeted = categories.reduce((sum, cat) => sum + (cat.budgetedAmount ?? 0), 0);
+                return totalBudgeted > 0 ? Math.round((totalSpent / totalBudgeted) * 100) : 0;
+              })()}
               % of total budget used
             </div>
           </div>
