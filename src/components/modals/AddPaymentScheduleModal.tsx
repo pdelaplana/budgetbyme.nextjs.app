@@ -8,62 +8,144 @@ import {
   PlusIcon,
   TrashIcon,
   XMarkIcon,
+  CheckCircleIcon,
 } from '@heroicons/react/24/outline';
 import React, { useState } from 'react';
+import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { useEventDetails } from '@/contexts/EventDetailsContext';
+import { useCreatePaymentScheduleMutation, useUpdatePaymentScheduleMutation } from '@/hooks/payments';
+import type { PaymentMethod, Payment } from '@/types/Payment';
 
 interface PaymentScheduleItem {
   id: string;
+  name: string;
   description: string;
   amount: string;
+  paymentMethod: PaymentMethod | '';
   dueDate: string;
   notes: string;
 }
 
-interface AddPaymentScheduleModalProps {
+interface PaymentScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
   expenseId: string;
   expenseName: string;
   totalAmount: number;
+  existingPayments?: Payment[]; // For editing existing schedule
+  mode?: 'create' | 'edit';
   onCreateSchedule?: (
     payments: Array<{
+      name: string;
       description: string;
       amount: number;
+      paymentMethod: PaymentMethod;
+      dueDate: string;
+      notes?: string;
+    }>,
+  ) => void;
+  onUpdateSchedule?: (
+    payments: Array<{
+      name: string;
+      description: string;
+      amount: number;
+      paymentMethod: PaymentMethod;
       dueDate: string;
       notes?: string;
     }>,
   ) => void;
 }
 
-export default function AddPaymentScheduleModal({
+const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
+  { value: 'credit-card', label: 'Credit Card' },
+  { value: 'debit-card', label: 'Debit Card' },
+  { value: 'bank-transfer', label: 'Bank Transfer' },
+  { value: 'paypal', label: 'PayPal' },
+  { value: 'cash', label: 'Cash' },
+];
+
+export default function PaymentScheduleModal({
   isOpen,
   onClose,
   expenseId,
   expenseName,
   totalAmount,
+  existingPayments,
+  mode = 'create',
   onCreateSchedule,
-}: AddPaymentScheduleModalProps) {
-  const [payments, setPayments] = useState<PaymentScheduleItem[]>([
-    {
-      id: 'payment-1',
-      description: 'Initial Deposit',
-      amount: Math.round(totalAmount * 0.5).toString(),
-      dueDate: '',
-      notes: 'Booking confirmation payment',
-    },
-    {
-      id: 'payment-2',
-      description: 'Final Payment',
-      amount: (totalAmount - Math.round(totalAmount * 0.5)).toString(),
-      dueDate: '',
-      notes: 'Remaining balance',
-    },
-  ]);
+  onUpdateSchedule,
+}: PaymentScheduleModalProps) {
+  // Hooks
+  const { user } = useAuth();
+  const { event } = useEventDetails();
+  
+  // Initialize payments based on mode
+  const getInitialPayments = (): PaymentScheduleItem[] => {
+    if (mode === 'edit' && existingPayments && existingPayments.length > 0) {
+      return existingPayments.map((payment) => ({
+        id: payment.id,
+        name: payment.name,
+        description: payment.description,
+        amount: payment.amount.toString(),
+        paymentMethod: payment.paymentMethod,
+        dueDate: payment.dueDate.toISOString().split('T')[0],
+        notes: payment.notes || '',
+      }));
+    }
+    
+    return [
+      {
+        id: 'payment-1',
+        name: 'Initial Deposit',
+        description: 'Booking confirmation payment',
+        amount: Math.round(totalAmount * 0.5).toString(),
+        paymentMethod: 'cash',
+        dueDate: '',
+        notes: '',
+      },
+      {
+        id: 'payment-2',
+        name: 'Final Payment', 
+        description: 'Remaining balance payment',
+        amount: (totalAmount - Math.round(totalAmount * 0.5)).toString(),
+        paymentMethod: 'cash',
+        dueDate: '',
+        notes: '',
+      },
+    ];
+  };
+
+  const [payments, setPayments] = useState<PaymentScheduleItem[]>(getInitialPayments());
 
   const [errors, setErrors] = useState<Record<string, Record<string, string>>>(
     {},
   );
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Mutations
+  const createPaymentScheduleMutation = useCreatePaymentScheduleMutation({
+    onSuccess: () => {
+      toast.success(`Payment schedule created with ${payments.length} payments!`);
+      resetForm();
+      onClose();
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to create payment schedule');
+    },
+  });
+
+  const updatePaymentScheduleMutation = useUpdatePaymentScheduleMutation({
+    onSuccess: () => {
+      toast.success(`Payment schedule updated with ${payments.length} payments!`);
+      resetForm();
+      onClose();
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to update payment schedule');
+    },
+  });
+  
+  const isSubmitting = createPaymentScheduleMutation.isPending || updatePaymentScheduleMutation.isPending;
 
   // Prevent body scroll when modal is open
   React.useEffect(() => {
@@ -77,6 +159,14 @@ export default function AddPaymentScheduleModal({
       document.body.style.overflow = 'unset';
     };
   }, [isOpen]);
+
+  // Reinitialize payments when modal opens or existing payments change
+  React.useEffect(() => {
+    if (isOpen) {
+      setPayments(getInitialPayments());
+      setErrors({});
+    }
+  }, [isOpen, existingPayments, mode, totalAmount]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -119,8 +209,10 @@ export default function AddPaymentScheduleModal({
   const addPayment = () => {
     const newPayment: PaymentScheduleItem = {
       id: `payment-${Date.now()}`,
+      name: '',
       description: '',
       amount: '',
+      paymentMethod: 'cash',
       dueDate: '',
       notes: '',
     };
@@ -146,6 +238,11 @@ export default function AddPaymentScheduleModal({
     payments.forEach((payment) => {
       const paymentErrors: Record<string, string> = {};
 
+      if (!payment.name.trim()) {
+        paymentErrors.name = 'Payment name is required';
+        hasErrors = true;
+      }
+
       if (!payment.description.trim()) {
         paymentErrors.description = 'Description is required';
         hasErrors = true;
@@ -156,6 +253,11 @@ export default function AddPaymentScheduleModal({
         hasErrors = true;
       } else if (isNaN(Number(payment.amount)) || Number(payment.amount) <= 0) {
         paymentErrors.amount = 'Please enter a valid amount';
+        hasErrors = true;
+      }
+
+      if (!payment.paymentMethod) {
+        paymentErrors.paymentMethod = 'Payment method is required';
         hasErrors = true;
       }
 
@@ -193,49 +295,64 @@ export default function AddPaymentScheduleModal({
       return;
     }
 
-    setIsSubmitting(true);
+    // Validate required context
+    if (!user?.uid) {
+      toast.error('User not authenticated');
+      return;
+    }
+
+    if (!event?.id) {
+      toast.error('No event selected');
+      return;
+    }
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Prepare the payment schedule data
+      const scheduleData = payments.map((payment) => ({
+        name: payment.name.trim(),
+        description: payment.description.trim(),
+        amount: Number(payment.amount),
+        paymentMethod: payment.paymentMethod as PaymentMethod,
+        dueDate: new Date(payment.dueDate),
+        notes: payment.notes.trim() || undefined,
+        attachments: [],
+      }));
 
-      if (onCreateSchedule) {
-        const scheduleData = payments.map((payment) => ({
-          description: payment.description,
-          amount: Number(payment.amount),
-          dueDate: payment.dueDate,
-          notes: payment.notes || undefined,
-        }));
-        onCreateSchedule(scheduleData);
+      if (mode === 'edit') {
+        // Update existing payment schedule
+        await updatePaymentScheduleMutation.mutateAsync({
+          userId: user.uid,
+          eventId: event.id,
+          expenseId,
+          payments: scheduleData,
+        });
+        
+        // Call update callback if provided
+        if (onUpdateSchedule) {
+          onUpdateSchedule(scheduleData);
+        }
+      } else {
+        // Create new payment schedule
+        await createPaymentScheduleMutation.mutateAsync({
+          userId: user.uid,
+          eventId: event.id,
+          expenseId,
+          payments: scheduleData,
+        });
+        
+        // Call create callback if provided
+        if (onCreateSchedule) {
+          onCreateSchedule(scheduleData);
+        }
       }
-
-      // Reset form and close modal
-      resetForm();
-      onClose();
     } catch (error) {
-      console.error('Error creating payment schedule:', error);
-    } finally {
-      setIsSubmitting(false);
+      // Error handling is done in mutation callbacks
+      console.error(`Error ${mode === 'edit' ? 'updating' : 'creating'} payment schedule:`, error);
     }
   };
 
   const resetForm = () => {
-    setPayments([
-      {
-        id: 'payment-1',
-        description: 'Initial Deposit',
-        amount: Math.round(totalAmount * 0.5).toString(),
-        dueDate: '',
-        notes: 'Booking confirmation payment',
-      },
-      {
-        id: 'payment-2',
-        description: 'Final Payment',
-        amount: (totalAmount - Math.round(totalAmount * 0.5)).toString(),
-        dueDate: '',
-        notes: 'Remaining balance',
-      },
-    ]);
+    setPayments(getInitialPayments());
     setErrors({});
   };
 
@@ -264,7 +381,7 @@ export default function AddPaymentScheduleModal({
               <CalendarDaysIcon className='h-6 w-6 text-primary-600 flex-shrink-0' />
               <div className='flex-1 min-w-0'>
                 <h2 className='text-lg sm:text-xl font-semibold text-gray-900'>
-                  Create Payment Schedule
+                  {mode === 'edit' ? 'Edit Payment Schedule' : 'Create Payment Schedule'}
                 </h2>
                 <p className='text-sm text-gray-600 truncate'>{expenseName}</p>
               </div>
@@ -359,7 +476,33 @@ export default function AddPaymentScheduleModal({
                     )}
                   </div>
 
-                  <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4'>
+                  <div className='space-y-4 mb-4'>
+                    {/* Payment Name */}
+                    <div>
+                      <label className='form-label'>Payment Name</label>
+                      <input
+                        type='text'
+                        value={payment.name}
+                        onChange={(e) =>
+                          handlePaymentChange(
+                            payment.id,
+                            'name',
+                            e.target.value,
+                          )
+                        }
+                        placeholder='e.g., Initial deposit, Final payment'
+                        className={`form-input ${errors[payment.id]?.name ? 'border-red-300 focus:border-red-500' : ''}`}
+                        disabled={isSubmitting}
+                        maxLength={100}
+                      />
+                      {errors[payment.id]?.name && (
+                        <p className='mt-1 text-sm text-red-600'>
+                          {errors[payment.id].name}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Description */}
                     <div>
                       <label className='form-label'>Description</label>
                       <input
@@ -372,9 +515,10 @@ export default function AddPaymentScheduleModal({
                             e.target.value,
                           )
                         }
-                        placeholder='e.g., Initial deposit, Final payment'
+                        placeholder='e.g., Booking confirmation payment'
                         className={`form-input ${errors[payment.id]?.description ? 'border-red-300 focus:border-red-500' : ''}`}
                         disabled={isSubmitting}
+                        maxLength={200}
                       />
                       {errors[payment.id]?.description && (
                         <p className='mt-1 text-sm text-red-600'>
@@ -383,75 +527,105 @@ export default function AddPaymentScheduleModal({
                       )}
                     </div>
 
-                    <div>
-                      <label className='form-label'>Amount</label>
-                      <div className='relative'>
-                        <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                          <span className='text-gray-500 sm:text-sm'>$</span>
+                    {/* Amount, Payment Method, Due Date Row */}
+                    <div className='grid grid-cols-1 lg:grid-cols-3 gap-4'>
+                      <div>
+                        <label className='form-label'>Amount</label>
+                        <div className='relative'>
+                          <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
+                            <span className='text-gray-500 sm:text-sm'>$</span>
+                          </div>
+                          <input
+                            type='text'
+                            value={payment.amount}
+                            onChange={(e) =>
+                              handlePaymentChange(
+                                payment.id,
+                                'amount',
+                                e.target.value,
+                              )
+                            }
+                            placeholder='0.00'
+                            className={`form-input pl-7 ${errors[payment.id]?.amount ? 'border-red-300 focus:border-red-500' : ''}`}
+                            disabled={isSubmitting}
+                          />
                         </div>
-                        <input
-                          type='text'
-                          value={payment.amount}
+                        {errors[payment.id]?.amount && (
+                          <p className='mt-1 text-sm text-red-600'>
+                            {errors[payment.id].amount}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className='form-label'>Payment Method</label>
+                        <select
+                          value={payment.paymentMethod}
                           onChange={(e) =>
                             handlePaymentChange(
                               payment.id,
-                              'amount',
+                              'paymentMethod',
                               e.target.value,
                             )
                           }
-                          placeholder='0.00'
-                          className={`form-input pl-7 ${errors[payment.id]?.amount ? 'border-red-300 focus:border-red-500' : ''}`}
+                          className={`form-input ${errors[payment.id]?.paymentMethod ? 'border-red-300 focus:border-red-500' : ''}`}
+                          disabled={isSubmitting}
+                        >
+                          <option value=''>Select method</option>
+                          {PAYMENT_METHODS.map((method) => (
+                            <option key={method.value} value={method.value}>
+                              {method.label}
+                            </option>
+                          ))}
+                        </select>
+                        {errors[payment.id]?.paymentMethod && (
+                          <p className='mt-1 text-sm text-red-600'>
+                            {errors[payment.id].paymentMethod}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className='form-label'>Due Date</label>
+                        <input
+                          type='date'
+                          value={payment.dueDate}
+                          onChange={(e) =>
+                            handlePaymentChange(
+                              payment.id,
+                              'dueDate',
+                              e.target.value,
+                            )
+                          }
+                          className={`form-input ${errors[payment.id]?.dueDate ? 'border-red-300 focus:border-red-500' : ''}`}
                           disabled={isSubmitting}
                         />
+                        {errors[payment.id]?.dueDate && (
+                          <p className='mt-1 text-sm text-red-600'>
+                            {errors[payment.id].dueDate}
+                          </p>
+                        )}
                       </div>
-                      {errors[payment.id]?.amount && (
-                        <p className='mt-1 text-sm text-red-600'>
-                          {errors[payment.id].amount}
-                        </p>
-                      )}
                     </div>
                   </div>
 
-                  <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
-                    <div>
-                      <label className='form-label'>Due Date</label>
-                      <input
-                        type='date'
-                        value={payment.dueDate}
-                        onChange={(e) =>
-                          handlePaymentChange(
-                            payment.id,
-                            'dueDate',
-                            e.target.value,
-                          )
-                        }
-                        className={`form-input ${errors[payment.id]?.dueDate ? 'border-red-300 focus:border-red-500' : ''}`}
-                        disabled={isSubmitting}
-                      />
-                      {errors[payment.id]?.dueDate && (
-                        <p className='mt-1 text-sm text-red-600'>
-                          {errors[payment.id].dueDate}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className='form-label'>Notes (Optional)</label>
-                      <input
-                        type='text'
-                        value={payment.notes}
-                        onChange={(e) =>
-                          handlePaymentChange(
-                            payment.id,
-                            'notes',
-                            e.target.value,
-                          )
-                        }
-                        placeholder='e.g., 30 days before event'
-                        className='form-input'
-                        disabled={isSubmitting}
-                      />
-                    </div>
+                  {/* Notes */}
+                  <div>
+                    <label className='form-label'>Notes (Optional)</label>
+                    <input
+                      type='text'
+                      value={payment.notes}
+                      onChange={(e) =>
+                        handlePaymentChange(
+                          payment.id,
+                          'notes',
+                          e.target.value,
+                        )
+                      }
+                      placeholder='e.g., 30 days before event'
+                      className='form-input'
+                      disabled={isSubmitting}
+                    />
                   </div>
                 </div>
               ))}
@@ -505,12 +679,17 @@ export default function AddPaymentScheduleModal({
             <button
               type='submit'
               onClick={handleSubmit}
-              className='btn-primary flex-1 order-1 sm:order-2'
+              className='btn-primary flex-1 order-1 sm:order-2 flex items-center justify-center'
               disabled={isSubmitting || !isBalanced}
             >
+              {isSubmitting ? (
+                <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'></div>
+              ) : (
+                <CheckCircleIcon className='h-4 w-4 mr-2' />
+              )}
               {isSubmitting
-                ? 'Creating Schedule...'
-                : 'Create Payment Schedule'}
+                ? (mode === 'edit' ? 'Updating Schedule...' : 'Creating Schedule...')
+                : (mode === 'edit' ? 'Update Payment Schedule' : 'Create Payment Schedule')}
             </button>
           </div>
         </div>

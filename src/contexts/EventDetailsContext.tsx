@@ -5,8 +5,10 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { useEvents } from '@/contexts/EventsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFetchCategories } from '@/hooks/categories';
+import { useFetchExpenses } from '@/hooks/expenses';
 import type { Event } from '@/types/Event';
 import type { BudgetCategory } from '@/types/BudgetCategory';
+import type { Expense } from '@/types/Expense';
 
 interface EventDetailsContextType {
   // Core event data
@@ -15,23 +17,20 @@ interface EventDetailsContextType {
   eventError: string | null;
   
   // Related data
-  expenses: any[]; // Future: will be Expense[]
+  expenses: Expense[];
   categories: BudgetCategory[];
   
   // Loading states
   isExpensesLoading: boolean;
   isCategoriesLoading: boolean;
   categoriesError: string | null;
+  expensesError: string | null;
   
   // Operations
   refreshEvent: () => Promise<void>;
   refreshCategories: () => Promise<void>;
+  refreshExpenses: () => Promise<void>;
   updateEvent: (updates: Partial<Event>) => Promise<void>;
-  
-  // Future operations (placeholders for expenses)
-  addExpense: (expense: any) => Promise<void>;
-  updateExpense: (id: string, updates: any) => Promise<void>;
-  deleteExpense: (id: string) => Promise<void>;
 }
 
 const EventDetailsContext = createContext<EventDetailsContextType | undefined>(undefined);
@@ -48,10 +47,6 @@ export function EventDetailsProvider({ children }: EventDetailsProviderProps) {
   const [event, setEvent] = useState<Event | null>(null);
   const [eventError, setEventError] = useState<string | null>(null);
   
-  // Related data (future implementation for expenses)
-  const [expenses, setExpenses] = useState<any[]>([]);
-  const [isExpensesLoading, setIsExpensesLoading] = useState(false);
-  
   // Categories data from React Query
   const {
     data: categories = [],
@@ -60,18 +55,22 @@ export function EventDetailsProvider({ children }: EventDetailsProviderProps) {
     refetch: refetchCategories,
   } = useFetchCategories(user?.uid || '', event?.id || '');
   
+  // Expenses data from React Query
+  const {
+    data: expenses = [],
+    isLoading: isExpensesLoading,
+    error: expensesQueryError,
+    refetch: refetchExpenses,
+  } = useFetchExpenses(user?.uid || '', event?.id || '');
+  
   const categoriesError = categoriesQueryError?.message || null;
+  const expensesError = expensesQueryError?.message || null;
   
   // Sync with EventsContext selectedEvent
   useEffect(() => {
     setEvent(selectedEvent);
     setEventError(null);
-    
-    // Clear expenses data when event changes (categories are handled by React Query)
-    if (selectedEvent?.id !== event?.id) {
-      setExpenses([]);
-    }
-  }, [selectedEvent, event?.id]);
+  }, [selectedEvent]);
   
   // Categories are automatically loaded by the useFetchCategories hook
   // when user and event IDs change
@@ -89,6 +88,14 @@ export function EventDetailsProvider({ children }: EventDetailsProviderProps) {
       await refetchCategories();
     } catch (error) {
       console.error('Failed to refresh categories:', error);
+    }
+  };
+  
+  const refreshExpenses = async () => {
+    try {
+      await refetchExpenses();
+    } catch (error) {
+      console.error('Failed to refresh expenses:', error);
     }
   };
   
@@ -111,22 +118,6 @@ export function EventDetailsProvider({ children }: EventDetailsProviderProps) {
     }
   };
   
-  // Future operation placeholders (expenses only)
-  const addExpense = async (expense: any) => {
-    // TODO: Implement expense operations when expense system is ready
-    console.log('Add expense:', expense);
-  };
-  
-  const updateExpense = async (id: string, updates: any) => {
-    // TODO: Implement expense operations when expense system is ready
-    console.log('Update expense:', id, updates);
-  };
-  
-  const deleteExpense = async (id: string) => {
-    // TODO: Implement expense operations when expense system is ready
-    console.log('Delete expense:', id);
-  };
-  
   const contextValue: EventDetailsContextType = {
     // Core event data
     event,
@@ -141,16 +132,13 @@ export function EventDetailsProvider({ children }: EventDetailsProviderProps) {
     isExpensesLoading,
     isCategoriesLoading,
     categoriesError,
+    expensesError,
     
     // Operations
     refreshEvent,
     refreshCategories,
+    refreshExpenses,
     updateEvent,
-    
-    // Future operations (expense placeholders)
-    addExpense,
-    updateExpense,
-    deleteExpense,
   };
   
   return (

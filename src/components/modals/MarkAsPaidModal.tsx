@@ -6,15 +6,21 @@ import {
   CreditCardIcon,
   CurrencyDollarIcon,
   DocumentTextIcon,
-  PaperClipIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import React, { useState } from 'react';
+import { toast } from 'sonner';
+import FileUpload from '@/components/ui/FileUpload';
+import { useAuth } from '@/contexts/AuthContext';
+import { useEventDetails } from '@/contexts/EventDetailsContext';
+import { useCreateSinglePaymentMutation, useMarkPaymentAsPaidMutation } from '@/hooks/payments';
+import type { PaymentMethod } from '@/types/Payment';
 
 interface MarkAsPaidFormData {
+  name: string;
   amount: string;
   datePaid: string;
-  paymentMethod: string;
+  paymentMethod: PaymentMethod | '';
   notes: string;
   receipt: File | null;
 }
@@ -25,26 +31,22 @@ interface MarkAsPaidModalProps {
   expenseId: string;
   expenseName: string;
   expenseAmount: number;
+  paymentId?: string; // If marking specific payment as paid
   onMarkAsPaid?: (paymentData: {
     amount: number;
     datePaid: string;
-    paymentMethod: string;
+    paymentMethod: PaymentMethod;
     notes?: string;
     receipt?: File;
   }) => void;
 }
 
-const PAYMENT_METHODS = [
-  'Credit Card',
-  'Debit Card',
-  'Bank Transfer',
-  'Check',
-  'Cash',
-  'PayPal',
-  'Venmo',
-  'Zelle',
-  'Wire Transfer',
-  'Other',
+const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
+  { value: 'credit-card', label: 'Credit Card' },
+  { value: 'debit-card', label: 'Debit Card' },
+  { value: 'bank-transfer', label: 'Bank Transfer' },
+  { value: 'paypal', label: 'PayPal' },
+  { value: 'cash', label: 'Cash' },
 ];
 
 export default function MarkAsPaidModal({
@@ -53,17 +55,47 @@ export default function MarkAsPaidModal({
   expenseId,
   expenseName,
   expenseAmount,
+  paymentId,
   onMarkAsPaid,
 }: MarkAsPaidModalProps) {
+  // Hooks
+  const { user } = useAuth();
+  const { event } = useEventDetails();
+  
   const [formData, setFormData] = useState<MarkAsPaidFormData>({
+    name: paymentId ? 'Payment' : `${expenseName} - Full Payment`,
     amount: expenseAmount.toString(),
     datePaid: new Date().toISOString().split('T')[0],
-    paymentMethod: '',
+    paymentMethod: 'cash',
     notes: '',
     receipt: null,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Mutations
+  const createSinglePaymentMutation = useCreateSinglePaymentMutation({
+    onSuccess: () => {
+      toast.success('Payment marked as paid successfully!');
+      resetForm();
+      onClose();
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to mark payment as paid');
+    },
+  });
+
+  const markPaymentAsPaidMutation = useMarkPaymentAsPaidMutation({
+    onSuccess: () => {
+      toast.success('Payment marked as paid successfully!');
+      resetForm();
+      onClose();
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to mark payment as paid');
+    },
+  });
+
+  const isSubmitting = createSinglePaymentMutation.isPending || markPaymentAsPaidMutation.isPending;
 
   // Prevent body scroll when modal is open
   React.useEffect(() => {
@@ -77,6 +109,21 @@ export default function MarkAsPaidModal({
       document.body.style.overflow = 'unset';
     };
   }, [isOpen]);
+
+  // Reinitialize form data when modal opens or props change
+  React.useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        name: paymentId ? expenseName : `${expenseName} - Full Payment`,
+        amount: expenseAmount.toString(),
+        datePaid: new Date().toISOString().split('T')[0],
+        paymentMethod: 'cash',
+        notes: '',
+        receipt: null,
+      });
+      setErrors({});
+    }
+  }, [isOpen, paymentId, expenseName, expenseAmount]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -98,22 +145,20 @@ export default function MarkAsPaidModal({
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
+  const handleFileChange = (file: File | null) => {
     setFormData((prev) => ({ ...prev, receipt: file }));
   };
 
   const removeFile = () => {
     setFormData((prev) => ({ ...prev, receipt: null }));
-    // Reset file input
-    const fileInput = document.getElementById(
-      'receipt-file',
-    ) as HTMLInputElement;
-    if (fileInput) fileInput.value = '';
   };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Payment name is required';
+    }
 
     if (!formData.amount.trim()) {
       newErrors.amount = 'Amount is required';
@@ -153,46 +198,79 @@ export default function MarkAsPaidModal({
       return;
     }
 
-    setIsSubmitting(true);
+    // Validate required context
+    if (!user?.uid) {
+      toast.error('User not authenticated');
+      return;
+    }
+
+    if (!event?.id) {
+      toast.error('No event selected');
+      return;
+    }
+
+    if (!formData.paymentMethod) {
+      toast.error('Payment method is required');
+      return;
+    }
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (paymentId) {
+        // Mark existing payment as paid
+        await markPaymentAsPaidMutation.mutateAsync({
+          userId: user.uid,
+          eventId: event.id,
+          expenseId,
+          paymentId,
+          markAsPaidData: {
+            paidDate: new Date(formData.datePaid),
+            paymentMethod: formData.paymentMethod as PaymentMethod,
+            notes: formData.notes || undefined,
+            attachments: [], // TODO: Handle file uploads later
+          },
+        });
+      } else {
+        // Create new single payment that is already paid
+        await createSinglePaymentMutation.mutateAsync({
+          userId: user.uid,
+          eventId: event.id,
+          expenseId,
+          name: formData.name.trim(),
+          description: `Full payment for ${expenseName}`,
+          amount: Number(formData.amount),
+          paymentMethod: formData.paymentMethod as PaymentMethod,
+          paidDate: new Date(formData.datePaid),
+          notes: formData.notes || undefined,
+          attachments: [], // TODO: Handle file uploads later
+        });
+      }
 
+      // Call callback if provided
       if (onMarkAsPaid) {
         onMarkAsPaid({
           amount: Number(formData.amount),
           datePaid: formData.datePaid,
-          paymentMethod: formData.paymentMethod,
+          paymentMethod: formData.paymentMethod as PaymentMethod,
           notes: formData.notes || undefined,
           receipt: formData.receipt || undefined,
         });
       }
-
-      // Reset form and close modal
-      resetForm();
-      onClose();
     } catch (error) {
+      // Error handling is done in mutation callbacks
       console.error('Error marking as paid:', error);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   const resetForm = () => {
     setFormData({
+      name: paymentId ? expenseName : `${expenseName} - Full Payment`,
       amount: expenseAmount.toString(),
       datePaid: new Date().toISOString().split('T')[0],
-      paymentMethod: '',
+      paymentMethod: 'cash',
       notes: '',
       receipt: null,
     });
     setErrors({});
-    // Reset file input
-    const fileInput = document.getElementById(
-      'receipt-file',
-    ) as HTMLInputElement;
-    if (fileInput) fileInput.value = '';
   };
 
   const handleClose = () => {
@@ -245,6 +323,27 @@ export default function MarkAsPaidModal({
           </div>
 
           <form onSubmit={handleSubmit} className='space-y-6'>
+            {/* Payment Name */}
+            <div>
+              <label htmlFor='payment-name' className='form-label'>
+                <DocumentTextIcon className='h-4 w-4 inline mr-2' />
+                Payment Name
+              </label>
+              <input
+                id='payment-name'
+                type='text'
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                placeholder='e.g., Venue deposit payment'
+                className={`form-input ${errors.name ? 'border-red-300 focus:border-red-500' : ''}`}
+                disabled={isSubmitting}
+                maxLength={100}
+              />
+              {errors.name && (
+                <p className='mt-1 text-sm text-red-600'>{errors.name}</p>
+              )}
+            </div>
+
             {/* Amount and Date Row */}
             <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6'>
               {/* Amount Paid */}
@@ -324,8 +423,8 @@ export default function MarkAsPaidModal({
               >
                 <option value=''>Select payment method</option>
                 {PAYMENT_METHODS.map((method) => (
-                  <option key={method} value={method}>
-                    {method}
+                  <option key={method.value} value={method.value}>
+                    {method.label}
                   </option>
                 ))}
               </select>
@@ -355,55 +454,19 @@ export default function MarkAsPaidModal({
 
             {/* Receipt Upload */}
             <div>
-              <label htmlFor='receipt-file' className='form-label'>
-                <PaperClipIcon className='h-4 w-4 inline mr-2' />
+              <label className='form-label'>
                 Receipt/Proof of Payment (Optional)
               </label>
-
-              {!formData.receipt ? (
-                <div className='mt-1'>
-                  <input
-                    id='receipt-file'
-                    type='file'
-                    accept='.jpg,.jpeg,.png,.pdf,.doc,.docx'
-                    onChange={handleFileChange}
-                    className='hidden'
-                    disabled={isSubmitting}
-                  />
-                  <label
-                    htmlFor='receipt-file'
-                    className='cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-200'
-                  >
-                    <PaperClipIcon className='h-4 w-4 mr-2' />
-                    Choose File
-                  </label>
-                  <p className='text-xs text-gray-500 mt-1'>
-                    Supported formats: JPG, PNG, PDF, DOC (max 5MB)
-                  </p>
-                </div>
-              ) : (
-                <div className='mt-1 p-3 border border-gray-200 rounded-lg bg-gray-50'>
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center space-x-2'>
-                      <PaperClipIcon className='h-4 w-4 text-gray-400' />
-                      <span className='text-sm text-gray-700 truncate max-w-xs'>
-                        {formData.receipt.name}
-                      </span>
-                      <span className='text-xs text-gray-500'>
-                        ({Math.round(formData.receipt.size / 1024)} KB)
-                      </span>
-                    </div>
-                    <button
-                      type='button'
-                      onClick={removeFile}
-                      className='text-red-600 hover:text-red-800 text-sm'
-                      disabled={isSubmitting}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              )}
+              <FileUpload
+                file={formData.receipt}
+                onFileChange={handleFileChange}
+                onFileRemove={removeFile}
+                accept='.jpg,.jpeg,.png,.pdf,.doc,.docx'
+                maxSize={5}
+                disabled={isSubmitting}
+                label='Upload Receipt'
+                description='Supported formats: JPG, PNG, PDF, DOC'
+              />
               {errors.receipt && (
                 <p className='mt-1 text-sm text-red-600'>{errors.receipt}</p>
               )}
@@ -450,8 +513,12 @@ export default function MarkAsPaidModal({
               className='btn-primary flex-1 order-1 sm:order-2 flex items-center justify-center'
               disabled={isSubmitting}
             >
-              <CheckCircleIcon className='h-4 w-4 mr-2' />
-              {isSubmitting ? 'Recording Payment...' : 'Mark as Paid'}
+              {isSubmitting ? (
+                <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'></div>
+              ) : (
+                <CheckCircleIcon className='h-4 w-4 mr-2' />
+              )}
+              Mark as Paid
             </button>
           </div>
         </div>

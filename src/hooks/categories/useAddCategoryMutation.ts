@@ -91,6 +91,7 @@ export function useAddCategoryMutation(options?: UseAddCategoryMutationOptions) 
           budgetedAmount: variables.addCategoryDto.budgetedAmount,
           spentAmount: 0,
           color: variables.addCategoryDto.color,
+          icon: variables.addCategoryDto.icon || '🎉',
           _createdDate: new Date(),
           _createdBy: variables.userId,
           _updatedDate: new Date(),

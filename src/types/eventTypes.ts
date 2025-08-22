@@ -1,13 +1,6 @@
 import type { Currency } from './currencies';
 import type { Entity } from './Entity';
 
-export interface Budget extends Entity {
-  name: string;
-  budgetedAmount: number;
-  spentAmount: number;
-  color: string;
-}
-
 export interface Expense extends Entity {
   name: string;
   description: string;
@@ -22,23 +15,4 @@ export interface Expense extends Entity {
   hasPaymentSchedule: true;
   paymentSchedule: Payment[];
   oneOffPayment?: Payment;
-}
-
-export type PaymentMethod =
-  | 'credit-card'
-  | 'debit-card'
-  | 'paypal'
-  | 'bank-transfer'
-  | 'cash';
-
-export interface Payment extends Entity {
-  name: string;
-  description: string;
-  amount: number;
-  dueDate: Date;
-  isPaid: boolean;
-  paidDate?: Date;
-  paymentMethod: PaymentMethod;
-  notes?: string;
-  attachmentUrls?: string[];
 }

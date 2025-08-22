@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { type UpdateCategoryDto, updateCategory } from '@/server/actions/categories';
+import type { BudgetCategory } from '@/types/BudgetCategory';
 
 export interface UseUpdateCategoryMutationOptions {
   onSuccess?: (

@@ -1,0 +1,84 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { addExpense, type AddExpenseDto } from '@/server/actions/expenses/addExpense';
+import type { Expense } from '@/types/Expense';
+
+interface UseAddExpenseMutationOptions {
+  onSuccess?: (expenseId: string) => void;
+  onError?: (error: Error) => void;
+}
+
+export const useAddExpenseMutation = (options?: UseAddExpenseMutationOptions) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (params: {
+      userId: string;
+      eventId: string;
+      addExpenseDto: AddExpenseDto;
+    }) => {
+      const { userId, eventId, addExpenseDto } = params;
+      return addExpense(addExpenseDto);
+    },
+
+    onMutate: async ({ userId, eventId, addExpenseDto }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['expenses', userId, eventId] });
+      await queryClient.cancelQueries({ queryKey: ['categories', userId, eventId] });
+
+      // Snapshot the previous value
+      const previousExpenses = queryClient.getQueryData<Expense[]>(['expenses', userId, eventId]);
+
+      // Optimistically update expenses list
+      if (previousExpenses) {
+        const optimisticExpense: Expense = {
+          id: `temp-${Date.now()}`, // Temporary ID
+          name: addExpenseDto.name,
+          description: addExpenseDto.description,
+          amount: addExpenseDto.amount,
+          currency: addExpenseDto.currency as any,
+          category: {
+            id: addExpenseDto.categoryId,
+            name: addExpenseDto.categoryName,
+            color: addExpenseDto.categoryColor,
+            icon: addExpenseDto.categoryIcon,
+          },
+          vendor: addExpenseDto.vendor,
+          date: addExpenseDto.date,
+          notes: addExpenseDto.notes,
+          tags: addExpenseDto.tags,
+          attachments: addExpenseDto.attachments || [],
+          _createdDate: new Date(),
+          _createdBy: addExpenseDto.userId,
+          _updatedDate: new Date(),
+          _updatedBy: addExpenseDto.userId,
+        };
+
+        queryClient.setQueryData<Expense[]>(
+          ['expenses', userId, eventId],
+          [optimisticExpense, ...previousExpenses]
+        );
+      }
+
+      // Return a context object with the snapshotted value
+      return { previousExpenses };
+    },
+
+    onError: (error, { userId, eventId }, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousExpenses) {
+        queryClient.setQueryData(['expenses', userId, eventId], context.previousExpenses);
+      }
+
+      console.error('Failed to add expense:', error);
+      options?.onError?.(error);
+    },
+
+    onSuccess: (expenseId, { userId, eventId }) => {
+      // Invalidate and refetch expenses and categories
+      queryClient.invalidateQueries({ queryKey: ['expenses', userId, eventId] });
+      queryClient.invalidateQueries({ queryKey: ['categories', userId, eventId] });
+
+      options?.onSuccess?.(expenseId);
+    },
+  });
+};

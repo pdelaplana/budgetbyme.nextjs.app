@@ -252,7 +252,8 @@ export default function AddOrEditCategoryModal({
     }
   };
 
-  const handleClose = (force = false) => {
+  const handleClose = (forceOrEvent?: boolean | React.MouseEvent) => {
+    const force = typeof forceOrEvent === 'boolean' ? forceOrEvent : false;
     console.log('🚪 handleClose called - isSubmitting:', isSubmitting, 'force:', force);
     if (!isSubmitting || force) {
       console.log('✅ Closing modal - clearing form and calling onClose');

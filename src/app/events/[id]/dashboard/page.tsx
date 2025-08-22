@@ -9,7 +9,7 @@ import PaymentsSection from '@/components/dashboard/PaymentsSection';
 import BudgetCategoriesSection from '@/components/dashboard/BudgetCategoriesSection';
 import AddOrEditCategoryModal from '@/components/modals/AddOrEditCategoryModal';
 import AddOrEditEventModal from '@/components/modals/AddOrEditEventModal';
-import AddExpenseModal from '@/components/modals/AddExpenseModal';
+import AddOrEditExpenseModal from '@/components/modals/AddOrEditExpenseModal';
 import ExpenseDetailModal from '@/components/modals/ExpenseDetailModal';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
@@ -261,7 +261,7 @@ export default function EventDashboardPage() {
       />
 
       {/* Add Expense Modal */}
-      <AddExpenseModal
+      <AddOrEditExpenseModal
         isOpen={showAddExpenseModal}
         onClose={() => setShowAddExpenseModal(false)}
         categories={categories}
@@ -289,8 +289,6 @@ export default function EventDashboardPage() {
         }}
         editingCategory={editingCategory}
         isEditMode={isEditCategoryMode}
-        onUpdateCategory={handleUpdateCategory}
-        onAddCategory={handleAddCategory}
       />
 
       {/* Edit Event Modal */}

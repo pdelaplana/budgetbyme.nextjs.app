@@ -19,7 +19,7 @@ import { useParams, useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import AddOrEditCategoryModal from '@/components/modals/AddOrEditCategoryModal';
-import AddExpenseModal from '@/components/modals/AddExpenseModal';
+import AddOrEditExpenseModal from '@/components/modals/AddOrEditExpenseModal';
 import PaymentScheduleModal from '@/components/modals/PaymentScheduleModal';
 import ActionDropdown, {
   ActionDropdownOption,
@@ -178,7 +178,7 @@ export default function CategoryPage() {
   const eventId = params?.id as string;
   const categoryId = params?.categoryId as string;
   const { events, isLoading, selectEventById } = useEvents();
-  const { event: currentEvent, categories, isCategoriesLoading, isEventLoading } = useEventDetails();
+  const { event: currentEvent, categories, isCategoriesLoading, isEventLoading, expenses, isExpensesLoading } = useEventDetails();
 
   // Auto-select event when accessing directly via URL
   useEffect(() => {
@@ -198,10 +198,12 @@ export default function CategoryPage() {
 
   // Find the current category from EventDetailsContext
   const category = categories.find((cat) => cat.id === categoryId);
-  const expenses = []; // TODO: Implement expenses from EventDetailsContext when available
+  
+  // Filter expenses by current category
+  const categoryExpenses = expenses.filter(expense => expense.category.id === categoryId);
 
-  // Loading state - show while event or categories are being fetched
-  if (isLoading || isEventLoading || isCategoriesLoading || !currentEvent) {
+  // Loading state - show while event, categories, or expenses are being fetched
+  if (isLoading || isEventLoading || isCategoriesLoading || isExpensesLoading || !currentEvent) {
     return (
       <DashboardLayout>
         <div className='text-center py-12'>
@@ -450,11 +452,11 @@ export default function CategoryPage() {
       <div className='card'>
         <div className='card-header'>
           <h2 className='text-base sm:text-lg lg:text-heading font-semibold text-gray-900'>
-            Expenses ({expenses.length})
+            Expenses ({categoryExpenses.length})
           </h2>
         </div>
 
-        {expenses.length === 0 ? (
+        {categoryExpenses.length === 0 ? (
           <div className='text-center py-8 sm:py-12'>
             <div className='text-gray-400 mb-4'>
               <div className='text-4xl sm:text-6xl mb-3 sm:mb-4'>💸</div>
@@ -477,7 +479,7 @@ export default function CategoryPage() {
           </div>
         ) : (
           <div className='space-y-2 sm:space-y-3'>
-            {expenses.map((expense) => {
+            {categoryExpenses.map((expense) => {
               // Calculate payment status and progress
               const hasPaymentSchedule =
                 expense.hasPaymentSchedule &&
@@ -609,14 +611,22 @@ export default function CategoryPage() {
       </div>
 
       {/* Add Expense Modal */}
-      <AddExpenseModal
+      <AddOrEditExpenseModal
         isOpen={showAddExpense}
         onClose={() => setShowAddExpense(false)}
         categories={[
           {
             id: category.id,
             name: category.name,
+            description: category.description || '',
+            budgetedAmount: category.budgetedAmount ?? 0,
+            spentAmount: category.spentAmount ?? 0,
             color: category.color,
+            icon: category.icon || '🎉',
+            _createdDate: new Date(),
+            _createdBy: '',
+            _updatedDate: new Date(),
+            _updatedBy: '',
           },
         ]}
       />

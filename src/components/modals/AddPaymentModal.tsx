@@ -8,10 +8,17 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import React, { useState } from 'react';
+import { toast } from 'sonner';
+import { useAuth } from '@/contexts/AuthContext';
+import { useEventDetails } from '@/contexts/EventDetailsContext';
+import { useAddPaymentMutation, useUpdatePaymentMutation } from '@/hooks/payments';
+import type { PaymentMethod } from '@/types/Payment';
 
 interface AddPaymentFormData {
+  name: string;
   description: string;
   amount: string;
+  paymentMethod: PaymentMethod | '';
   dueDate: string;
   notes: string;
 }
@@ -22,20 +29,32 @@ interface AddPaymentModalProps {
   expenseId: string;
   expenseName: string;
   onAddPayment?: (payment: {
+    name: string;
     description: string;
     amount: number;
+    paymentMethod: PaymentMethod;
     dueDate: string;
     notes?: string;
   }) => void;
   editingPayment?: {
     id: string;
+    name: string;
     description: string;
     amount: number;
+    paymentMethod: PaymentMethod;
     dueDate: string;
     notes?: string;
   } | null;
   isEditMode?: boolean;
 }
+
+const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
+  { value: 'credit-card', label: 'Credit Card' },
+  { value: 'debit-card', label: 'Debit Card' },
+  { value: 'bank-transfer', label: 'Bank Transfer' },
+  { value: 'paypal', label: 'PayPal' },
+  { value: 'cash', label: 'Cash' },
+];
 
 export default function AddPaymentModal({
   isOpen,
@@ -46,35 +65,61 @@ export default function AddPaymentModal({
   editingPayment,
   isEditMode = false,
 }: AddPaymentModalProps) {
+  // Hooks
+  const { user } = useAuth();
+  const { event } = useEventDetails();
+  
   const [formData, setFormData] = useState<AddPaymentFormData>({
+    name: '',
     description: '',
     amount: '',
+    paymentMethod: '',
     dueDate: '',
     notes: '',
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  // Mutations
+  const addPaymentMutation = useAddPaymentMutation({
+    onSuccess: () => {
+      toast.success(isEditMode ? 'Payment updated successfully!' : 'Payment added successfully!');
+      resetForm();
+      onClose();
+    },
+    onError: (error) => {
+      toast.error(error.message || `Failed to ${isEditMode ? 'update' : 'add'} payment`);
+    },
+  });
+
+  const updatePaymentMutation = useUpdatePaymentMutation({
+    onSuccess: () => {
+      toast.success('Payment updated successfully!');
+      resetForm();
+      onClose();
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to update payment');
+    },
+  });
+
+  const isSubmitting = addPaymentMutation.isPending || updatePaymentMutation.isPending;
+  
   // Pre-populate form when editing
   React.useEffect(() => {
     if (editingPayment && isEditMode) {
       setFormData({
+        name: editingPayment.name,
         description: editingPayment.description,
         amount: editingPayment.amount.toString(),
+        paymentMethod: editingPayment.paymentMethod,
         dueDate: editingPayment.dueDate,
         notes: editingPayment.notes || '',
       });
     } else if (!isOpen) {
-      // Reset form when modal closes
-      setFormData({
-        description: '',
-        amount: '',
-        dueDate: '',
-        notes: '',
-      });
-      setErrors({});
+      resetForm();
     }
   }, [editingPayment, isEditMode, isOpen]);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Prevent body scroll when modal is open
   React.useEffect(() => {
@@ -108,6 +153,10 @@ export default function AddPaymentModal({
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
+    if (!formData.name.trim()) {
+      newErrors.name = 'Payment name is required';
+    }
+
     if (!formData.description.trim()) {
       newErrors.description = 'Payment description is required';
     }
@@ -118,12 +167,28 @@ export default function AddPaymentModal({
       newErrors.amount = 'Please enter a valid amount';
     }
 
+    if (!formData.paymentMethod) {
+      newErrors.paymentMethod = 'Payment method is required';
+    }
+
     if (!formData.dueDate) {
       newErrors.dueDate = 'Due date is required';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: '',
+      description: '',
+      amount: '',
+      paymentMethod: '',
+      dueDate: '',
+      notes: '',
+    });
+    setErrors({});
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -133,46 +198,75 @@ export default function AddPaymentModal({
       return;
     }
 
-    setIsSubmitting(true);
+    // Validate required context
+    if (!user?.uid) {
+      toast.error('User not authenticated');
+      return;
+    }
+
+    if (!event?.id) {
+      toast.error('No event selected');
+      return;
+    }
+
+    if (!formData.paymentMethod) {
+      toast.error('Payment method is required');
+      return;
+    }
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      if (onAddPayment) {
-        onAddPayment({
-          description: formData.description,
+      if (isEditMode && editingPayment) {
+        // Update existing payment
+        await updatePaymentMutation.mutateAsync({
+          userId: user.uid,
+          eventId: event.id,
+          expenseId,
+          paymentId: editingPayment.id,
+          updateData: {
+            name: formData.name.trim(),
+            description: formData.description.trim(),
+            amount: Number(formData.amount),
+            paymentMethod: formData.paymentMethod as PaymentMethod,
+            dueDate: new Date(formData.dueDate),
+            notes: formData.notes.trim() || undefined,
+          },
+        });
+      } else {
+        // Add new payment
+        await addPaymentMutation.mutateAsync({
+          userId: user.uid,
+          eventId: event.id,
+          expenseId,
+          name: formData.name.trim(),
+          description: formData.description.trim(),
           amount: Number(formData.amount),
-          dueDate: formData.dueDate,
-          notes: formData.notes,
+          paymentMethod: formData.paymentMethod as PaymentMethod,
+          dueDate: new Date(formData.dueDate),
+          notes: formData.notes.trim() || undefined,
+          attachments: [], // TODO: Handle file uploads later
         });
       }
 
-      // Reset form and close modal
-      setFormData({
-        description: '',
-        amount: '',
-        dueDate: '',
-        notes: '',
-      });
-      setErrors({});
-      onClose();
+      // Call callback if provided
+      if (onAddPayment) {
+        onAddPayment({
+          name: formData.name.trim(),
+          description: formData.description.trim(),
+          amount: Number(formData.amount),
+          paymentMethod: formData.paymentMethod as PaymentMethod,
+          dueDate: formData.dueDate,
+          notes: formData.notes.trim() || undefined,
+        });
+      }
     } catch (error) {
-      console.error('Error adding payment:', error);
-    } finally {
-      setIsSubmitting(false);
+      // Error handling is done in mutation callbacks
+      console.error('Error with payment:', error);
     }
   };
 
   const handleClose = () => {
     if (!isSubmitting) {
-      setFormData({
-        description: '',
-        amount: '',
-        dueDate: '',
-        notes: '',
-      });
-      setErrors({});
+      resetForm();
       onClose();
     }
   };
@@ -217,6 +311,31 @@ export default function AddPaymentModal({
       <div className='flex-1 overflow-y-auto'>
         <div className='max-w-2xl mx-auto p-4 sm:p-6 lg:p-8'>
           <form onSubmit={handleSubmit} className='space-y-6 sm:space-y-8'>
+            {/* Payment Name */}
+            <div>
+              <label htmlFor='payment-name' className='form-label'>
+                <DocumentTextIcon className='h-4 w-4 inline mr-2' />
+                Payment Name
+              </label>
+              <input
+                id='payment-name'
+                type='text'
+                value={formData.name}
+                onChange={(e) =>
+                  handleInputChange('name', e.target.value)
+                }
+                placeholder='e.g., Venue deposit, Final payment'
+                className={`form-input ${errors.name ? 'border-red-300 focus:border-red-500' : ''}`}
+                disabled={isSubmitting}
+                maxLength={100}
+              />
+              {errors.name && (
+                <p className='mt-1 text-sm text-red-600'>
+                  {errors.name}
+                </p>
+              )}
+            </div>
+
             {/* Payment Description */}
             <div>
               <label htmlFor='payment-description' className='form-label'>
@@ -230,9 +349,10 @@ export default function AddPaymentModal({
                 onChange={(e) =>
                   handleInputChange('description', e.target.value)
                 }
-                placeholder='e.g., Final payment, Second installment'
+                placeholder='e.g., Second installment for venue booking'
                 className={`form-input ${errors.description ? 'border-red-300 focus:border-red-500' : ''}`}
                 disabled={isSubmitting}
+                maxLength={200}
               />
               {errors.description && (
                 <p className='mt-1 text-sm text-red-600'>
@@ -241,8 +361,8 @@ export default function AddPaymentModal({
               )}
             </div>
 
-            {/* Amount and Due Date Row */}
-            <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6'>
+            {/* Amount, Payment Method, and Due Date */}
+            <div className='grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6'>
               {/* Amount */}
               <div>
                 <label htmlFor='payment-amount' className='form-label'>
@@ -270,6 +390,35 @@ export default function AddPaymentModal({
                 </div>
                 {errors.amount && (
                   <p className='mt-1 text-sm text-red-600'>{errors.amount}</p>
+                )}
+              </div>
+
+              {/* Payment Method */}
+              <div>
+                <label htmlFor='payment-method' className='form-label'>
+                  <CreditCardIcon className='h-4 w-4 inline mr-2' />
+                  Payment Method
+                </label>
+                <select
+                  id='payment-method'
+                  value={formData.paymentMethod}
+                  onChange={(e) =>
+                    handleInputChange('paymentMethod', e.target.value)
+                  }
+                  className={`form-input ${errors.paymentMethod ? 'border-red-300 focus:border-red-500' : ''}`}
+                  disabled={isSubmitting}
+                >
+                  <option value=''>Select method</option>
+                  {PAYMENT_METHODS.map((method) => (
+                    <option key={method.value} value={method.value}>
+                      {method.label}
+                    </option>
+                  ))}
+                </select>
+                {errors.paymentMethod && (
+                  <p className='mt-1 text-sm text-red-600'>
+                    {errors.paymentMethod}
+                  </p>
                 )}
               </div>
 
