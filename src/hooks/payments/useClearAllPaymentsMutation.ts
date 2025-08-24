@@ -24,6 +24,11 @@ export const useClearAllPaymentsMutation = (options?: UseClearAllPaymentsMutatio
         queryKey: ['expenses', variables.userId, variables.eventId],
       });
 
+      // Invalidate categories query to update category spent amounts
+      queryClient.invalidateQueries({
+        queryKey: ['categories', variables.eventId],
+      });
+
       options?.onSuccess?.();
     },
     onError: (error: Error) => {

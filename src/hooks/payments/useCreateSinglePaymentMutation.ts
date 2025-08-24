@@ -25,9 +25,17 @@ export function useCreateSinglePaymentMutation(options: UseCreateSinglePaymentMu
 
   return useMutation({
     mutationFn: (data: CreateSinglePaymentMutationData) => createSinglePayment(data),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       // Invalidate expenses query to refetch updated data
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({
+        queryKey: ['expenses', variables.userId, variables.eventId],
+      });
+
+      // Invalidate categories query to update category spent amounts
+      queryClient.invalidateQueries({
+        queryKey: ['categories', variables.eventId],
+      });
+
       options.onSuccess?.();
     },
     onError: (error: Error) => {

@@ -14,7 +14,7 @@ export interface DeleteExpenseDto {
 /**
  * Server action to delete an expense from Firestore
  * Expense is deleted from: /workspaces/{userId}/events/{eventId}/expenses/{expenseId}
- * Also updates the category's scheduledAmount to subtract the deleted expense amount
+ * Also updates the category's scheduledAmount (subtracts expense amount) and spentAmount (subtracts paid amount)
  * Wrapped with Sentry monitoring
  */
 export const deleteExpense = withSentryServerAction(
@@ -59,14 +59,28 @@ export const deleteExpense = withSentryServerAction(
       const expenseAmount = expenseData?.amount || 0;
       const categoryId = expenseData?.category?.id;
 
+      // Calculate how much was actually spent (paid) for this expense
+      let totalSpentAmount = 0;
+      
+      if (expenseData?.hasPaymentSchedule && expenseData?.paymentSchedule && expenseData.paymentSchedule.length > 0) {
+        // Calculate from payment schedule - sum all paid payments
+        totalSpentAmount = expenseData.paymentSchedule
+          .filter((payment: any) => payment.isPaid)
+          .reduce((sum: number, payment: any) => sum + (payment.amount || 0), 0);
+      } else if (expenseData?.oneOffPayment) {
+        // Calculate from single payment - use amount if paid
+        totalSpentAmount = expenseData.oneOffPayment.isPaid ? (expenseData.oneOffPayment.amount || 0) : 0;
+      }
+      // If no payment schedule and no oneOffPayment, totalSpentAmount remains 0
+
       // Start a batch write to delete expense and update category
       const batch = db.batch();
 
       // Delete the expense
       batch.delete(expenseRef);
 
-      // Update category scheduled amount (subtract the deleted expense amount)
-      if (categoryId && expenseAmount > 0) {
+      // Update category amounts (subtract both scheduled and spent amounts)
+      if (categoryId && (expenseAmount > 0 || totalSpentAmount > 0)) {
         const categoryRef = db
           .collection('workspaces')
           .doc(deleteExpenseDto.userId)
@@ -79,10 +93,14 @@ export const deleteExpense = withSentryServerAction(
         if (categoryDoc.exists) {
           const categoryData = categoryDoc.data();
           const currentScheduledAmount = categoryData?.scheduledAmount || 0;
+          const currentSpentAmount = categoryData?.spentAmount || 0;
+          
           const newScheduledAmount = Math.max(0, currentScheduledAmount - expenseAmount);
+          const newSpentAmount = Math.max(0, currentSpentAmount - totalSpentAmount);
 
           batch.update(categoryRef, {
             scheduledAmount: newScheduledAmount,
+            spentAmount: newSpentAmount,
             _updatedDate: Timestamp.now(),
             _updatedBy: deleteExpenseDto.userId,
           });
@@ -101,7 +119,8 @@ export const deleteExpense = withSentryServerAction(
           userId: deleteExpenseDto.userId,
           eventId: deleteExpenseDto.eventId,
           expenseId: deleteExpenseDto.expenseId,
-          deletedAmount: expenseAmount,
+          deletedScheduledAmount: expenseAmount,
+          deletedSpentAmount: totalSpentAmount,
           categoryId: categoryId,
         },
       });

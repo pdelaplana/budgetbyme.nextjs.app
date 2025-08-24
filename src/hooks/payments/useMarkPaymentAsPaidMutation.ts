@@ -27,6 +27,11 @@ export const useMarkPaymentAsPaidMutation = (options?: UseMarkPaymentAsPaidMutat
         queryKey: ['expenses', variables.userId, variables.eventId],
       });
 
+      // Invalidate categories query to update category spent amounts
+      queryClient.invalidateQueries({
+        queryKey: ['categories', variables.eventId],
+      });
+
       options?.onSuccess?.(variables.paymentId);
     },
     onError: (error: Error) => {

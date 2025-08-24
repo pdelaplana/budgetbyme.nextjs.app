@@ -21,6 +21,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import AddOrEditExpenseModal from '@/components/modals/AddOrEditExpenseModal';
 import PaymentScheduleModal from '@/components/modals/AddPaymentScheduleModal';
@@ -30,6 +31,7 @@ import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
+import { useDeleteExpenseMutation } from '@/hooks/expenses';
 import { useClearAllPaymentsMutation } from '@/hooks/payments';
 
 export default function ExpenseDetailPage() {
@@ -59,8 +61,15 @@ export default function ExpenseDetailPage() {
   const [newTag, setNewTag] = useState('');
   const [tags, setTags] = useState<string[]>([]);
 
+  // Current expense state
+  const [expense, setExpense] = useState<any>(null);
+
   // Payment deletion state
   const [showDeletePaymentsConfirm, setShowDeletePaymentsConfirm] =
+    useState(false);
+
+  // Expense deletion state
+  const [showDeleteExpenseConfirm, setShowDeleteExpenseConfirm] =
     useState(false);
 
   // Clear all payments mutation
@@ -73,6 +82,21 @@ export default function ExpenseDetailPage() {
     },
   });
 
+  // Delete expense mutation
+  const deleteExpenseMutation = useDeleteExpenseMutation({
+    onSuccess: () => {
+      setShowDeleteExpenseConfirm(false);
+      toast.success('Expense deleted successfully!');
+    },
+    onError: (error) => {
+      console.error('Error deleting expense:', error);
+      toast.error(
+        error.message || 'Failed to delete expense. Please try again.',
+      );
+      setShowDeleteExpenseConfirm(false);
+    },
+  });
+
   // Auto-select event when accessing directly via URL
   useEffect(() => {
     if (eventId && events.length > 0 && !isLoading) {
@@ -80,8 +104,13 @@ export default function ExpenseDetailPage() {
     }
   }, [eventId, events.length, isLoading, selectEventById]);
 
-  // Find the current expense from EventDetailsContext
-  const expense = expenses.find((exp) => exp.id === expenseId);
+  // Load expense when expenseId changes or expenses list updates
+  useEffect(() => {
+    if (expenseId && expenses.length > 0) {
+      const foundExpense = expenses.find((exp) => exp.id === expenseId);
+      setExpense(foundExpense || null);
+    }
+  }, [expenseId, expenses]);
 
   // Initialize tags when expense is loaded
   React.useEffect(() => {
@@ -91,16 +120,16 @@ export default function ExpenseDetailPage() {
   }, [expense]);
 
   // Show loading state while data is being fetched
-  if (isLoading || isExpensesLoading || !currentEvent) {
+  if (isLoading || isExpensesLoading || !currentEvent || (expenses.length > 0 && !expense)) {
     return (
       <DashboardLayout>
         <div className='text-center py-12'>
           <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4'></div>
           <h1 className='text-xl font-semibold text-gray-900 mb-2'>
-            Loading Expense...
+            Loading...
           </h1>
           <p className='text-sm text-gray-600'>
-            Please wait while we load your expense details
+            Please wait while we load your data
           </p>
         </div>
       </DashboardLayout>
@@ -139,8 +168,8 @@ export default function ExpenseDetailPage() {
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateValue: Date) => {
+    return dateValue.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -273,13 +302,27 @@ export default function ExpenseDetailPage() {
   };
 
   const handleDelete = () => {
-    if (
-      window.confirm(
-        'Are you sure you want to delete this expense? This action cannot be undone.',
-      )
-    ) {
-      console.log('Delete expense:', expense.id);
-      router.push(`/events/${eventId}/dashboard`);
+    setShowDeleteExpenseConfirm(true);
+  };
+
+  const confirmDeleteExpense = async () => {
+    if (!user?.uid || !currentEvent?.id) {
+      return;
+    }
+
+    // Navigate immediately to avoid "Expense Not Found" page
+    // Go back to the category page where this expense belongs
+    router.push(`/events/${eventId}/category/${expense.category.id}`);
+
+    try {
+      await deleteExpenseMutation.mutateAsync({
+        userId: user.uid,
+        eventId: currentEvent.id,
+        expenseId: expense.id,
+      });
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+      // Don't navigate back on error since we already left the page
     }
   };
 
@@ -645,8 +688,12 @@ export default function ExpenseDetailPage() {
           </div>
         )}
 
-        {/* Vendor Information */}
-        {(expense as any).vendor && (
+        {/* Vendor Information - Only show if vendor has meaningful data */}
+        {(expense as any).vendor && 
+         ((expense as any).vendor.name || 
+          (expense as any).vendor.address || 
+          (expense as any).vendor.website || 
+          (expense as any).vendor.email) && (
           <div className='card'>
             <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center'>
               <BuildingOfficeIcon className='h-5 w-5 mr-2' />
@@ -654,14 +701,16 @@ export default function ExpenseDetailPage() {
             </h3>
 
             <div className='space-y-4'>
-              <div>
-                <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
-                  Vendor Name
+              {(expense as any).vendor.name && (
+                <div>
+                  <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
+                    Vendor Name
+                  </div>
+                  <p className='mt-1 text-base font-semibold text-gray-900'>
+                    {(expense as any).vendor.name}
+                  </p>
                 </div>
-                <p className='mt-1 text-base font-semibold text-gray-900'>
-                  {(expense as any).vendor.name}
-                </p>
-              </div>
+              )}
 
               {(expense as any).vendor.address && (
                 <div>
@@ -695,6 +744,19 @@ export default function ExpenseDetailPage() {
                         '',
                       )}
                     </a>
+                  </div>
+                </div>
+              )}
+
+              {(expense as any).vendor.email && (
+                <div>
+                  <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
+                    Email
+                  </div>
+                  <div className='mt-1 flex items-center'>
+                    <span className='text-base text-gray-900'>
+                      {(expense as any).vendor.email}
+                    </span>
                   </div>
                 </div>
               )}
@@ -1001,7 +1063,7 @@ export default function ExpenseDetailPage() {
         }}
       />
 
-      {/* Confirmation Dialog */}
+      {/* Confirmation Dialogs */}
       <ConfirmDialog
         isOpen={showDeletePaymentsConfirm}
         onClose={() => setShowDeletePaymentsConfirm(false)}
@@ -1013,6 +1075,16 @@ export default function ExpenseDetailPage() {
             : 'Are you sure you want to remove the payment? This will clear the payment record and cannot be undone.'
         }
         confirmText='Remove'
+        type='danger'
+      />
+
+      <ConfirmDialog
+        isOpen={showDeleteExpenseConfirm}
+        onClose={() => setShowDeleteExpenseConfirm(false)}
+        onConfirm={confirmDeleteExpense}
+        title='Delete Expense'
+        message='Are you sure you want to delete this expense? This action cannot be undone. All payment schedules and associated data will be permanently removed.'
+        confirmText='Delete'
         type='danger'
       />
     </DashboardLayout>
