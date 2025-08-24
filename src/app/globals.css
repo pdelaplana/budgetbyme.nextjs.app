@@ -61,6 +61,7 @@ html {
 body {
   background-color: var(--bg-secondary);
   color: var(--text-primary);
+  overflow: hidden;
 }
 
 /* Focus styles */

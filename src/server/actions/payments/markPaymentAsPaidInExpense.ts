@@ -1,6 +1,7 @@
 'use server';
 
 import { db } from '@/server/lib/firebase-admin';
+import { addToCategorySpentAmount, getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
 import type { MarkPaymentAsPaidDto } from '@/types/Payment';
 import { Timestamp } from 'firebase-admin/firestore';
 
@@ -50,6 +51,8 @@ export async function markPaymentAsPaidInExpense(
       _updatedBy: userId,
     };
 
+    let paymentAmount = 0;
+
     if (hasPaymentSchedule && expenseData.paymentSchedule) {
       // Update payment in schedule array
       const paymentSchedule = [...expenseData.paymentSchedule];
@@ -60,6 +63,9 @@ export async function markPaymentAsPaidInExpense(
       if (paymentIndex === -1) {
         throw new Error('Payment not found in schedule');
       }
+
+      // Get payment amount before marking as paid
+      paymentAmount = paymentSchedule[paymentIndex].amount;
 
       // Mark the payment as paid
       paymentSchedule[paymentIndex] = {
@@ -73,6 +79,9 @@ export async function markPaymentAsPaidInExpense(
         _updatedBy: userId,
       });
     } else if (expenseData.oneOffPayment) {
+      // Get payment amount before marking as paid
+      paymentAmount = expenseData.oneOffPayment.amount;
+
       // Mark one-off payment as paid
       const updatedPayment = {
         ...expenseData.oneOffPayment,
@@ -86,6 +95,12 @@ export async function markPaymentAsPaidInExpense(
       });
     } else {
       throw new Error('Payment not found');
+    }
+
+    // Update category spentAmount
+    const categoryId = await getCategoryIdFromExpense(userId, eventId, expenseId);
+    if (categoryId && paymentAmount > 0) {
+      await addToCategorySpentAmount(userId, eventId, categoryId, paymentAmount);
     }
 
     console.log('Payment marked as paid successfully:', paymentId);

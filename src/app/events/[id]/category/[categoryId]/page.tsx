@@ -406,9 +406,17 @@ export default function CategoryPage() {
               </div>
               <div className='flex justify-between items-center'>
                 <span className='text-sm sm:text-base text-gray-600'>
+                  Scheduled:
+                </span>
+                <span className='font-semibold text-sm sm:text-base text-primary-600'>
+                  {formatCurrency(category.scheduledAmount ?? 0)}
+                </span>
+              </div>
+              <div className='flex justify-between items-center'>
+                <span className='text-sm sm:text-base text-gray-600'>
                   Spent:
                 </span>
-                <span className='font-semibold text-sm sm:text-base'>
+                <span className='font-semibold text-sm sm:text-base text-success-600'>
                   {formatCurrency(category.spentAmount ?? 0)}
                 </span>
               </div>
@@ -480,33 +488,44 @@ export default function CategoryPage() {
         ) : (
           <div className='space-y-2 sm:space-y-3'>
             {categoryExpenses.map((expense) => {
-              // Calculate payment status and progress
-              const hasPaymentSchedule =
+              // Calculate payment status and progress (matching expense detail page logic)
+              const hasPayments =
+                (expense.hasPaymentSchedule && expense.paymentSchedule) ||
+                expense.oneOffPayment;
+
+              let totalScheduled = 0;
+              let totalPaid = 0;
+
+              if (
                 expense.hasPaymentSchedule &&
-                'paymentSchedule' in expense &&
-                expense.paymentSchedule;
-              const totalScheduled = hasPaymentSchedule
-                ? (expense as any).paymentSchedule.reduce(
-                    (sum: number, payment: any) => sum + payment.amount,
-                    0,
-                  )
-                : expense.amount;
-              const totalPaid = hasPaymentSchedule
-                ? (expense as any).paymentSchedule
-                    .filter((p: any) => p.isPaid)
-                    .reduce(
-                      (sum: number, payment: any) => sum + payment.amount,
-                      0,
-                    )
-                : 0;
+                expense.paymentSchedule &&
+                expense.paymentSchedule.length > 0
+              ) {
+                // Multiple payments in schedule
+                totalScheduled = expense.paymentSchedule.reduce(
+                  (sum: number, payment: any) => sum + payment.amount,
+                  0,
+                );
+                totalPaid = expense.paymentSchedule
+                  .filter((payment: any) => payment.isPaid)
+                  .reduce((sum: number, payment: any) => sum + payment.amount, 0);
+              } else if (expense.oneOffPayment) {
+                // Single payment (hasPaymentSchedule can be true or false)
+                totalScheduled = expense.oneOffPayment.amount;
+                totalPaid = expense.oneOffPayment.isPaid ? expense.oneOffPayment.amount : 0;
+              } else {
+                // No payments at all
+                totalScheduled = expense.amount;
+                totalPaid = 0;
+              }
               const remainingBalance = totalScheduled - totalPaid;
               const progressPercentage =
                 totalScheduled > 0 ? (totalPaid / totalScheduled) * 100 : 0;
               const isFullyPaid = remainingBalance === 0;
 
               // Find next due payment
-              const nextDuePayment = hasPaymentSchedule
-                ? (expense as any).paymentSchedule
+              const nextDuePayment = expense.hasPaymentSchedule && expense.paymentSchedule
+                ? expense.paymentSchedule
                     .filter((p: any) => !p.isPaid)
                     .sort(
                       (a: any, b: any) =>
@@ -578,8 +597,8 @@ export default function CategoryPage() {
                         )}
                       </div>
 
-                      {/* Progress Bar (only show if has payment schedule) */}
-                      {hasPaymentSchedule && (
+                      {/* Progress Bar (only show if has payments) */}
+                      {hasPayments && (
                         <div className='space-y-1'>
                           <div className='flex justify-between items-center'>
                             <span className='text-xs text-gray-500'>
@@ -620,6 +639,7 @@ export default function CategoryPage() {
             name: category.name,
             description: category.description || '',
             budgetedAmount: category.budgetedAmount ?? 0,
+            scheduledAmount: category.scheduledAmount ?? 0,
             spentAmount: category.spentAmount ?? 0,
             color: category.color,
             icon: category.icon || '🎉',

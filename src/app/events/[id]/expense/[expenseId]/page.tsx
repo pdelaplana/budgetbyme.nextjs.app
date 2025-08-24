@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  ArrowLeftIcon,
   BuildingOfficeIcon,
   CalendarDaysIcon,
   CalendarIcon,
@@ -17,137 +16,21 @@ import {
   HomeIcon,
   MapPinIcon,
   PencilIcon,
-  PhotoIcon,
-  PlusIcon,
   TagIcon,
   TrashIcon,
-  XMarkIcon as XMarkIconSolid,
 } from '@heroicons/react/24/outline';
 import { useParams, useRouter } from 'next/navigation';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import AddOrEditExpenseModal from '@/components/modals/AddOrEditExpenseModal';
-import AddPaymentModal from '@/components/modals/AddPaymentModal';
 import PaymentScheduleModal from '@/components/modals/AddPaymentScheduleModal';
-import MarkAsPaidModal from '@/components/modals/MarkAsPaidModal';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
+import MarkAsPaidModal from '@/components/modals/MarkAsPaidModal';
 import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
-import { useEvents } from '@/contexts/EventsContext';
-import { useEventDetails } from '@/contexts/EventDetailsContext';
-import { useDeletePaymentMutation, useClearAllPaymentsMutation } from '@/hooks/payments';
 import { useAuth } from '@/contexts/AuthContext';
-
-// Mock expense data - in real app this would come from API based on event ID and expense ID
-const mockExpenseData = {
-  'exp-1-1': {
-    id: 'exp-1-1',
-    name: 'Venue Booking Package',
-    amount: 4000,
-    category: 'Venue & Reception',
-    categoryColor: '#059669',
-    date: '2024-01-15',
-    description:
-      'Full venue booking with multiple payment schedule including ceremony space, reception hall, and basic decorations.',
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-03-10T15:30:00Z',
-    tags: ['venue', 'package', 'ceremony'],
-    vendor: {
-      name: 'Golden Gate Gardens',
-      address: '123 Wedding Lane, San Francisco, CA 94102',
-      website: 'https://goldengategardens.com',
-    },
-    hasPaymentSchedule: true,
-    paymentSchedule: [
-      {
-        id: 'pay-1-1',
-        description: 'Initial Deposit',
-        amount: 2000,
-        dueDate: '2024-01-15',
-        isPaid: true,
-        paidDate: '2024-01-15',
-        paymentMethod: 'Credit Card',
-        notes: 'Booking confirmation deposit',
-      },
-      {
-        id: 'pay-1-2',
-        description: 'Second Payment',
-        amount: 1500,
-        dueDate: '2024-04-15',
-        isPaid: false,
-        notes: '60 days before event',
-      },
-      {
-        id: 'pay-1-3',
-        description: 'Final Payment',
-        amount: 500,
-        dueDate: '2024-06-01',
-        isPaid: false,
-        notes: 'Two weeks before wedding',
-      },
-    ],
-  },
-  'exp-2-1': {
-    id: 'exp-2-1',
-    name: 'Catering Service Package',
-    amount: 3200,
-    category: 'Catering & Beverages',
-    categoryColor: '#10b981',
-    date: '2024-01-20',
-    description:
-      'Full catering service with payment plan for 80 guests including appetizers, main course, dessert, and beverages.',
-    createdAt: '2024-01-20T16:20:00Z',
-    updatedAt: '2024-02-15T09:45:00Z',
-    tags: ['catering', 'package', '80-guests'],
-    vendor: {
-      name: 'Savory Celebrations Catering',
-      address: '456 Culinary Ave, San Francisco, CA 94103',
-      website: 'https://savorycelebrations.com',
-    },
-    hasPaymentSchedule: true,
-    paymentSchedule: [
-      {
-        id: 'pay-2-1',
-        description: 'Booking Deposit',
-        amount: 1500,
-        dueDate: '2024-01-20',
-        isPaid: true,
-        paidDate: '2024-01-21',
-        paymentMethod: 'Check',
-        notes: 'Service booking confirmation',
-      },
-      {
-        id: 'pay-2-2',
-        description: 'Menu Confirmation',
-        amount: 1200,
-        dueDate: '2024-05-15',
-        isPaid: false,
-        notes: 'Final headcount and menu selection',
-      },
-      {
-        id: 'pay-2-3',
-        description: 'Service Balance',
-        amount: 500,
-        dueDate: '2024-06-10',
-        isPaid: false,
-        notes: 'Final payment before event',
-      },
-    ],
-  },
-  'exp-1-2': {
-    id: 'exp-1-2',
-    name: 'Additional Reception Hours',
-    amount: 800,
-    category: 'Venue & Reception',
-    categoryColor: '#059669',
-    date: '2024-02-20',
-    description:
-      'Extended reception time from 10pm to 1am for additional dancing and celebration.',
-    createdAt: '2024-02-20T14:30:00Z',
-    tags: ['reception', 'overtime'],
-    isPaid: false,
-    dueDate: '2024-05-15',
-  },
-};
+import { useEventDetails } from '@/contexts/EventDetailsContext';
+import { useEvents } from '@/contexts/EventsContext';
+import { useClearAllPaymentsMutation } from '@/hooks/payments';
 
 export default function ExpenseDetailPage() {
   const router = useRouter();
@@ -155,24 +38,30 @@ export default function ExpenseDetailPage() {
   const eventId = params?.id as string;
   const expenseId = params?.expenseId as string;
   const { events, isLoading, selectEventById } = useEvents();
-  const { event: currentEvent, expenses, isExpensesLoading, categories } = useEventDetails();
+  const {
+    event: currentEvent,
+    expenses,
+    isExpensesLoading,
+    categories,
+  } = useEventDetails();
   const { user } = useAuth();
 
-  const [showAddPayment, setShowAddPayment] = useState(false);
   const [showAddPaymentSchedule, setShowAddPaymentSchedule] = useState(false);
-  const [paymentScheduleMode, setPaymentScheduleMode] = useState<'create' | 'edit'>('create');
+  const [paymentScheduleMode, setPaymentScheduleMode] = useState<
+    'create' | 'edit'
+  >('create');
   const [showMarkAsPaid, setShowMarkAsPaid] = useState(false);
   const [showMarkPaymentAsPaid, setShowMarkPaymentAsPaid] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<any>(null);
-  const [editingPayment, setEditingPayment] = useState<any>(null);
   const [showEditExpense, setShowEditExpense] = useState(false);
   const [showActionDropdown, setShowActionDropdown] = useState(false);
   const [isEditingTags, setIsEditingTags] = useState(false);
   const [newTag, setNewTag] = useState('');
   const [tags, setTags] = useState<string[]>([]);
-  
+
   // Payment deletion state
-  const [showDeletePaymentsConfirm, setShowDeletePaymentsConfirm] = useState(false);
+  const [showDeletePaymentsConfirm, setShowDeletePaymentsConfirm] =
+    useState(false);
 
   // Clear all payments mutation
   const clearAllPaymentsMutation = useClearAllPaymentsMutation({
@@ -230,6 +119,7 @@ export default function ExpenseDetailPage() {
             The requested expense could not be found.
           </p>
           <button
+            type='button'
             onClick={() => router.push(`/events/${eventId}/dashboard`)}
             className='btn-primary'
           >
@@ -267,19 +157,23 @@ export default function ExpenseDetailPage() {
     });
   };
 
-
   const getPaymentStatus = (payment: any) => {
     if (payment.isPaid) {
       return {
         icon: CheckCircleIcon,
-        text: payment.paidDate ? `Paid ${formatDate(payment.paidDate)}` : 'Paid',
+        text: payment.paidDate
+          ? `Paid ${formatDate(payment.paidDate)}`
+          : 'Paid',
         className: 'text-success-600',
         bgClassName: 'bg-success-50',
         borderClassName: 'border-success-200',
       };
     } else {
       const today = new Date();
-      const dueDate = payment.dueDate instanceof Date ? payment.dueDate : new Date(payment.dueDate);
+      const dueDate =
+        payment.dueDate instanceof Date
+          ? payment.dueDate
+          : new Date(payment.dueDate);
       const daysUntilDue = Math.ceil(
         (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
       );
@@ -390,18 +284,27 @@ export default function ExpenseDetailPage() {
   };
 
   // Calculate payment totals based on embedded payment structure
-  const hasPayments = (expense.hasPaymentSchedule && expense.paymentSchedule) || expense.oneOffPayment;
-  
+  const hasPayments =
+    (expense.hasPaymentSchedule && expense.paymentSchedule) ||
+    expense.oneOffPayment;
+
   let totalScheduled = 0;
   let totalPaid = 0;
   let allPayments: any[] = [];
-  
-  if (expense.hasPaymentSchedule && expense.paymentSchedule && expense.paymentSchedule.length > 0) {
+
+  if (
+    expense.hasPaymentSchedule &&
+    expense.paymentSchedule &&
+    expense.paymentSchedule.length > 0
+  ) {
     // Multiple payments in schedule
     allPayments = expense.paymentSchedule;
-    totalScheduled = expense.paymentSchedule.reduce((sum, payment) => sum + payment.amount, 0);
+    totalScheduled = expense.paymentSchedule.reduce(
+      (sum, payment) => sum + payment.amount,
+      0,
+    );
     totalPaid = expense.paymentSchedule
-      .filter(payment => payment.isPaid)
+      .filter((payment) => payment.isPaid)
       .reduce((sum, payment) => sum + payment.amount, 0);
   } else if (expense.oneOffPayment) {
     // Single payment (hasPaymentSchedule can be true or false)
@@ -416,13 +319,11 @@ export default function ExpenseDetailPage() {
   }
 
   const remainingBalance = totalScheduled - totalPaid;
-  const isFullyPaid = remainingBalance === 0 && hasPayments;
-
 
   // Helper function to truncate text for mobile breadcrumbs
   const truncateForMobile = (text: string, maxLength: number = 20) => {
     if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength - 3) + '...';
+    return `${text.substring(0, maxLength - 3)}...`;
   };
 
   // Breadcrumb items with mobile-friendly labels
@@ -474,8 +375,10 @@ export default function ExpenseDetailPage() {
           <div className='flex-shrink-0 sm:hidden'>
             <div className='relative'>
               <button
+                type='button'
                 onClick={() => setShowActionDropdown(!showActionDropdown)}
                 className='btn-secondary flex items-center justify-center px-3 py-2 min-w-[44px] min-h-[44px]'
+                aria-label='Open action menu'
               >
                 <EllipsisVerticalIcon className='h-5 w-5' />
               </button>
@@ -485,6 +388,7 @@ export default function ExpenseDetailPage() {
                 <div className='absolute right-0 mt-2 w-44 bg-white rounded-lg shadow-xl border border-gray-200 z-50 origin-top-right'>
                   <div className='py-1'>
                     <button
+                      type='button'
                       onClick={() => {
                         handleEdit();
                         setShowActionDropdown(false);
@@ -495,6 +399,7 @@ export default function ExpenseDetailPage() {
                       <span>Edit Expense</span>
                     </button>
                     <button
+                      type='button'
                       onClick={() => {
                         handleDelete();
                         setShowActionDropdown(false);
@@ -510,9 +415,11 @@ export default function ExpenseDetailPage() {
 
               {/* Mobile Dropdown Backdrop */}
               {showActionDropdown && (
-                <div
-                  className='fixed inset-0 z-40'
+                <button
+                  type='button'
+                  className='fixed inset-0 z-40 cursor-default'
                   onClick={() => setShowActionDropdown(false)}
+                  aria-label='Close menu'
                 />
               )}
             </div>
@@ -522,6 +429,7 @@ export default function ExpenseDetailPage() {
           <div className='hidden sm:flex relative flex-shrink-0 overflow-visible'>
             <div className='flex'>
               <button
+                type='button'
                 onClick={handleEdit}
                 className='btn-secondary flex items-center rounded-r-none border-r-0'
               >
@@ -529,8 +437,10 @@ export default function ExpenseDetailPage() {
                 Edit
               </button>
               <button
+                type='button'
                 onClick={() => setShowActionDropdown(!showActionDropdown)}
                 className='btn-secondary px-2 rounded-l-none border-l border-gray-300 hover:border-gray-400'
+                aria-label='More actions'
               >
                 <ChevronDownIcon
                   className={`h-4 w-4 transition-transform duration-200 ${showActionDropdown ? 'rotate-180' : ''}`}
@@ -543,6 +453,7 @@ export default function ExpenseDetailPage() {
               <div className='absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-50 origin-top-right transform'>
                 <div className='py-1'>
                   <button
+                    type='button'
                     onClick={() => {
                       handleDelete();
                       setShowActionDropdown(false);
@@ -588,18 +499,18 @@ export default function ExpenseDetailPage() {
 
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
             <div>
-              <label className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
+              <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
                 Expense Name
-              </label>
+              </div>
               <p className='mt-1 text-base font-medium text-gray-900'>
                 {expense.name}
               </p>
             </div>
 
             <div>
-              <label className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
+              <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
                 Category
-              </label>
+              </div>
               <div className='mt-1 flex items-center'>
                 <div
                   className='w-3 h-3 rounded-full mr-2'
@@ -612,9 +523,9 @@ export default function ExpenseDetailPage() {
             </div>
 
             <div>
-              <label className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
+              <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
                 Date
-              </label>
+              </div>
               <div className='mt-1 flex items-center'>
                 <CalendarIcon className='h-4 w-4 text-gray-400 mr-2' />
                 <p className='text-base text-gray-900'>
@@ -624,9 +535,9 @@ export default function ExpenseDetailPage() {
             </div>
 
             <div>
-              <label className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
+              <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
                 Amount
-              </label>
+              </div>
               <p className='mt-1 text-base font-semibold text-gray-900'>
                 {formatCurrency(expense.amount)}
               </p>
@@ -658,6 +569,7 @@ export default function ExpenseDetailPage() {
                       maxLength={15}
                     />
                     <button
+                      type='button'
                       onClick={handleAddTag}
                       disabled={!newTag.trim() || tags.includes(newTag.trim())}
                       className='text-xs px-2 py-1 bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed'
@@ -682,6 +594,7 @@ export default function ExpenseDetailPage() {
                       <span className='truncate max-w-[80px]'>{tag}</span>
                       {isEditingTags && (
                         <button
+                          type='button'
                           onClick={() => handleDeleteTag(tag)}
                           className='ml-1 text-red-600 hover:text-red-700'
                           aria-label={`Remove ${tag} tag`}
@@ -732,7 +645,6 @@ export default function ExpenseDetailPage() {
           </div>
         )}
 
-
         {/* Vendor Information */}
         {(expense as any).vendor && (
           <div className='card'>
@@ -743,9 +655,9 @@ export default function ExpenseDetailPage() {
 
             <div className='space-y-4'>
               <div>
-                <label className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
+                <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
                   Vendor Name
-                </label>
+                </div>
                 <p className='mt-1 text-base font-semibold text-gray-900'>
                   {(expense as any).vendor.name}
                 </p>
@@ -753,9 +665,9 @@ export default function ExpenseDetailPage() {
 
               {(expense as any).vendor.address && (
                 <div>
-                  <label className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
+                  <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
                     Address
-                  </label>
+                  </div>
                   <div className='mt-1 flex items-start'>
                     <MapPinIcon className='h-4 w-4 text-gray-400 mr-2 mt-0.5 flex-shrink-0' />
                     <p className='text-base text-gray-900'>
@@ -767,9 +679,9 @@ export default function ExpenseDetailPage() {
 
               {(expense as any).vendor.website && (
                 <div>
-                  <label className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
+                  <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
                     Website
-                  </label>
+                  </div>
                   <div className='mt-1 flex items-center'>
                     <GlobeAltIcon className='h-4 w-4 text-gray-400 mr-2 flex-shrink-0' />
                     <a
@@ -856,6 +768,7 @@ export default function ExpenseDetailPage() {
                   </h4>
                   <div className='flex items-center space-x-2 ml-2'>
                     <button
+                      type='button'
                       onClick={() => {
                         setPaymentScheduleMode('edit');
                         setShowAddPaymentSchedule(true);
@@ -866,6 +779,7 @@ export default function ExpenseDetailPage() {
                       <PencilIcon className='h-4 w-4' />
                     </button>
                     <button
+                      type='button'
                       onClick={handleDeleteAllPayments}
                       className='p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors duration-200'
                       title='Remove all payments'
@@ -925,6 +839,7 @@ export default function ExpenseDetailPage() {
                             {!payment.isPaid && (
                               <div className='mt-2'>
                                 <button
+                                  type='button'
                                   onClick={() =>
                                     handleMarkPaymentAsPaid(payment)
                                   }
@@ -953,12 +868,15 @@ export default function ExpenseDetailPage() {
                       No Payment Schedule
                     </span>
                     <p className='text-sm text-gray-600 mt-1'>
-                      This expense doesn't have any payment schedule yet. You can create one to break down the payment into multiple installments.
+                      This expense doesn't have any payment schedule yet. You
+                      can create one to break down the payment into multiple
+                      installments.
                     </p>
                   </div>
                 </div>
                 <div className='text-center'>
                   <button
+                    type='button'
                     onClick={() => {
                       setPaymentScheduleMode('create');
                       setShowAddPaymentSchedule(true);
@@ -967,7 +885,9 @@ export default function ExpenseDetailPage() {
                   >
                     <CalendarDaysIcon className='h-4 w-4 mr-2 flex-shrink-0' />
                     <span className='text-center'>
-                      <span className='hidden sm:inline'>Create Payment Schedule</span>
+                      <span className='hidden sm:inline'>
+                        Create Payment Schedule
+                      </span>
                       <span className='sm:hidden'>Create Schedule</span>
                     </span>
                   </button>
@@ -982,12 +902,14 @@ export default function ExpenseDetailPage() {
                       Mark as Paid
                     </h4>
                     <p className='text-sm text-primary-700'>
-                      If you've already paid the full amount for this expense, you can mark it as paid to track your payment.
+                      If you've already paid the full amount for this expense,
+                      you can mark it as paid to track your payment.
                     </p>
                   </div>
                 </div>
                 <div className='text-center'>
                   <button
+                    type='button'
                     onClick={() => setShowMarkAsPaid(true)}
                     className='btn-primary mx-auto px-6 py-3 w-full sm:w-auto sm:min-w-[280px]'
                   >
@@ -1008,9 +930,9 @@ export default function ExpenseDetailPage() {
 
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm'>
             <div>
-              <label className='font-medium text-gray-500 uppercase tracking-wide'>
+              <div className='font-medium text-gray-500 uppercase tracking-wide'>
                 Created
-              </label>
+              </div>
               <p className='mt-1 text-gray-900'>
                 {formatDateTime(expense._createdDate)}
               </p>
@@ -1018,9 +940,9 @@ export default function ExpenseDetailPage() {
 
             {expense._updatedDate && (
               <div>
-                <label className='font-medium text-gray-500 uppercase tracking-wide'>
+                <div className='font-medium text-gray-500 uppercase tracking-wide'>
                   Last Updated
-                </label>
+                </div>
                 <p className='mt-1 text-gray-900'>
                   {formatDateTime(expense._updatedDate)}
                 </p>
@@ -1049,7 +971,9 @@ export default function ExpenseDetailPage() {
           setSelectedPayment(null);
         }}
         expenseId={expenseId!}
-        expenseName={selectedPayment?.name || selectedPayment?.description || 'Payment'}
+        expenseName={
+          selectedPayment?.name || selectedPayment?.description || 'Payment'
+        }
         expenseAmount={selectedPayment?.amount || 0}
         paymentId={selectedPayment?.id}
       />
@@ -1082,14 +1006,14 @@ export default function ExpenseDetailPage() {
         isOpen={showDeletePaymentsConfirm}
         onClose={() => setShowDeletePaymentsConfirm(false)}
         onConfirm={confirmDeleteAllPayments}
-        title="Remove All Payments"
+        title='Remove All Payments'
         message={
-          expense.hasPaymentSchedule 
-            ? "Are you sure you want to remove the entire payment schedule? This will clear all scheduled payments and cannot be undone."
-            : "Are you sure you want to remove the payment? This will clear the payment record and cannot be undone."
+          expense.hasPaymentSchedule
+            ? 'Are you sure you want to remove the entire payment schedule? This will clear all scheduled payments and cannot be undone.'
+            : 'Are you sure you want to remove the payment? This will clear the payment record and cannot be undone.'
         }
-        confirmText="Remove"
-        type="danger"
+        confirmText='Remove'
+        type='danger'
       />
     </DashboardLayout>
   );

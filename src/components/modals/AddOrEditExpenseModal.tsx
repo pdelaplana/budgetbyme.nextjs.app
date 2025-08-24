@@ -11,12 +11,15 @@ import {
   TagIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
-import { useAddExpenseMutation, useUpdateExpenseMutation } from '@/hooks/expenses';
-import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEventDetails } from '@/contexts/EventDetailsContext';
+import {
+  useAddExpenseMutation,
+  useUpdateExpenseMutation,
+} from '@/hooks/expenses';
 import type { BudgetCategory } from '@/types/BudgetCategory';
 
 interface ExpenseFormData {
@@ -75,35 +78,39 @@ export default function AddOrEditExpenseModal({
   const { user } = useAuth();
   const { event, categories: contextCategories } = useEventDetails();
   const router = useRouter();
-  
+
   // Use categories from props or context
   const availableCategories = categories || contextCategories || [];
-  
+
   const addExpenseMutation = useAddExpenseMutation({
     onSuccess: (expenseId) => {
       // Close modal immediately for better UX
       handleClose(true);
-      
+
       // Show success toast
       toast.success('Expense created successfully!');
     },
     onError: (error) => {
       console.error('Failed to add expense:', error);
-      toast.error(error.message || 'Failed to create expense. Please try again.');
+      toast.error(
+        error.message || 'Failed to create expense. Please try again.',
+      );
     },
   });
-  
+
   const updateExpenseMutation = useUpdateExpenseMutation({
     onSuccess: (expenseId) => {
-      // Close modal immediately for better UX
-      handleClose(true);
-      
       // Show success toast
       toast.success('Expense updated successfully!');
+
+      // Close modal immediately for better UX
+      handleClose(true);
     },
     onError: (error) => {
       console.error('Failed to update expense:', error);
-      toast.error(error.message || 'Failed to update expense. Please try again.');
+      toast.error(
+        error.message || 'Failed to update expense. Please try again.',
+      );
     },
   });
 
@@ -126,9 +133,10 @@ export default function AddOrEditExpenseModal({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [tagInput, setTagInput] = useState('');
-  
+
   // Loading state from mutations
-  const isSubmitting = addExpenseMutation.isPending || updateExpenseMutation.isPending;
+  const isSubmitting =
+    addExpenseMutation.isPending || updateExpenseMutation.isPending;
 
   // Pre-populate form when editing
   React.useEffect(() => {
@@ -170,18 +178,6 @@ export default function AddOrEditExpenseModal({
     }
   }, [editingExpense, isEditMode, isOpen]);
 
-  // Prevent body scroll when modal is open
-  React.useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
 
   const handleInputChange = (field: keyof ExpenseFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -198,18 +194,18 @@ export default function AddOrEditExpenseModal({
 
   const addTag = () => {
     if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        tags: [...prev.tags, tagInput.trim()]
+        tags: [...prev.tags, tagInput.trim()],
       }));
       setTagInput('');
     }
   };
 
   const removeTag = (tagToRemove: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
+      tags: prev.tags.filter((tag) => tag !== tagToRemove),
     }));
   };
 
@@ -257,7 +253,9 @@ export default function AddOrEditExpenseModal({
     }
 
     // Find selected category
-    const selectedCategory = availableCategories.find(cat => cat.id === formData.categoryId);
+    const selectedCategory = availableCategories.find(
+      (cat) => cat.id === formData.categoryId,
+    );
     if (!selectedCategory) {
       toast.error('Selected category not found');
       return;
@@ -443,7 +441,10 @@ export default function AddOrEditExpenseModal({
                     type='text'
                     value={formData.amount}
                     onChange={(e) =>
-                      handleInputChange('amount', formatCurrency(e.target.value))
+                      handleInputChange(
+                        'amount',
+                        formatCurrency(e.target.value),
+                      )
                     }
                     placeholder='0.00'
                     className={`form-input pl-7 ${errors.amount ? 'border-red-300 focus:border-red-500' : ''}`}
@@ -464,7 +465,9 @@ export default function AddOrEditExpenseModal({
                 <select
                   id='expense-category'
                   value={formData.categoryId}
-                  onChange={(e) => handleInputChange('categoryId', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange('categoryId', e.target.value)
+                  }
                   className={`form-input ${errors.categoryId ? 'border-red-300 focus:border-red-500' : ''}`}
                   disabled={isSubmitting}
                 >
@@ -476,7 +479,9 @@ export default function AddOrEditExpenseModal({
                   ))}
                 </select>
                 {errors.categoryId && (
-                  <p className='mt-1 text-sm text-red-600'>{errors.categoryId}</p>
+                  <p className='mt-1 text-sm text-red-600'>
+                    {errors.categoryId}
+                  </p>
                 )}
               </div>
             </div>
@@ -509,7 +514,9 @@ export default function AddOrEditExpenseModal({
               <textarea
                 id='expense-description'
                 value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange('description', e.target.value)
+                }
                 placeholder='Add details about this expense...'
                 rows={3}
                 className='form-input resize-none'
@@ -537,7 +544,9 @@ export default function AddOrEditExpenseModal({
                     id='vendor-name'
                     type='text'
                     value={formData.vendorName}
-                    onChange={(e) => handleInputChange('vendorName', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange('vendorName', e.target.value)
+                    }
                     placeholder='e.g., ABC Catering'
                     className='form-input'
                     disabled={isSubmitting}
@@ -552,7 +561,9 @@ export default function AddOrEditExpenseModal({
                     id='vendor-email'
                     type='email'
                     value={formData.vendorEmail}
-                    onChange={(e) => handleInputChange('vendorEmail', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange('vendorEmail', e.target.value)
+                    }
                     placeholder='vendor@example.com'
                     className='form-input'
                     disabled={isSubmitting}
@@ -568,7 +579,9 @@ export default function AddOrEditExpenseModal({
                     id='vendor-website'
                     type='url'
                     value={formData.vendorWebsite}
-                    onChange={(e) => handleInputChange('vendorWebsite', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange('vendorWebsite', e.target.value)
+                    }
                     placeholder='https://vendor.com'
                     className='form-input'
                     disabled={isSubmitting}
@@ -584,7 +597,9 @@ export default function AddOrEditExpenseModal({
                     id='vendor-address'
                     type='text'
                     value={formData.vendorAddress}
-                    onChange={(e) => handleInputChange('vendorAddress', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange('vendorAddress', e.target.value)
+                    }
                     placeholder='123 Main St, City, State'
                     className='form-input'
                     disabled={isSubmitting}
@@ -706,15 +721,16 @@ export default function AddOrEditExpenseModal({
               className='btn-primary flex-1 order-1 sm:order-2 flex items-center justify-center'
               disabled={isSubmitting}
             >
-              {isSubmitting && (
-                <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'></div>
-              )}
+              {/* Always reserve space for spinner to prevent layout shift */}
+              <div className='w-4 h-4 mr-2 flex items-center justify-center'>
+                {isSubmitting && (
+                  <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white'></div>
+                )}
+              </div>
               <span className='hidden sm:inline'>
                 {isEditMode ? 'Update Expense' : 'Add Expense'}
               </span>
-              <span className='sm:hidden'>
-                {isEditMode ? 'Update' : 'Add'}
-              </span>
+              <span className='sm:hidden'>{isEditMode ? 'Update' : 'Add'}</span>
             </button>
           </div>
         </div>

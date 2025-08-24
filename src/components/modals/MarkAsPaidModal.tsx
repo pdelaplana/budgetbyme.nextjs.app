@@ -97,18 +97,6 @@ export default function MarkAsPaidModal({
 
   const isSubmitting = createSinglePaymentMutation.isPending || markPaymentAsPaidMutation.isPending;
 
-  // Prevent body scroll when modal is open
-  React.useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
 
   // Reinitialize form data when modal opens or props change
   React.useEffect(() => {

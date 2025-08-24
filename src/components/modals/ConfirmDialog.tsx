@@ -24,7 +24,7 @@ export default function ConfirmDialog({
   cancelText = 'Cancel',
   type = 'info',
 }: ConfirmDialogProps) {
-  // Handle escape key and prevent body scroll
+  // Handle escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -33,21 +33,11 @@ export default function ConfirmDialog({
     };
 
     if (isOpen) {
-      // Calculate scrollbar width before hiding overflow
-      const scrollbarWidth =
-        window.innerWidth - document.documentElement.clientWidth;
-
       document.addEventListener('keydown', handleEscape);
-
-      // Prevent background scrolling while preserving scrollbar space
-      document.body.style.overflow = 'hidden';
-      document.body.style.paddingRight = `${scrollbarWidth}px`;
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
-      document.body.style.paddingRight = '';
     };
   }, [isOpen, onClose]);
 

@@ -182,11 +182,11 @@ export const updateExpense = withSentryServerAction(
           const oldCategoryDoc = await oldCategoryRef.get();
           if (oldCategoryDoc.exists) {
             const oldCategoryData = oldCategoryDoc.data();
-            const oldCategorySpentAmount = oldCategoryData?.spentAmount || 0;
-            const newOldCategorySpentAmount = Math.max(0, oldCategorySpentAmount - currentAmount);
+            const oldCategoryScheduledAmount = oldCategoryData?.scheduledAmount || 0;
+            const newOldCategoryScheduledAmount = Math.max(0, oldCategoryScheduledAmount - currentAmount);
 
             batch.update(oldCategoryRef, {
-              spentAmount: newOldCategorySpentAmount,
+              scheduledAmount: newOldCategoryScheduledAmount,
               _updatedDate: Timestamp.now(),
               _updatedBy: updateExpenseDto.userId,
             });
@@ -206,11 +206,11 @@ export const updateExpense = withSentryServerAction(
           const newCategoryDoc = await newCategoryRef.get();
           if (newCategoryDoc.exists) {
             const newCategoryData = newCategoryDoc.data();
-            const newCategorySpentAmount = newCategoryData?.spentAmount || 0;
-            const updatedNewCategorySpentAmount = newCategorySpentAmount + newAmount;
+            const newCategoryScheduledAmount = newCategoryData?.scheduledAmount || 0;
+            const updatedNewCategoryScheduledAmount = newCategoryScheduledAmount + newAmount;
 
             batch.update(newCategoryRef, {
-              spentAmount: updatedNewCategorySpentAmount,
+              scheduledAmount: updatedNewCategoryScheduledAmount,
               _updatedDate: Timestamp.now(),
               _updatedBy: updateExpenseDto.userId,
             });

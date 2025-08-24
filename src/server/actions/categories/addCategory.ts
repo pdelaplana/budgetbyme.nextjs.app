@@ -70,6 +70,7 @@ export const addCategory = withSentryServerAction(
         name: addCategoryDto.name.trim(),
         description: addCategoryDto.description?.trim() || '',
         budgetedAmount: addCategoryDto.budgetedAmount,
+        scheduledAmount: 0, // Start with zero scheduled
         spentAmount: 0, // Start with zero spent
         color: addCategoryDto.color.trim(),
         icon: addCategoryDto.icon.trim(),

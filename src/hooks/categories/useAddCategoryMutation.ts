@@ -89,6 +89,7 @@ export function useAddCategoryMutation(options?: UseAddCategoryMutationOptions) 
           name: variables.addCategoryDto.name,
           description: variables.addCategoryDto.description || '',
           budgetedAmount: variables.addCategoryDto.budgetedAmount,
+          scheduledAmount: 0,
           spentAmount: 0,
           color: variables.addCategoryDto.color,
           icon: variables.addCategoryDto.icon || '🎉',

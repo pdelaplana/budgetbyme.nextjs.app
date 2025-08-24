@@ -44,25 +44,20 @@ export async function updatePaymentSchedule({
 
     // Convert payment data to Firestore document format (matching createPaymentSchedule)
     const now = Timestamp.now();
-    const paymentSchedule = payments.map((payment, index) => {
-      const notes = payment.notes?.trim();
-      
-      return {
-        name: payment.name.trim(),
-        description: payment.description.trim(),
-        amount: payment.amount,
-        paymentMethod: payment.paymentMethod,
-        dueDate: Timestamp.fromDate(payment.dueDate),
-        isPaid: false,
-        attachments: payment.attachments || [],
-        _createdDate: Timestamp.fromMillis(now.toMillis() + index), // Ensure unique timestamps
-        _createdBy: userId,
-        _updatedDate: Timestamp.fromMillis(now.toMillis() + index),
-        _updatedBy: userId,
-        // Only include notes if it has a value
-        ...(notes && { notes }),
-      };
-    });
+    const paymentSchedule = payments.map((payment, index) => ({
+      name: payment.name.trim(),
+      description: payment.description.trim(),
+      amount: payment.amount,
+      paymentMethod: payment.paymentMethod,
+      dueDate: Timestamp.fromDate(payment.dueDate),
+      isPaid: false,
+      notes: payment.notes?.trim() || '', // Always provide a string value, never undefined
+      attachments: payment.attachments || [],
+      _createdDate: Timestamp.fromMillis(now.toMillis() + index), // Ensure unique timestamps
+      _createdBy: userId,
+      _updatedDate: Timestamp.fromMillis(now.toMillis() + index),
+      _updatedBy: userId,
+    }));
 
     // Update the expense with new payment schedule (matching createPaymentSchedule format)
     await expenseRef.update({

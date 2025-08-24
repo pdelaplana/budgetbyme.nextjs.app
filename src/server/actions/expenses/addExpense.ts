@@ -32,7 +32,7 @@ export interface AddExpenseDto {
 /**
  * Server action to create a new expense in Firestore
  * Expenses are stored under the event: /workspaces/{userId}/events/{eventId}/expenses/{expenseId}
- * Also updates the category's spentAmount
+ * Also updates the category's scheduledAmount (expenses are scheduled when created, not spent)
  * Wrapped with Sentry monitoring
  */
 export const addExpense = withSentryServerAction(
@@ -124,13 +124,13 @@ export const addExpense = withSentryServerAction(
       // Add the expense
       batch.set(newExpenseRef, newExpenseDocument);
 
-      // Update category spent amount
+      // Update category scheduled amount (expenses are scheduled when created, not spent)
       const categoryData = categoryDoc.data();
-      const currentSpentAmount = categoryData?.spentAmount || 0;
-      const newSpentAmount = currentSpentAmount + addExpenseDto.amount;
+      const currentScheduledAmount = categoryData?.scheduledAmount || 0;
+      const newScheduledAmount = currentScheduledAmount + addExpenseDto.amount;
 
       batch.update(categoryRef, {
-        spentAmount: newSpentAmount,
+        scheduledAmount: newScheduledAmount,
         _updatedDate: now,
         _updatedBy: addExpenseDto.userId,
       });
@@ -150,7 +150,7 @@ export const addExpense = withSentryServerAction(
           expenseName: addExpenseDto.name,
           amount: addExpenseDto.amount,
           categoryId: addExpenseDto.categoryId,
-          newCategorySpentAmount: newSpentAmount,
+          newCategoryScheduledAmount: newScheduledAmount,
         },
       });
 

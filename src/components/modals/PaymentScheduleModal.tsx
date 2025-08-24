@@ -61,18 +61,6 @@ export default function PaymentScheduleModal({
     notes: '',
   });
 
-  // Prevent body scroll when modal is open
-  React.useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {

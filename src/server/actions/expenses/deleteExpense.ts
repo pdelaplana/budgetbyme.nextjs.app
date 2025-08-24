@@ -14,7 +14,7 @@ export interface DeleteExpenseDto {
 /**
  * Server action to delete an expense from Firestore
  * Expense is deleted from: /workspaces/{userId}/events/{eventId}/expenses/{expenseId}
- * Also updates the category's spentAmount to subtract the deleted expense amount
+ * Also updates the category's scheduledAmount to subtract the deleted expense amount
  * Wrapped with Sentry monitoring
  */
 export const deleteExpense = withSentryServerAction(
@@ -65,7 +65,7 @@ export const deleteExpense = withSentryServerAction(
       // Delete the expense
       batch.delete(expenseRef);
 
-      // Update category spent amount (subtract the deleted expense amount)
+      // Update category scheduled amount (subtract the deleted expense amount)
       if (categoryId && expenseAmount > 0) {
         const categoryRef = db
           .collection('workspaces')
@@ -78,11 +78,11 @@ export const deleteExpense = withSentryServerAction(
         const categoryDoc = await categoryRef.get();
         if (categoryDoc.exists) {
           const categoryData = categoryDoc.data();
-          const currentSpentAmount = categoryData?.spentAmount || 0;
-          const newSpentAmount = Math.max(0, currentSpentAmount - expenseAmount);
+          const currentScheduledAmount = categoryData?.scheduledAmount || 0;
+          const newScheduledAmount = Math.max(0, currentScheduledAmount - expenseAmount);
 
           batch.update(categoryRef, {
-            spentAmount: newSpentAmount,
+            scheduledAmount: newScheduledAmount,
             _updatedDate: Timestamp.now(),
             _updatedBy: deleteExpenseDto.userId,
           });

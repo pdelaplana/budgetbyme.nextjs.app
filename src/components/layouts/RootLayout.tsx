@@ -57,7 +57,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       />
 
       {/* Main content area */}
-      <div className='flex flex-col min-h-screen'>
+      <div className='flex flex-col h-screen'>
         {/* Top navigation bar */}
         <div className='sticky top-0 z-10 bg-white shadow-sm border-b border-gray-200'>
           <div className='flex h-14 sm:h-16 justify-between items-center px-3 sm:px-6 lg:px-8'>

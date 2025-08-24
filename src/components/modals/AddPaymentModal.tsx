@@ -121,18 +121,6 @@ export default function AddPaymentModal({
     }
   }, [editingPayment, isEditMode, isOpen]);
 
-  // Prevent body scroll when modal is open
-  React.useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen]);
 
   const handleInputChange = (
     field: keyof AddPaymentFormData,

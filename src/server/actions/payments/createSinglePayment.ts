@@ -1,6 +1,7 @@
 'use server';
 
 import { db } from '@/server/lib/firebase-admin';
+import { addToCategorySpentAmount, getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
 import type { PaymentMethod } from '@/types/Payment';
 import type { PaymentDocument } from '@/server/types/PaymentDocument';
 import { Timestamp } from 'firebase-admin/firestore';
@@ -71,6 +72,12 @@ export async function createSinglePayment(dto: CreateSinglePaymentDto): Promise<
       _updatedDate: now,
       _updatedBy: userId,
     });
+
+    // Update category spentAmount since this payment is already marked as paid
+    const categoryId = await getCategoryIdFromExpense(userId, eventId, expenseId);
+    if (categoryId && paymentData.amount > 0) {
+      await addToCategorySpentAmount(userId, eventId, categoryId, paymentData.amount);
+    }
 
     const paymentId = now.toMillis().toString();
     console.log('Single payment created successfully:', paymentId);

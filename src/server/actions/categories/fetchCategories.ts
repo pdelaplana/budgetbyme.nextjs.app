@@ -72,6 +72,7 @@ export const fetchCategories = withSentryServerAction(
           name: data.name,
           description: data.description,
           budgetedAmount: data.budgetedAmount,
+          scheduledAmount: data.scheduledAmount || 0, // Default to 0 for existing categories
           spentAmount: data.spentAmount,
           color: data.color,
           icon: data.icon || '🎉', // Default icon for existing categories
