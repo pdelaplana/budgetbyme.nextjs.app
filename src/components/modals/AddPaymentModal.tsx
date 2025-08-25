@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useAddPaymentMutation, useUpdatePaymentMutation } from '@/hooks/payments';
 import type { PaymentMethod } from '@/types/Payment';
+import { sanitizeCurrencyInput } from '@/lib/formatters';
 
 interface AddPaymentFormData {
   name: string;
@@ -133,10 +134,6 @@ export default function AddPaymentModal({
     }
   };
 
-  const formatCurrency = (value: string) => {
-    const numericValue = value.replace(/[^\d.]/g, '');
-    return numericValue;
-  };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -368,7 +365,7 @@ export default function AddPaymentModal({
                     onChange={(e) =>
                       handleInputChange(
                         'amount',
-                        formatCurrency(e.target.value),
+                        sanitizeCurrencyInput(e.target.value).toString(),
                       )
                     }
                     placeholder='0.00'

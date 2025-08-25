@@ -20,6 +20,7 @@ import {
   useUpdateExpenseMutation,
 } from '@/hooks/expenses';
 import type { BudgetCategory } from '@/types/BudgetCategory';
+import { sanitizeCurrencyInput } from '@/lib/formatters';
 
 interface ExpenseFormData {
   name: string;
@@ -350,10 +351,6 @@ export default function AddOrEditExpenseModal({
     }
   };
 
-  const formatCurrency = (value: string) => {
-    const numericValue = value.replace(/[^\d.]/g, '');
-    return numericValue;
-  };
 
   if (!isOpen) return null;
 
@@ -444,7 +441,7 @@ export default function AddOrEditExpenseModal({
                     onChange={(e) =>
                       handleInputChange(
                         'amount',
-                        formatCurrency(e.target.value),
+                        sanitizeCurrencyInput(e.target.value).toString(),
                       )
                     }
                     placeholder='0.00'

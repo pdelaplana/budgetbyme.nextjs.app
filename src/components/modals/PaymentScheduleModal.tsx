@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import React, { useState } from 'react';
 import MarkAsPaidModal from './MarkAsPaidModal';
+import { formatCurrency, formatDate } from '@/lib/formatters';
 
 interface PaymentScheduleItem {
   id: string;
@@ -62,22 +63,6 @@ export default function PaymentScheduleModal({
   });
 
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
 
   const getPaymentStatus = (payment: PaymentScheduleItem) => {
     if (payment.isPaid) {

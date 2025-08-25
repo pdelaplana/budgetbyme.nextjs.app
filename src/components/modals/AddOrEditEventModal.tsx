@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAddEventMutation, useUpdateEventMutation } from '@/hooks/events';
 import type { Event } from '@/types/Event';
+import { sanitizeCurrencyInput } from '@/lib/formatters';
 import {
   getEventIcon,
   getEventTypeLabel,
@@ -103,10 +104,6 @@ export default function AddOrEditEventModal({
     }
   };
 
-  const formatCurrency = (value: string) => {
-    const numericValue = value.replace(/[^\d.]/g, '');
-    return numericValue;
-  };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -397,7 +394,7 @@ export default function AddOrEditEventModal({
                       onChange={(e) =>
                         handleInputChange(
                           'totalBudget',
-                          formatCurrency(e.target.value),
+                          sanitizeCurrencyInput(e.target.value).toString(),
                         )
                       }
                       placeholder='0.00'

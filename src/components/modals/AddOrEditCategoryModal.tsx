@@ -14,6 +14,7 @@ import { useAddCategoryMutation, useUpdateCategoryMutation } from '@/hooks/categ
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import IconSelector from '@/components/ui/IconSelector';
+import { sanitizeCurrencyInput } from '@/lib/formatters';
 
 interface CategoryFormData {
   name: string;
@@ -146,10 +147,6 @@ export default function AddOrEditCategoryModal({
     }
   };
 
-  const formatCurrency = (value: string) => {
-    const numericValue = value.replace(/[^\d.]/g, '');
-    return numericValue;
-  };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -345,7 +342,7 @@ export default function AddOrEditCategoryModal({
                   type='text'
                   value={formData.budget}
                   onChange={(e) =>
-                    handleInputChange('budget', formatCurrency(e.target.value))
+                    handleInputChange('budget', sanitizeCurrencyInput(e.target.value).toString())
                   }
                   placeholder='0.00'
                   className={`form-input pl-7 ${errors.budget ? 'border-red-300 focus:border-red-500' : ''}`}

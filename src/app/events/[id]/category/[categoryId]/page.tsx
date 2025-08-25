@@ -24,6 +24,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
 import { useDeleteCategoryMutation } from '@/hooks/categories';
+import { formatCurrency, formatDate } from '@/lib/formatters';
 
 export default function CategoryPage() {
   const router = useRouter();
@@ -109,24 +110,6 @@ export default function CategoryPage() {
     );
   }
 
-  const formatCurrency = (amount: number) => {
-    // Ensure amount is a valid number
-    const validAmount = isNaN(amount) || amount == null ? 0 : amount;
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(validAmount);
-  };
-
-  const formatDate = (dateValue: Date) => {
-    return dateValue.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
 
   const handleExpenseClick = (expense: any) => {
     router.push(`/events/${eventId}/expense/${expense.id}`);

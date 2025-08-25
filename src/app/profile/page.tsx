@@ -23,6 +23,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFetchUserWorkspace } from '@/hooks/queries/useFetchUserWorkspace';
 import { setupUserWorkspace } from '@/server/actions/setupUserWorkspace';
 import { Currency } from '@/types/currencies';
+import { formatDateLong, formatDateTime } from '@/lib/formatters';
 
 // Mock user data
 const mockUser = {
@@ -90,23 +91,6 @@ export default function ProfilePage() {
     // In real app, this would call Firebase Auth signOut
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
 
   return (
     <AccountLayout>
@@ -182,7 +166,7 @@ export default function ProfilePage() {
               </div>
               <div className='text-center sm:text-left'>
                 <div className='text-lg font-semibold text-gray-900'>
-                  {formatDate(mockUser.joinedDate)}
+                  {formatDateLong(new Date(mockUser.joinedDate))}
                 </div>
                 <div className='text-xs text-gray-500'>Member Since</div>
               </div>
@@ -221,7 +205,7 @@ export default function ProfilePage() {
             <div className='pt-4 border-t'>
               <div className='flex items-center space-x-2 text-xs text-gray-500'>
                 <ShieldCheckIcon className='h-4 w-4 text-green-500' />
-                <span>Last sign in: {formatDateTime(mockUser.lastSignIn)}</span>
+                <span>Last sign in: {formatDateTime(new Date(mockUser.lastSignIn))}</span>
               </div>
             </div>
           </div>

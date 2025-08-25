@@ -3,6 +3,7 @@
 import { ChevronRightIcon, PlusIcon } from '@heroicons/react/24/outline';
 import React from 'react';
 import type { BudgetCategory } from '@/types/BudgetCategory';
+import { formatCurrency } from '@/lib/formatters';
 
 interface BudgetCategoriesListProps {
   categories: BudgetCategory[];
@@ -15,16 +16,6 @@ export default function BudgetCategoriesList({
   onCategoryClick,
   onCreateCategory,
 }: BudgetCategoriesListProps) {
-  const formatCurrency = (amount: number) => {
-    // Ensure amount is a valid number
-    const validAmount = isNaN(amount) || amount == null ? 0 : amount;
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(validAmount);
-  };
 
   const getCategoryIcon = (name: string) => {
     const icons: Record<string, string> = {

@@ -15,6 +15,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useCreateSinglePaymentMutation, useMarkPaymentAsPaidMutation } from '@/hooks/payments';
 import type { PaymentMethod } from '@/types/Payment';
+import { formatCurrency } from '@/lib/formatters';
 
 interface MarkAsPaidFormData {
   name: string;
@@ -113,14 +114,6 @@ export default function MarkAsPaidModal({
     }
   }, [isOpen, paymentId, expenseName, expenseAmount]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const handleInputChange = (
     field: keyof MarkAsPaidFormData,

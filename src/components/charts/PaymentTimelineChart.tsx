@@ -13,6 +13,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { formatCurrency } from '@/lib/formatters';
 
 interface TimelineDataPoint {
   date: string;
@@ -27,14 +28,6 @@ interface PaymentTimelineChartProps {
 export default function PaymentTimelineChart({
   data,
 }: PaymentTimelineChartProps) {
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
 
   const formatMonth = (dateString: string) => {
     const date = new Date(dateString + '-01');

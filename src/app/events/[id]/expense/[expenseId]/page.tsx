@@ -35,6 +35,7 @@ import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
 import { useDeleteExpenseMutation } from '@/hooks/expenses';
 import { useClearAllPaymentsMutation } from '@/hooks/payments';
+import { formatCurrency, formatDate, formatDateTime } from '@/lib/formatters';
 
 export default function ExpenseDetailPage() {
   const router = useRouter();
@@ -145,32 +146,6 @@ export default function ExpenseDetailPage() {
     );
   }
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const formatDate = (dateValue: Date) => {
-    return dateValue.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  };
 
   const getPaymentStatus = (payment: any) => {
     if (payment.isPaid) {

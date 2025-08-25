@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { formatCurrency } from '@/lib/formatters';
 
 interface BudgetGaugeChartProps {
   totalBudget: number;
@@ -52,14 +53,6 @@ export default function BudgetGaugeChart({
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const remaining = totalBudget - totalSpent;
 

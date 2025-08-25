@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from 'recharts';
+import { formatCurrency } from '@/lib/formatters';
 
 interface CategoryData {
   id: string;
@@ -28,14 +29,6 @@ export default function CategoryBreakdownChart({
 }: CategoryBreakdownChartProps) {
   const [activeIndex, setActiveIndex] = useState<number>(-1);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
 
   const getCategoryIcon = (name: string) => {
     const icons: Record<string, string> = {

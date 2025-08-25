@@ -15,6 +15,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import React from 'react';
+import { formatCurrency, formatDateLong, formatDateTime } from '@/lib/formatters';
 
 interface ExpenseDetail {
   id: string;
@@ -50,32 +51,6 @@ export default function ExpenseDetailModal({
   onDelete,
 }: ExpenseDetailModalProps) {
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
-
-  const formatDateTime = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  };
 
   const getCategoryIcon = (category: string) => {
     const icons: Record<string, string> = {
@@ -192,7 +167,7 @@ export default function ExpenseDetailModal({
                   <div className='mt-1 flex items-center'>
                     <CalendarIcon className='h-4 w-4 text-gray-400 mr-2' />
                     <p className='text-base text-gray-900'>
-                      {formatDate(expense.date)}
+                      {formatDateLong(new Date(expense.date))}
                     </p>
                   </div>
                 </div>
@@ -278,7 +253,7 @@ export default function ExpenseDetailModal({
                         Payment Completed
                       </span>
                       <span className='text-sm text-success-700 font-medium'>
-                        {formatDate(expense.paidDate!)}
+                        {formatDateLong(new Date(expense.paidDate!))}
                       </span>
                     </div>
                     {expense.paymentMethod && (
@@ -304,7 +279,7 @@ export default function ExpenseDetailModal({
                           <span className='text-sm text-gray-600'>
                             Due date:{' '}
                             <span className='font-medium'>
-                              {formatDate(expense.dueDate)}
+                              {formatDateLong(new Date(expense.dueDate))}
                             </span>
                           </span>
                           {(() => {

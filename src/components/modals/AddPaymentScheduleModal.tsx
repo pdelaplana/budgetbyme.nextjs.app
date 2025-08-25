@@ -16,6 +16,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useCreatePaymentScheduleMutation, useUpdatePaymentScheduleMutation } from '@/hooks/payments';
 import type { PaymentMethod, Payment } from '@/types/Payment';
+import { formatCurrency } from '@/lib/formatters';
 
 interface PaymentScheduleItem {
   id: string;
@@ -156,14 +157,6 @@ export default function PaymentScheduleModal({
     }
   }, [isOpen, existingPayments, mode, totalAmount]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   const handlePaymentChange = (
     paymentId: string,

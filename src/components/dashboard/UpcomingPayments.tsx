@@ -6,37 +6,21 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import React from 'react';
+import { formatCurrency, formatDate } from '@/lib/formatters';
+import type { Payment } from '@/types/Payment';
 
-interface Payment {
-  id: string;
-  name: string;
-  amount: number;
-  dueDate: string;
+interface UpcomingPayment extends Pick<Payment, 'id' | 'name' | 'amount' | 'dueDate'> {
   daysUntilDue: number;
   category: string;
   priority: 'low' | 'medium' | 'high';
 }
 
 interface UpcomingPaymentsProps {
-  payments: Payment[];
+  payments: UpcomingPayment[];
 }
 
 export default function UpcomingPayments({ payments }: UpcomingPaymentsProps) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
-  };
 
   const getPriorityIcon = (priority: string, daysUntilDue: number) => {
     if (daysUntilDue < 0) {
