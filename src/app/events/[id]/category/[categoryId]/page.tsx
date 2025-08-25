@@ -1,182 +1,29 @@
 'use client';
 
 import {
-  ArrowLeftIcon,
-  CalendarDaysIcon,
   CheckCircleIcon,
-  ChevronDownIcon,
   ClockIcon,
-  EllipsisVerticalIcon,
   ExclamationTriangleIcon,
-  FunnelIcon,
   HomeIcon,
-  MagnifyingGlassIcon,
   PencilIcon,
   PlusIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
 import { useParams, useRouter } from 'next/navigation';
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import AddOrEditCategoryModal from '@/components/modals/AddOrEditCategoryModal';
 import AddOrEditExpenseModal from '@/components/modals/AddOrEditExpenseModal';
-import PaymentScheduleModal from '@/components/modals/PaymentScheduleModal';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
-import ActionDropdown, {
-  ActionDropdownOption,
-} from '@/components/ui/ActionDropdown';
+import ActionDropdown from '@/components/ui/ActionDropdown';
 import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import NotFoundState from '@/components/ui/NotFoundState';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEvents } from '@/contexts/EventsContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
+import { useEvents } from '@/contexts/EventsContext';
 import { useDeleteCategoryMutation } from '@/hooks/categories';
-
-// Mock data - in real app this would come from API based on event ID and category ID
-const mockCategories = {
-  '1': {
-    id: '1',
-    name: 'Venue & Reception',
-    budgeted: 4800,
-    spent: 4000,
-    percentage: 83,
-    color: '#059669',
-    description:
-      'All costs related to the wedding venue and reception facilities',
-  },
-  '2': {
-    id: '2',
-    name: 'Catering & Beverages',
-    budgeted: 3600,
-    spent: 2800,
-    percentage: 78,
-    color: '#10b981',
-    description: 'Food, drinks, and catering services for the event',
-  },
-  '3': {
-    id: '3',
-    name: 'Photography & Video',
-    budgeted: 1200,
-    spent: 900,
-    percentage: 75,
-    color: '#7C3AED',
-    description: 'Professional photography and videography services',
-  },
-  '4': {
-    id: '4',
-    name: 'Attire',
-    budgeted: 960,
-    spent: 800,
-    percentage: 83,
-    color: '#EC4899',
-    description: 'Wedding dress, suits, shoes, and accessories',
-  },
-  '5': {
-    id: '5',
-    name: 'Flowers & Decorations',
-    budgeted: 840,
-    spent: 200,
-    percentage: 24,
-    color: '#34d399',
-    description: 'Floral arrangements, centerpieces, and decorative items',
-  },
-  '6': {
-    id: '6',
-    name: 'Music & Entertainment',
-    budgeted: 600,
-    spent: 0,
-    percentage: 0,
-    color: '#EA580C',
-    description: 'DJ, band, sound system, and entertainment services',
-  },
-};
-
-// Mock expenses for each category (simplified for demo)
-const mockExpenses = {
-  '1': [
-    {
-      id: 'exp-1-1',
-      name: 'Venue Booking Package',
-      amount: 4000,
-      date: '2024-01-15',
-      description: 'Full venue booking with multiple payment schedule',
-      createdAt: '2024-01-15T10:00:00Z',
-      tags: ['deposit', 'venue'],
-      hasPaymentSchedule: true,
-      paymentSchedule: [
-        {
-          id: 'pay-1-1',
-          description: 'Initial Deposit',
-          amount: 2000,
-          dueDate: '2024-01-15',
-          isPaid: true,
-          paidDate: '2024-01-15',
-          paymentMethod: 'Credit Card',
-          notes: 'Booking confirmation deposit',
-        },
-        {
-          id: 'pay-1-2',
-          description: 'Second Payment',
-          amount: 1500,
-          dueDate: '2024-04-15',
-          isPaid: false,
-          notes: '60 days before event',
-        },
-        {
-          id: 'pay-1-3',
-          description: 'Final Payment',
-          amount: 500,
-          dueDate: '2024-06-01',
-          isPaid: false,
-          notes: 'Two weeks before wedding',
-        },
-      ],
-    },
-  ],
-  '2': [
-    {
-      id: 'exp-2-1',
-      name: 'Catering Service Package',
-      amount: 3200,
-      date: '2024-01-20',
-      description: 'Full catering service with payment plan',
-      createdAt: '2024-01-20T16:20:00Z',
-      tags: ['catering', 'package'],
-      hasPaymentSchedule: true,
-      paymentSchedule: [
-        {
-          id: 'pay-2-1',
-          description: 'Booking Deposit',
-          amount: 1500,
-          dueDate: '2024-01-20',
-          isPaid: true,
-          paidDate: '2024-01-21',
-          paymentMethod: 'Check',
-          notes: 'Service booking confirmation',
-        },
-      ],
-    },
-  ],
-  '3': [],
-  '4': [],
-  '5': [
-    {
-      id: 'exp-5-1',
-      name: 'Bridal Bouquet',
-      amount: 250,
-      date: '2024-03-10',
-      description: "Custom bridal bouquet with white roses and baby's breath",
-      createdAt: '2024-03-10T14:30:00Z',
-      tags: ['flowers', 'bridal'],
-      hasPaymentSchedule: false,
-      isPaid: false,
-      dueDate: '2024-05-01',
-    },
-  ],
-  '6': [],
-};
 
 export default function CategoryPage() {
   const router = useRouter();
@@ -185,7 +32,14 @@ export default function CategoryPage() {
   const categoryId = params?.categoryId as string;
   const { user } = useAuth();
   const { events, isLoading, selectEventById } = useEvents();
-  const { event: currentEvent, categories, isCategoriesLoading, isEventLoading, expenses, isExpensesLoading } = useEventDetails();
+  const {
+    event: currentEvent,
+    categories,
+    isCategoriesLoading,
+    isEventLoading,
+    expenses,
+    isExpensesLoading,
+  } = useEventDetails();
 
   // Auto-select event when accessing directly via URL
   useEffect(() => {
@@ -194,15 +48,11 @@ export default function CategoryPage() {
     }
   }, [eventId, events.length, isLoading, selectEventById]);
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'date' | 'amount' | 'name'>('date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [showAddExpense, setShowAddExpense] = useState(false);
-  const [showPaymentSchedule, setShowPaymentSchedule] = useState(false);
-  const [selectedExpense, setSelectedExpense] = useState<any>(null);
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [isEditCategoryMode, setIsEditCategoryMode] = useState(false);
-  const [showDeleteCategoryConfirm, setShowDeleteCategoryConfirm] = useState(false);
+  const [showDeleteCategoryConfirm, setShowDeleteCategoryConfirm] =
+    useState(false);
 
   // Delete category mutation
   const deleteCategoryMutation = useDeleteCategoryMutation({
@@ -212,23 +62,33 @@ export default function CategoryPage() {
     },
     onError: (error) => {
       console.error('Failed to delete category:', error);
-      toast.error(error.message || 'Failed to delete category. Please try again.');
+      toast.error(
+        error.message || 'Failed to delete category. Please try again.',
+      );
     },
   });
 
   // Find the current category from EventDetailsContext
   const category = categories.find((cat) => cat.id === categoryId);
-  
+
   // Filter expenses by current category
-  const categoryExpenses = expenses.filter(expense => expense.category.id === categoryId);
+  const categoryExpenses = expenses.filter(
+    (expense) => expense.category.id === categoryId,
+  );
 
   // Loading state - show while event, categories, or expenses are being fetched
-  if (isLoading || isEventLoading || isCategoriesLoading || isExpensesLoading || !currentEvent) {
+  if (
+    isLoading ||
+    isEventLoading ||
+    isCategoriesLoading ||
+    isExpensesLoading ||
+    !currentEvent
+  ) {
     return (
       <DashboardLayout>
-        <LoadingSpinner 
-          title="Loading Category..."
-          message="Please wait while we load your category details"
+        <LoadingSpinner
+          title='Loading Category...'
+          message='Please wait while we load your category details'
         />
       </DashboardLayout>
     );
@@ -239,11 +99,11 @@ export default function CategoryPage() {
     return (
       <DashboardLayout>
         <NotFoundState
-          title="Category Not Found"
-          message="The requested budget category could not be found."
-          buttonText="Return to Dashboard"
+          title='Category Not Found'
+          message='The requested budget category could not be found.'
+          buttonText='Return to Dashboard'
           onButtonClick={() => router.push(`/events/${eventId}/dashboard`)}
-          icon="📊"
+          icon='📊'
         />
       </DashboardLayout>
     );
@@ -260,24 +120,12 @@ export default function CategoryPage() {
     }).format(validAmount);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateValue: Date) => {
+    return dateValue.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     });
-  };
-
-  const getCategoryIcon = (name: string) => {
-    const icons: Record<string, string> = {
-      'Venue & Reception': '🏛️',
-      'Catering & Beverages': '🍰',
-      'Photography & Video': '📸',
-      Attire: '👗',
-      'Flowers & Decorations': '💐',
-      'Music & Entertainment': '🎵',
-    };
-    return icons[name] || '🎉';
   };
 
   const handleExpenseClick = (expense: any) => {
@@ -311,8 +159,15 @@ export default function CategoryPage() {
     }
   };
 
-  const remaining = category ? (category.budgetedAmount ?? 0) - (category.spentAmount ?? 0) : 0;
-  const percentage = category && (category.budgetedAmount ?? 0) > 0 ? Math.round(((category.spentAmount ?? 0) / (category.budgetedAmount ?? 0)) * 100) : 0;
+  const remaining = category
+    ? (category.budgetedAmount ?? 0) - (category.spentAmount ?? 0)
+    : 0;
+  const percentage =
+    category && (category.budgetedAmount ?? 0) > 0
+      ? Math.round(
+          ((category.spentAmount ?? 0) / (category.budgetedAmount ?? 0)) * 100,
+        )
+      : 0;
 
   // Breadcrumb items
   const breadcrumbItems: BreadcrumbItem[] = [
@@ -346,7 +201,8 @@ export default function CategoryPage() {
                 {category.name}
               </h1>
               <p className='text-sm sm:text-base text-gray-600 mt-1'>
-                {category.description || 'Track and manage expenses for this budget category'}
+                {category.description ||
+                  'Track and manage expenses for this budget category'}
               </p>
             </div>
           </div>
@@ -496,6 +352,7 @@ export default function CategoryPage() {
             </div>
             <div className='flex justify-center'>
               <button
+                type='button'
                 onClick={() => setShowAddExpense(true)}
                 className='btn-primary w-full sm:w-auto sm:min-w-[180px] flex items-center justify-center'
               >
@@ -527,11 +384,16 @@ export default function CategoryPage() {
                 );
                 totalPaid = expense.paymentSchedule
                   .filter((payment: any) => payment.isPaid)
-                  .reduce((sum: number, payment: any) => sum + payment.amount, 0);
+                  .reduce(
+                    (sum: number, payment: any) => sum + payment.amount,
+                    0,
+                  );
               } else if (expense.oneOffPayment) {
                 // Single payment (hasPaymentSchedule can be true or false)
                 totalScheduled = expense.oneOffPayment.amount;
-                totalPaid = expense.oneOffPayment.isPaid ? expense.oneOffPayment.amount : 0;
+                totalPaid = expense.oneOffPayment.isPaid
+                  ? expense.oneOffPayment.amount
+                  : 0;
               } else {
                 // No payments at all
                 totalScheduled = expense.amount;
@@ -543,21 +405,29 @@ export default function CategoryPage() {
               const isFullyPaid = remainingBalance === 0;
 
               // Find next due payment
-              const nextDuePayment = expense.hasPaymentSchedule && expense.paymentSchedule
-                ? expense.paymentSchedule
-                    .filter((p: any) => !p.isPaid)
-                    .sort(
-                      (a: any, b: any) =>
-                        new Date(a.dueDate).getTime() -
-                        new Date(b.dueDate).getTime(),
-                    )[0]
-                : null;
+              const nextDuePayment =
+                expense.hasPaymentSchedule && expense.paymentSchedule
+                  ? expense.paymentSchedule
+                      .filter((p: any) => !p.isPaid)
+                      .sort(
+                        (a: any, b: any) =>
+                          new Date(a.dueDate).getTime() -
+                          new Date(b.dueDate).getTime(),
+                      )[0]
+                  : null;
 
               return (
-                <div
+                <button
+                  type='button'
                   key={expense.id}
                   onClick={() => handleExpenseClick(expense)}
-                  className='group p-3 sm:p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:shadow-md hover:bg-gray-50/50 transition-all duration-200 cursor-pointer'
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleExpenseClick(expense);
+                    }
+                  }}
+                  className='group p-3 sm:p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:shadow-md hover:bg-gray-50/50 transition-all duration-200 cursor-pointer w-full text-left'
                 >
                   <div className='flex flex-col space-y-3'>
                     {/* Header with name and amount */}
@@ -641,7 +511,7 @@ export default function CategoryPage() {
                       )}
                     </div>
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -696,15 +566,17 @@ export default function CategoryPage() {
       <ConfirmDialog
         isOpen={showDeleteCategoryConfirm}
         onClose={() => setShowDeleteCategoryConfirm(false)}
-        onConfirm={categoryExpenses.length > 0 ? undefined : confirmDeleteCategory}
-        title="Delete Category"
+        onConfirm={
+          categoryExpenses.length > 0 ? undefined : confirmDeleteCategory
+        }
+        title='Delete Category'
         message={
           categoryExpenses.length > 0
             ? `Cannot delete this category because it contains ${categoryExpenses.length} expense${categoryExpenses.length === 1 ? '' : 's'}. Please delete or reassign the expenses first before deleting this category.`
             : `Are you sure you want to delete "${category?.name}"? This action cannot be undone.`
         }
-        confirmText={categoryExpenses.length > 0 ? undefined : "Delete"}
-        type="danger"
+        confirmText={categoryExpenses.length > 0 ? undefined : 'Delete'}
+        type='danger'
       />
     </DashboardLayout>
   );
