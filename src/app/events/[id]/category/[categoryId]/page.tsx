@@ -17,16 +17,20 @@ import {
 } from '@heroicons/react/24/outline';
 import { useParams, useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import AddOrEditCategoryModal from '@/components/modals/AddOrEditCategoryModal';
 import AddOrEditExpenseModal from '@/components/modals/AddOrEditExpenseModal';
 import PaymentScheduleModal from '@/components/modals/PaymentScheduleModal';
+import ConfirmDialog from '@/components/modals/ConfirmDialog';
 import ActionDropdown, {
   ActionDropdownOption,
 } from '@/components/ui/ActionDropdown';
 import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
+import { useAuth } from '@/contexts/AuthContext';
 import { useEvents } from '@/contexts/EventsContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
+import { useDeleteCategoryMutation } from '@/hooks/categories';
 
 // Mock data - in real app this would come from API based on event ID and category ID
 const mockCategories = {
@@ -177,6 +181,7 @@ export default function CategoryPage() {
   const params = useParams();
   const eventId = params?.id as string;
   const categoryId = params?.categoryId as string;
+  const { user } = useAuth();
   const { events, isLoading, selectEventById } = useEvents();
   const { event: currentEvent, categories, isCategoriesLoading, isEventLoading, expenses, isExpensesLoading } = useEventDetails();
 
@@ -195,6 +200,19 @@ export default function CategoryPage() {
   const [selectedExpense, setSelectedExpense] = useState<any>(null);
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [isEditCategoryMode, setIsEditCategoryMode] = useState(false);
+  const [showDeleteCategoryConfirm, setShowDeleteCategoryConfirm] = useState(false);
+
+  // Delete category mutation
+  const deleteCategoryMutation = useDeleteCategoryMutation({
+    onSuccess: () => {
+      toast.success('Category deleted successfully!');
+      router.push(`/events/${eventId}/dashboard`);
+    },
+    onError: (error) => {
+      console.error('Failed to delete category:', error);
+      toast.error(error.message || 'Failed to delete category. Please try again.');
+    },
+  });
 
   // Find the current category from EventDetailsContext
   const category = categories.find((cat) => cat.id === categoryId);
@@ -282,13 +300,24 @@ export default function CategoryPage() {
   };
 
   const handleDeleteCategory = () => {
-    if (
-      confirm(
-        'Are you sure you want to delete this category? This action cannot be undone and will remove all associated expenses.',
-      )
-    ) {
-      console.log('Delete category:', categoryId);
-      router.push(`/events/${eventId}/dashboard`);
+    setShowDeleteCategoryConfirm(true);
+  };
+
+  const confirmDeleteCategory = async () => {
+    if (!user?.uid || !currentEvent?.id) {
+      toast.error('Missing required information');
+      return;
+    }
+
+    try {
+      await deleteCategoryMutation.mutateAsync({
+        userId: user.uid,
+        eventId: currentEvent.id,
+        categoryId: categoryId,
+      });
+    } catch (error) {
+      // Error handling is done in mutation callbacks
+      console.error('Error deleting category:', error);
     }
   };
 
@@ -671,6 +700,21 @@ export default function CategoryPage() {
             : null
         }
         isEditMode={isEditCategoryMode}
+      />
+
+      {/* Delete Category Confirmation */}
+      <ConfirmDialog
+        isOpen={showDeleteCategoryConfirm}
+        onClose={() => setShowDeleteCategoryConfirm(false)}
+        onConfirm={categoryExpenses.length > 0 ? undefined : confirmDeleteCategory}
+        title="Delete Category"
+        message={
+          categoryExpenses.length > 0
+            ? `Cannot delete this category because it contains ${categoryExpenses.length} expense${categoryExpenses.length === 1 ? '' : 's'}. Please delete or reassign the expenses first before deleting this category.`
+            : `Are you sure you want to delete "${category?.name}"? This action cannot be undone.`
+        }
+        confirmText={categoryExpenses.length > 0 ? undefined : "Delete"}
+        type="danger"
       />
     </DashboardLayout>
   );

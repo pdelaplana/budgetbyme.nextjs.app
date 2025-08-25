@@ -11,7 +11,6 @@ import {
   TagIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -77,7 +76,6 @@ export default function AddOrEditExpenseModal({
   // Hooks
   const { user } = useAuth();
   const { event, categories: contextCategories } = useEventDetails();
-  const router = useRouter();
 
   // Use categories from props or context
   const availableCategories = categories || contextCategories || [];
@@ -178,7 +176,6 @@ export default function AddOrEditExpenseModal({
     }
   }, [editingExpense, isEditMode, isOpen]);
 
-
   const handleInputChange = (field: keyof ExpenseFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
@@ -218,7 +215,10 @@ export default function AddOrEditExpenseModal({
 
     if (!formData.amount.trim()) {
       newErrors.amount = 'Amount is required';
-    } else if (isNaN(Number(formData.amount)) || Number(formData.amount) <= 0) {
+    } else if (
+      Number.isNaN(Number(formData.amount)) ||
+      Number(formData.amount) <= 0
+    ) {
       newErrors.amount = 'Please enter a valid amount greater than 0';
     }
 
@@ -382,6 +382,7 @@ export default function AddOrEditExpenseModal({
               </div>
             </div>
             <button
+              type='button'
               onClick={handleClose}
               disabled={isSubmitting}
               className='p-1.5 hover:bg-gray-100 rounded-lg transition-colors duration-200 disabled:opacity-50'

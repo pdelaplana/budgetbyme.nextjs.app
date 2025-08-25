@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 interface ConfirmDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm?: () => void;
   title: string;
   message: string;
   confirmText?: string;
@@ -44,7 +44,9 @@ export default function ConfirmDialog({
   if (!isOpen) return null;
 
   const handleConfirm = () => {
-    onConfirm();
+    if (onConfirm) {
+      onConfirm();
+    }
     onClose();
   };
 
@@ -141,13 +143,15 @@ export default function ConfirmDialog({
             >
               {cancelText}
             </button>
-            <button
-              type='button'
-              onClick={handleConfirm}
-              className={`px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${styles.confirmButton}`}
-            >
-              {confirmText}
-            </button>
+            {onConfirm && confirmText && (
+              <button
+                type='button'
+                onClick={handleConfirm}
+                className={`px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 ${styles.confirmButton}`}
+              >
+                {confirmText}
+              </button>
+            )}
           </div>
         </div>
       </div>

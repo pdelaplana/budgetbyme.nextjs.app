@@ -71,19 +71,14 @@ export function useDeleteCategoryMutation(options?: UseDeleteCategoryMutationOpt
       return deleteCategory(userId, eventId, categoryId);
     },
     onSuccess: (_, variables) => {
-      // Invalidate and refetch categories for this event
+      // Invalidate categories query to update category list
       queryClient.invalidateQueries({
         queryKey: ['categories', variables.eventId],
       });
 
-      // Also invalidate event details since budget totals may change
-      queryClient.invalidateQueries({
-        queryKey: ['events', variables.eventId],
-      });
-
       // Invalidate expenses query as they may reference this category
       queryClient.invalidateQueries({
-        queryKey: ['expenses', variables.eventId],
+        queryKey: ['expenses', variables.userId, variables.eventId],
       });
 
       // Call custom success handler
