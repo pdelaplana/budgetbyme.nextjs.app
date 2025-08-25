@@ -28,6 +28,7 @@ import PaymentScheduleModal from '@/components/modals/AddPaymentScheduleModal';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
 import MarkAsPaidModal from '@/components/modals/MarkAsPaidModal';
 import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
@@ -123,15 +124,7 @@ export default function ExpenseDetailPage() {
   if (isLoading || isExpensesLoading || !currentEvent || (expenses.length > 0 && !expense)) {
     return (
       <DashboardLayout>
-        <div className='text-center py-12'>
-          <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4'></div>
-          <h1 className='text-xl font-semibold text-gray-900 mb-2'>
-            Loading...
-          </h1>
-          <p className='text-sm text-gray-600'>
-            Please wait while we load your data
-          </p>
-        </div>
+        <LoadingSpinner />
       </DashboardLayout>
     );
   }

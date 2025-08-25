@@ -4,6 +4,7 @@ import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import BudgetOverview from '@/components/dashboard/BudgetOverview';
 import PaymentsSection from '@/components/dashboard/PaymentsSection';
 import BudgetCategoriesSection from '@/components/dashboard/BudgetCategoriesSection';
@@ -49,12 +50,10 @@ export default function EventDashboardPage() {
   if (!currentEvent) {
     return (
       <DashboardLayout>
-        <div className='flex items-center justify-center py-12'>
-          <div className='text-center'>
-            <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4'></div>
-            <p className='text-gray-600'>Loading event...</p>
-          </div>
-        </div>
+        <LoadingSpinner 
+          title="Loading Event..."
+          message="Please wait while we load your event data"
+        />
       </DashboardLayout>
     );
   }
@@ -139,12 +138,10 @@ export default function EventDashboardPage() {
   if (isLoading || isEventLoading) {
     return (
       <DashboardLayout>
-        <div className='flex items-center justify-center py-12'>
-          <div className='text-center'>
-            <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4'></div>
-            <p className='text-gray-600'>Loading event...</p>
-          </div>
-        </div>
+        <LoadingSpinner 
+          title="Loading Event..."
+          message="Please wait while we load your event data"
+        />
       </DashboardLayout>
     );
   }
