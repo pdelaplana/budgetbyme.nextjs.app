@@ -53,7 +53,9 @@ Implement Firestore rules ensuring users can only access their own events and re
 - `npm run check` - Biome linter check
 - `npm run biome:fix` - Biome auto-fix issues
 - `npm run format` - Biome format code
-- `npm test` - Tests (when implemented)
+- `npm test` - Run Vitest tests
+- `npm test formatters` - Run specific formatter tests
+- `npm test -- --watch` - Run tests in watch mode
 
 ## Recent Updates
 
@@ -106,6 +108,28 @@ Using Recharts library for:
 - Category breakdown pie chart (implemented)
 - Quick stats dashboard (implemented)
 
+### Utility Libraries
+
+#### Formatters (`/src/lib/formatters.ts`)
+Centralized formatting utilities for consistent data display across the application:
+
+**Currency Formatting:**
+- `formatCurrency(amount: number)` - Formats currency without cents (e.g., "$1,234")
+- `formatCurrencyWithCents(amount: number)` - Formats currency with cents (e.g., "$1,234.56")
+- `sanitizeCurrencyInput(value: string)` - Cleans user input for currency fields
+
+**Date Formatting:**
+- `formatDate(dateValue: Date)` - Short date format (e.g., "Mar 15, 2024")
+- `formatDateLong(dateValue: Date)` - Long date format (e.g., "Friday, March 15, 2024")
+- `formatDateTime(dateValue: Date)` - Date with time (e.g., "Mar 15, 2024, 2:30 PM")
+
+**Usage Guidelines:**
+- Always import from `@/lib/formatters` instead of creating local formatting functions
+- Use `formatCurrency` for display purposes, `sanitizeCurrencyInput` for form processing
+- Prefer `formatDate` for compact displays, `formatDateLong` for detailed views
+- All functions handle edge cases (null, undefined, invalid inputs) gracefully
+- Comprehensive unit tests ensure reliability across different scenarios
+
 ## AI Enhancement Opportunities
 
 ### Budget Setup Assistant
@@ -146,6 +170,14 @@ Using Recharts library for:
 - TypeScript strict mode enabled
 - Component-based architecture with clear separation of concerns
 - Consistent file structure following Next.js 15 app directory conventions
+
+### Testing Framework
+- **Vitest** for unit and integration tests
+- **@testing-library/react** for component testing
+- **jsdom** environment for DOM testing
+- Firebase Admin SDK mocks included in test setup
+- Test files follow `.test.ts` or `.spec.ts` naming convention
+- Comprehensive test coverage for utility functions and critical business logic
 
 ### Performance
 - Turbopack for development builds (~5x faster)
