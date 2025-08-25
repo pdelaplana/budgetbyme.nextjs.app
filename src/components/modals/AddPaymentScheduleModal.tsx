@@ -310,7 +310,14 @@ export default function PaymentScheduleModal({
         
         // Call update callback if provided
         if (onUpdateSchedule) {
-          onUpdateSchedule(scheduleData);
+          onUpdateSchedule(scheduleData.map(payment => ({
+            name: payment.name,
+            description: payment.description,
+            amount: payment.amount,
+            paymentMethod: payment.paymentMethod,
+            dueDate: payment.dueDate.toISOString().split('T')[0],
+            notes: payment.notes,
+          })));
         }
       } else {
         // Create new payment schedule
@@ -323,7 +330,14 @@ export default function PaymentScheduleModal({
         
         // Call create callback if provided
         if (onCreateSchedule) {
-          onCreateSchedule(scheduleData);
+          onCreateSchedule(scheduleData.map(payment => ({
+            name: payment.name,
+            description: payment.description,
+            amount: payment.amount,
+            paymentMethod: payment.paymentMethod,
+            dueDate: payment.dueDate.toISOString().split('T')[0],
+            notes: payment.notes,
+          })));
         }
       }
     } catch (error) {
@@ -451,6 +465,7 @@ export default function PaymentScheduleModal({
                         onClick={() => removePayment(payment.id)}
                         className='p-1 text-red-600 hover:text-red-800 transition-colors duration-200'
                         disabled={isSubmitting}
+                        aria-label={`Remove payment ${index + 1}`}
                       >
                         <TrashIcon className='h-4 w-4' />
                       </button>
@@ -539,8 +554,9 @@ export default function PaymentScheduleModal({
                       </div>
 
                       <div>
-                        <label className='form-label'>Payment Method</label>
+                        <label className='form-label' htmlFor={`payment-method-${payment.id}`}>Payment Method</label>
                         <select
+                          id={`payment-method-${payment.id}`}
                           value={payment.paymentMethod}
                           onChange={(e) =>
                             handlePaymentChange(
@@ -567,8 +583,9 @@ export default function PaymentScheduleModal({
                       </div>
 
                       <div>
-                        <label className='form-label'>Due Date</label>
+                        <label className='form-label' htmlFor={`due-date-${payment.id}`}>Due Date</label>
                         <input
+                          id={`due-date-${payment.id}`}
                           type='date'
                           value={payment.dueDate}
                           onChange={(e) =>

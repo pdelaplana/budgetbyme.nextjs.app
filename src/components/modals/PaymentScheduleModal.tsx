@@ -18,9 +18,9 @@ interface PaymentScheduleItem {
   id: string;
   description: string;
   amount: number;
-  dueDate: string;
+  dueDate: Date;
   isPaid: boolean;
-  paidDate?: string;
+  paidDate?: Date;
   paymentMethod?: string;
   notes?: string;
 }
@@ -136,7 +136,7 @@ export default function PaymentScheduleModal({
       onAddPayment({
         description: newPayment.description,
         amount: Number(newPayment.amount),
-        dueDate: newPayment.dueDate,
+        dueDate: new Date(newPayment.dueDate),
         isPaid: false,
         notes: newPayment.notes,
       });
@@ -391,8 +391,9 @@ export default function PaymentScheduleModal({
                 </div>
 
                 <div>
-                  <label className='form-label'>Due Date</label>
+                  <label htmlFor='due-date-input' className='form-label'>Due Date</label>
                   <input
+                    id='due-date-input'
                     type='date'
                     value={newPayment.dueDate}
                     onChange={(e) =>
