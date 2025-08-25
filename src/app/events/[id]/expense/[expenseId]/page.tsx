@@ -36,6 +36,8 @@ import { useEvents } from '@/contexts/EventsContext';
 import { useDeleteExpenseMutation } from '@/hooks/expenses';
 import { useClearAllPaymentsMutation } from '@/hooks/payments';
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/formatters';
+import { Payment } from '@/types/Payment';
+import { Expense } from '@/types/Expense';
 
 export default function ExpenseDetailPage() {
   const router = useRouter();
@@ -304,12 +306,12 @@ export default function ExpenseDetailPage() {
     // Multiple payments in schedule
     allPayments = expense.paymentSchedule;
     totalScheduled = expense.paymentSchedule.reduce(
-      (sum, payment) => sum + payment.amount,
+      (sum: number, payment: { amount: number; }) => sum + payment.amount,
       0,
     );
     totalPaid = expense.paymentSchedule
-      .filter((payment) => payment.isPaid)
-      .reduce((sum, payment) => sum + payment.amount, 0);
+      .filter((payment: Payment) => payment.isPaid)
+      .reduce((sum: number, payment: Payment) => sum + payment.amount, 0);
   } else if (expense.oneOffPayment) {
     // Single payment (hasPaymentSchedule can be true or false)
     allPayments = [expense.oneOffPayment];
@@ -1018,10 +1020,6 @@ export default function ExpenseDetailPage() {
         categories={categories}
         editingExpense={expense}
         isEditMode={true}
-        onUpdateExpense={(expenseId, expenseData) => {
-          console.log('Update expense:', expenseId, expenseData);
-          setShowEditExpense(false);
-        }}
       />
 
       {/* Confirmation Dialogs */}
