@@ -28,6 +28,7 @@ import ActionDropdown, {
 } from '@/components/ui/ActionDropdown';
 import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import NotFoundState from '@/components/ui/NotFoundState';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEvents } from '@/contexts/EventsContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
@@ -237,20 +238,13 @@ export default function CategoryPage() {
   if (!category) {
     return (
       <DashboardLayout>
-        <div className='text-center py-12'>
-          <h1 className='text-2xl font-semibold text-gray-900 mb-2'>
-            Category Not Found
-          </h1>
-          <p className='text-gray-600 mb-6'>
-            The requested budget category could not be found.
-          </p>
-          <button
-            onClick={() => router.push(`/events/${eventId}/dashboard`)}
-            className='btn-primary'
-          >
-            Return to Dashboard
-          </button>
-        </div>
+        <NotFoundState
+          title="Category Not Found"
+          message="The requested budget category could not be found."
+          buttonText="Return to Dashboard"
+          onButtonClick={() => router.push(`/events/${eventId}/dashboard`)}
+          icon="📊"
+        />
       </DashboardLayout>
     );
   }

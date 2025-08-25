@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import NotFoundState from '@/components/ui/NotFoundState';
 import BudgetOverview from '@/components/dashboard/BudgetOverview';
 import PaymentsSection from '@/components/dashboard/PaymentsSection';
 import BudgetCategoriesSection from '@/components/dashboard/BudgetCategoriesSection';
@@ -170,18 +171,14 @@ export default function EventDashboardPage() {
   if (!currentEvent && !isLoading && events.length >= 0) {
     return (
       <DashboardLayout>
-        <div className='flex items-center justify-center py-12'>
-          <div className='text-center'>
-            <h2 className='text-2xl font-bold text-gray-900 mb-2'>Event Not Found</h2>
-            <p className='text-gray-600 mb-4'>The event you're looking for doesn't exist or you don't have access to it.</p>
-            <button
-              onClick={() => router.push('/events')}
-              className='btn-primary'
-            >
-              Back to Events
-            </button>
-          </div>
-        </div>
+        <NotFoundState
+          title="Event Not Found"
+          message="The event you're looking for doesn't exist or you don't have access to it."
+          buttonText="Back to Events"
+          onButtonClick={() => router.push('/events')}
+          icon="📅"
+          className="flex items-center justify-center"
+        />
       </DashboardLayout>
     );
   }

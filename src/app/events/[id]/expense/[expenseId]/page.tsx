@@ -29,6 +29,7 @@ import ConfirmDialog from '@/components/modals/ConfirmDialog';
 import MarkAsPaidModal from '@/components/modals/MarkAsPaidModal';
 import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import NotFoundState from '@/components/ui/NotFoundState';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
@@ -133,21 +134,13 @@ export default function ExpenseDetailPage() {
   if (!expense) {
     return (
       <DashboardLayout>
-        <div className='text-center py-12'>
-          <h1 className='text-2xl font-semibold text-gray-900 mb-2'>
-            Expense Not Found
-          </h1>
-          <p className='text-gray-600 mb-6'>
-            The requested expense could not be found.
-          </p>
-          <button
-            type='button'
-            onClick={() => router.push(`/events/${eventId}/dashboard`)}
-            className='btn-primary'
-          >
-            Return to Dashboard
-          </button>
-        </div>
+        <NotFoundState
+          title="Expense Not Found"
+          message="The requested expense could not be found."
+          buttonText="Return to Dashboard"
+          onButtonClick={() => router.push(`/events/${eventId}/dashboard`)}
+          icon="💰"
+        />
       </DashboardLayout>
     );
   }
