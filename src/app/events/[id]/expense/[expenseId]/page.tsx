@@ -800,8 +800,9 @@ export default function ExpenseDetailPage() {
                   ))}
                 </div>
               ) : (
-                <div className='text-center py-2 border border-dashed border-gray-200 rounded'>
-                  <p className='text-gray-500 text-xs'>No tags</p>
+                <div className='flex items-center gap-2'>
+                  <TagIcon className='h-3 w-3 text-gray-400 flex-shrink-0' />
+                  <span className='text-gray-500 text-xs'>No tags</span>
                   {!isEditingTags && (
                     <button
                       onClick={() => setIsEditingTags(true)}
@@ -980,17 +981,20 @@ export default function ExpenseDetailPage() {
                     Payment Schedule
                   </h4>
                   <div className='flex items-center space-x-2 ml-2'>
-                    <button
-                      type='button'
-                      onClick={() => {
-                        setPaymentScheduleMode('edit');
-                        setShowAddPaymentSchedule(true);
-                      }}
-                      className='p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors duration-200'
-                      title='Edit payment schedule'
-                    >
-                      <PencilIcon className='h-4 w-4' />
-                    </button>
+                    {/* Only show edit button for actual payment schedules, not one-off payments */}
+                    {expense.hasPaymentSchedule && expense.paymentSchedule && expense.paymentSchedule.length > 0 && (
+                      <button
+                        type='button'
+                        onClick={() => {
+                          setPaymentScheduleMode('edit');
+                          setShowAddPaymentSchedule(true);
+                        }}
+                        className='p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors duration-200'
+                        title='Edit payment schedule'
+                      >
+                        <PencilIcon className='h-4 w-4' />
+                      </button>
+                    )}
                     <button
                       type='button'
                       onClick={handleDeleteAllPayments}
