@@ -83,6 +83,7 @@ export default function MarkAsPaidModal({
     receipt: null,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isUploading, setIsUploading] = useState(false);
 
   // Mutations
   const createSinglePaymentMutation = useCreateSinglePaymentMutation({
@@ -119,7 +120,8 @@ export default function MarkAsPaidModal({
   const isSubmitting =
     createSinglePaymentMutation.isPending ||
     markPaymentAsPaidMutation.isPending ||
-    updateExpenseMutation.isPending;
+    updateExpenseMutation.isPending ||
+    isUploading;
 
   // Reinitialize form data when modal opens or props change
   React.useEffect(() => {
@@ -248,7 +250,12 @@ export default function MarkAsPaidModal({
       // Upload receipt if provided
       let receiptUrl: string | null = null;
       if (formData.receipt) {
-        receiptUrl = await uploadReceiptAttachment(formData.receipt);
+        setIsUploading(true);
+        try {
+          receiptUrl = await uploadReceiptAttachment(formData.receipt);
+        } finally {
+          setIsUploading(false);
+        }
       }
 
       if (paymentId) {

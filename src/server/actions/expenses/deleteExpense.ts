@@ -4,6 +4,7 @@ import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
 import { db } from '../../lib/firebase-admin';
 import { withSentryServerAction } from '../../lib/sentryServerAction';
+import { deleteExpenseAttachment } from './deleteExpenseAttachment';
 
 export interface DeleteExpenseDto {
   userId: string;
@@ -14,6 +15,7 @@ export interface DeleteExpenseDto {
 /**
  * Server action to delete an expense from Firestore
  * Expense is deleted from: /workspaces/{userId}/events/{eventId}/expenses/{expenseId}
+ * Also deletes all associated attachments from Firebase Storage
  * Also updates the category's scheduledAmount (subtracts expense amount) and spentAmount (subtracts paid amount)
  * Wrapped with Sentry monitoring
  */
@@ -58,6 +60,7 @@ export const deleteExpense = withSentryServerAction(
       const expenseData = expenseDoc.data();
       const expenseAmount = expenseData?.amount || 0;
       const categoryId = expenseData?.category?.id;
+      const attachments = expenseData?.attachments || [];
 
       // Calculate how much was actually spent (paid) for this expense
       let totalSpentAmount = 0;
@@ -72,6 +75,31 @@ export const deleteExpense = withSentryServerAction(
         totalSpentAmount = expenseData.oneOffPayment.isPaid ? (expenseData.oneOffPayment.amount || 0) : 0;
       }
       // If no payment schedule and no oneOffPayment, totalSpentAmount remains 0
+
+      // Delete all attachments from Firebase Storage before deleting the expense
+      if (attachments && attachments.length > 0) {
+        Sentry.addBreadcrumb({
+          category: 'expense.delete',
+          message: `Deleting ${attachments.length} attachments`,
+          level: 'info',
+          data: {
+            attachmentCount: attachments.length,
+          },
+        });
+
+        // Delete attachments in parallel for better performance
+        const attachmentDeletions = attachments.map(async (attachmentUrl: string) => {
+          try {
+            await deleteExpenseAttachment(deleteExpenseDto.userId, attachmentUrl);
+          } catch (error) {
+            console.warn(`Failed to delete attachment ${attachmentUrl}:`, error);
+            // Don't throw here - we want to continue with expense deletion even if some attachments fail
+          }
+        });
+
+        // Wait for all attachment deletions to complete
+        await Promise.allSettled(attachmentDeletions);
+      }
 
       // Start a batch write to delete expense and update category
       const batch = db.batch();
@@ -122,6 +150,7 @@ export const deleteExpense = withSentryServerAction(
           deletedScheduledAmount: expenseAmount,
           deletedSpentAmount: totalSpentAmount,
           categoryId: categoryId,
+          deletedAttachmentsCount: attachments?.length || 0,
         },
       });
     } catch (error) {
