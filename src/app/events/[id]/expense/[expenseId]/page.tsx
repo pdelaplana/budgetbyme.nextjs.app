@@ -300,13 +300,22 @@ export default function ExpenseDetailPage() {
     setShowEditExpense(true);
   };
 
-  const handleCreatePaymentSchedule = (payments: Payment[]) => {
+  const handleCreatePaymentSchedule = (
+    payments: {
+      name: string;
+      description: string;
+      amount: number;
+      paymentMethod: string;
+      dueDate: string;
+      notes?: string | undefined;
+    }[],
+  ) => {
     console.log('Create payment schedule:', payments);
     // In real app, this would convert the expense to have a payment schedule
     setShowAddPaymentSchedule(false);
   };
 
-  const handleMarkAsPaid = (paymentData: Payment) => {
+  const handleMarkAsPaid = (paymentData: Partial<Payment>) => {
     console.log('Mark as paid:', paymentData);
     // In real app, this would update the expense as paid with the payment details
     setShowMarkAsPaid(false);
@@ -449,7 +458,7 @@ export default function ExpenseDetailPage() {
 
       const result = await uploadExpenseAttachment(formData);
 
-      if (!result.success) {
+      if (!result.success || !result.url) {
         throw new Error(result.error || 'Failed to upload attachment');
       }
 
@@ -1332,7 +1341,10 @@ export default function ExpenseDetailPage() {
         isOpen={showEditExpense}
         onClose={() => setShowEditExpense(false)}
         categories={categories}
-        editingExpense={expense}
+        editingExpense={{
+          ...expense,
+          currency: expense.currency.code,
+        }}
         isEditMode={true}
       />
 
