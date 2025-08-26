@@ -13,7 +13,6 @@ import {
   DocumentTextIcon,
   EllipsisVerticalIcon,
   ExclamationTriangleIcon,
-  EyeIcon,
   GlobeAltIcon,
   HomeIcon,
   MapPinIcon,
@@ -31,20 +30,22 @@ import PaymentScheduleModal from '@/components/modals/AddPaymentScheduleModal';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
 import MarkAsPaidModal from '@/components/modals/MarkAsPaidModal';
 import AttachmentCard from '@/components/ui/AttachmentCard';
-import AttachmentsList from '@/components/ui/AttachmentsList';
-import FileUpload from '@/components/ui/FileUpload';
 import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
+import FileUpload from '@/components/ui/FileUpload';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import NotFoundState from '@/components/ui/NotFoundState';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
-import { useDeleteExpenseMutation, useUpdateExpenseMutation } from '@/hooks/expenses';
+import {
+  useDeleteExpenseMutation,
+  useUpdateExpenseMutation,
+} from '@/hooks/expenses';
 import { useClearAllPaymentsMutation } from '@/hooks/payments';
-import { uploadExpenseAttachment } from '@/server/actions/expenses/uploadExpenseAttachment';
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/formatters';
-import { Payment } from '@/types/Payment';
-import { Expense } from '@/types/Expense';
+import { uploadExpenseAttachment } from '@/server/actions/expenses/uploadExpenseAttachment';
+import type { Expense } from '@/types/Expense';
+import type { Payment } from '@/types/Payment';
 
 export default function ExpenseDetailPage() {
   const router = useRouter();
@@ -66,15 +67,17 @@ export default function ExpenseDetailPage() {
   >('create');
   const [showMarkAsPaid, setShowMarkAsPaid] = useState(false);
   const [showMarkPaymentAsPaid, setShowMarkPaymentAsPaid] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState<any>(null);
+  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
   const [showEditExpense, setShowEditExpense] = useState(false);
   const [showActionDropdown, setShowActionDropdown] = useState(false);
   const [isEditingTags, setIsEditingTags] = useState(false);
   const [newTag, setNewTag] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [uploadingFile, setUploadingFile] = useState<File | null>(null);
-  const [uploadingFileEmpty, setUploadingFileEmpty] = useState<File | null>(null);
-  
+  const [uploadingFileEmpty, setUploadingFileEmpty] = useState<File | null>(
+    null,
+  );
+
   // Consolidated attachment operation state
   const [attachmentState, setAttachmentState] = useState({
     isOperationInProgress: false,
@@ -85,7 +88,7 @@ export default function ExpenseDetailPage() {
   });
 
   // Current expense state
-  const [expense, setExpense] = useState<any>(null);
+  const [expense, setExpense] = useState<Expense | null>(null);
 
   // Payment deletion state
   const [showDeletePaymentsConfirm, setShowDeletePaymentsConfirm] =
@@ -166,7 +169,12 @@ export default function ExpenseDetailPage() {
   }, [expense]);
 
   // Show loading state while data is being fetched
-  if (isLoading || isExpensesLoading || !currentEvent || (expenses.length > 0 && !expense)) {
+  if (
+    isLoading ||
+    isExpensesLoading ||
+    !currentEvent ||
+    (expenses.length > 0 && !expense)
+  ) {
     return (
       <DashboardLayout>
         <LoadingSpinner />
@@ -179,18 +187,17 @@ export default function ExpenseDetailPage() {
     return (
       <DashboardLayout>
         <NotFoundState
-          title="Expense Not Found"
-          message="The requested expense could not be found."
-          buttonText="Return to Dashboard"
+          title='Expense Not Found'
+          message='The requested expense could not be found.'
+          buttonText='Return to Dashboard'
           onButtonClick={() => router.push(`/events/${eventId}/dashboard`)}
-          icon="💰"
+          icon='💰'
         />
       </DashboardLayout>
     );
   }
 
-
-  const getPaymentStatus = (payment: any) => {
+  const getPaymentStatus = (payment: Payment) => {
     if (payment.isPaid) {
       return {
         icon: CheckCircleIcon,
@@ -239,7 +246,7 @@ export default function ExpenseDetailPage() {
     }
   };
 
-  const handleMarkPaymentAsPaid = (payment: any) => {
+  const handleMarkPaymentAsPaid = (payment: Payment) => {
     setSelectedPayment(payment);
     setShowMarkPaymentAsPaid(true);
   };
@@ -293,13 +300,13 @@ export default function ExpenseDetailPage() {
     setShowEditExpense(true);
   };
 
-  const handleCreatePaymentSchedule = (payments: any[]) => {
+  const handleCreatePaymentSchedule = (payments: Payment[]) => {
     console.log('Create payment schedule:', payments);
     // In real app, this would convert the expense to have a payment schedule
     setShowAddPaymentSchedule(false);
   };
 
-  const handleMarkAsPaid = (paymentData: any) => {
+  const handleMarkAsPaid = (paymentData: Payment) => {
     console.log('Mark as paid:', paymentData);
     // In real app, this would update the expense as paid with the payment details
     setShowMarkAsPaid(false);
@@ -337,7 +344,7 @@ export default function ExpenseDetailPage() {
 
   let totalScheduled = 0;
   let totalPaid = 0;
-  let allPayments: any[] = [];
+  let allPayments: Payment[] = [];
 
   if (
     expense.hasPaymentSchedule &&
@@ -347,7 +354,7 @@ export default function ExpenseDetailPage() {
     // Multiple payments in schedule
     allPayments = expense.paymentSchedule;
     totalScheduled = expense.paymentSchedule.reduce(
-      (sum: number, payment: { amount: number; }) => sum + payment.amount,
+      (sum: number, payment: { amount: number }) => sum + payment.amount,
       0,
     );
     totalPaid = expense.paymentSchedule
@@ -370,22 +377,22 @@ export default function ExpenseDetailPage() {
   // File upload handlers for FileUpload component
   const handleFileChange = async (file: File | null) => {
     if (file) {
-      setAttachmentState(prev => ({
+      setAttachmentState((prev) => ({
         ...prev,
         isOperationInProgress: true,
-        operationType: 'uploading'
+        operationType: 'uploading',
       }));
       try {
         await handleAttachmentAdd(file);
         setUploadingFile(null); // Clear after successful upload
-      } catch (error) {
+      } catch {
         // Error handling is already done in handleAttachmentAdd
         setUploadingFile(null); // Clear on error too
       } finally {
-        setAttachmentState(prev => ({
+        setAttachmentState((prev) => ({
           ...prev,
           isOperationInProgress: false,
-          operationType: null
+          operationType: null,
         }));
       }
     } else {
@@ -399,22 +406,22 @@ export default function ExpenseDetailPage() {
 
   const handleFileChangeEmpty = async (file: File | null) => {
     if (file) {
-      setAttachmentState(prev => ({
+      setAttachmentState((prev) => ({
         ...prev,
         isOperationInProgress: true,
-        operationType: 'uploading'
+        operationType: 'uploading',
       }));
       try {
         await handleAttachmentAdd(file);
         setUploadingFileEmpty(null); // Clear after successful upload
-      } catch (error) {
+      } catch {
         // Error handling is already done in handleAttachmentAdd
         setUploadingFileEmpty(null); // Clear on error too
       } finally {
-        setAttachmentState(prev => ({
+        setAttachmentState((prev) => ({
           ...prev,
           isOperationInProgress: false,
-          operationType: null
+          operationType: null,
         }));
       }
     } else {
@@ -441,7 +448,7 @@ export default function ExpenseDetailPage() {
       formData.append('type', 'document');
 
       const result = await uploadExpenseAttachment(formData);
-      
+
       if (!result.success) {
         throw new Error(result.error || 'Failed to upload attachment');
       }
@@ -449,7 +456,7 @@ export default function ExpenseDetailPage() {
       // Update expense with new attachment
       const currentAttachments = expense.attachments || [];
       const updatedAttachments = [...currentAttachments, result.url];
-      
+
       await updateExpenseMutation.mutateAsync({
         userId: user.uid,
         eventId: currentEvent.id,
@@ -463,30 +470,36 @@ export default function ExpenseDetailPage() {
   };
 
   const handleAttachmentDeleteClick = (attachmentUrl: string) => {
-    setAttachmentState(prev => ({
+    setAttachmentState((prev) => ({
       ...prev,
       attachmentToDelete: attachmentUrl,
-      showDeleteConfirm: true
+      showDeleteConfirm: true,
     }));
   };
 
   const handleAttachmentDeleteConfirm = async () => {
-    if (!attachmentState.attachmentToDelete || !user?.uid || !currentEvent?.id) {
+    if (
+      !attachmentState.attachmentToDelete ||
+      !user?.uid ||
+      !currentEvent?.id
+    ) {
       return;
     }
 
-    setAttachmentState(prev => ({
+    setAttachmentState((prev) => ({
       ...prev,
       deletingAttachment: prev.attachmentToDelete,
       operationType: 'deleting',
-      showDeleteConfirm: false
+      showDeleteConfirm: false,
     }));
 
     try {
       // Update expense to remove attachment URL
       const currentAttachments = expense.attachments || [];
-      const updatedAttachments = currentAttachments.filter(url => url !== attachmentState.attachmentToDelete);
-      
+      const updatedAttachments = currentAttachments.filter(
+        (url) => url !== attachmentState.attachmentToDelete,
+      );
+
       await updateExpenseMutation.mutateAsync({
         userId: user.uid,
         eventId: currentEvent.id,
@@ -497,20 +510,20 @@ export default function ExpenseDetailPage() {
       console.error('Attachment delete error:', error);
       throw error;
     } finally {
-      setAttachmentState(prev => ({
+      setAttachmentState((prev) => ({
         ...prev,
         deletingAttachment: null,
         attachmentToDelete: null,
-        operationType: null
+        operationType: null,
       }));
     }
   };
 
   const handleAttachmentDeleteCancel = () => {
-    setAttachmentState(prev => ({
+    setAttachmentState((prev) => ({
       ...prev,
       showDeleteConfirm: false,
-      attachmentToDelete: null
+      attachmentToDelete: null,
     }));
   };
 
@@ -663,9 +676,16 @@ export default function ExpenseDetailPage() {
 
             {/* Desktop Dropdown Backdrop */}
             {showActionDropdown && (
-              <div
-                className='fixed inset-0 z-40'
+              <button
+                type='button'
+                className='fixed inset-0 z-40 bg-transparent border-none p-0 cursor-default'
                 onClick={() => setShowActionDropdown(false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    setShowActionDropdown(false);
+                  }
+                }}
+                aria-label='Close dropdown menu'
               />
             )}
           </div>
@@ -742,6 +762,7 @@ export default function ExpenseDetailPage() {
               <label className='text-sm font-medium text-gray-500 uppercase tracking-wide flex items-center mb-2'>
                 Tags
                 <button
+                  type='button'
                   onClick={() => setIsEditingTags(!isEditingTags)}
                   className='ml-2 text-xs text-primary-600 hover:text-primary-700 font-medium normal-case'
                 >
@@ -778,9 +799,9 @@ export default function ExpenseDetailPage() {
               {tags.length > 0 ? (
                 <div className='flex flex-wrap gap-1 items-center'>
                   <TagIcon className='h-3 w-3 text-gray-400 mr-1 flex-shrink-0' />
-                  {tags.map((tag, index) => (
+                  {tags.map((tag) => (
                     <div
-                      key={index}
+                      key={tag}
                       className={`inline-flex items-center px-2 py-0.5 bg-gray-100 text-gray-700 text-xs rounded transition-colors duration-200 ${
                         isEditingTags ? 'hover:bg-gray-200' : ''
                       }`}
@@ -805,6 +826,7 @@ export default function ExpenseDetailPage() {
                   <span className='text-gray-500 text-xs'>No tags</span>
                   {!isEditingTags && (
                     <button
+                      type='button'
                       onClick={() => setIsEditingTags(true)}
                       className='text-primary-600 hover:text-primary-700 text-xs font-medium'
                     >
@@ -817,9 +839,9 @@ export default function ExpenseDetailPage() {
 
             {/* Notes - if needed for future */}
             <div>
-              <label className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
+              <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
                 Notes
-              </label>
+              </div>
               <p className='mt-1 text-sm text-gray-700'>
                 {expense.notes || 'No notes added'}
               </p>
@@ -841,80 +863,77 @@ export default function ExpenseDetailPage() {
         )}
 
         {/* Vendor Information - Only show if vendor has meaningful data */}
-        {(expense as any).vendor && 
-         ((expense as any).vendor.name || 
-          (expense as any).vendor.address || 
-          (expense as any).vendor.website || 
-          (expense as any).vendor.email) && (
-          <div className='card'>
-            <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center'>
-              <BuildingOfficeIcon className='h-5 w-5 mr-2' />
-              Vendor Information
-            </h3>
+        {expense.vendor &&
+          (expense.vendor.name ||
+            expense.vendor.address ||
+            expense.vendor.website ||
+            expense.vendor.email) && (
+            <div className='card'>
+              <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center'>
+                <BuildingOfficeIcon className='h-5 w-5 mr-2' />
+                Vendor Information
+              </h3>
 
-            <div className='space-y-4'>
-              {(expense as any).vendor.name && (
-                <div>
-                  <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
-                    Vendor Name
-                  </div>
-                  <p className='mt-1 text-base font-semibold text-gray-900'>
-                    {(expense as any).vendor.name}
-                  </p>
-                </div>
-              )}
-
-              {(expense as any).vendor.address && (
-                <div>
-                  <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
-                    Address
-                  </div>
-                  <div className='mt-1 flex items-start'>
-                    <MapPinIcon className='h-4 w-4 text-gray-400 mr-2 mt-0.5 flex-shrink-0' />
-                    <p className='text-base text-gray-900'>
-                      {(expense as any).vendor.address}
+              <div className='space-y-4'>
+                {expense.vendor.name && (
+                  <div>
+                    <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
+                      Vendor Name
+                    </div>
+                    <p className='mt-1 text-base font-semibold text-gray-900'>
+                      {expense.vendor.name}
                     </p>
                   </div>
-                </div>
-              )}
+                )}
 
-              {(expense as any).vendor.website && (
-                <div>
-                  <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
-                    Website
+                {expense.vendor.address && (
+                  <div>
+                    <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
+                      Address
+                    </div>
+                    <div className='mt-1 flex items-start'>
+                      <MapPinIcon className='h-4 w-4 text-gray-400 mr-2 mt-0.5 flex-shrink-0' />
+                      <p className='text-base text-gray-900'>
+                        {expense.vendor.address}
+                      </p>
+                    </div>
                   </div>
-                  <div className='mt-1 flex items-center'>
-                    <GlobeAltIcon className='h-4 w-4 text-gray-400 mr-2 flex-shrink-0' />
-                    <a
-                      href={(expense as any).vendor.website}
-                      target='_blank'
-                      rel='noopener noreferrer'
-                      className='text-base text-primary-600 hover:text-primary-700 hover:underline transition-colors duration-200'
-                    >
-                      {(expense as any).vendor.website.replace(
-                        /^https?:\/\//,
-                        '',
-                      )}
-                    </a>
-                  </div>
-                </div>
-              )}
+                )}
 
-              {(expense as any).vendor.email && (
-                <div>
-                  <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
-                    Email
+                {expense.vendor.website && (
+                  <div>
+                    <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
+                      Website
+                    </div>
+                    <div className='mt-1 flex items-center'>
+                      <GlobeAltIcon className='h-4 w-4 text-gray-400 mr-2 flex-shrink-0' />
+                      <a
+                        href={expense.vendor.website}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='text-base text-primary-600 hover:text-primary-700 hover:underline transition-colors duration-200'
+                      >
+                        {expense.vendor.website.replace(/^https?:\/\//, '')}
+                      </a>
+                    </div>
                   </div>
-                  <div className='mt-1 flex items-center'>
-                    <span className='text-base text-gray-900'>
-                      {(expense as any).vendor.email}
-                    </span>
+                )}
+
+                {expense.vendor.email && (
+                  <div>
+                    <div className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
+                      Email
+                    </div>
+                    <div className='mt-1 flex items-center'>
+                      <span className='text-base text-gray-900'>
+                        {expense.vendor.email}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* Payment Information */}
         <div className='card'>
@@ -982,19 +1001,21 @@ export default function ExpenseDetailPage() {
                   </h4>
                   <div className='flex items-center space-x-2 ml-2'>
                     {/* Only show edit button for actual payment schedules, not one-off payments */}
-                    {expense.hasPaymentSchedule && expense.paymentSchedule && expense.paymentSchedule.length > 0 && (
-                      <button
-                        type='button'
-                        onClick={() => {
-                          setPaymentScheduleMode('edit');
-                          setShowAddPaymentSchedule(true);
-                        }}
-                        className='p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors duration-200'
-                        title='Edit payment schedule'
-                      >
-                        <PencilIcon className='h-4 w-4' />
-                      </button>
-                    )}
+                    {expense.hasPaymentSchedule &&
+                      expense.paymentSchedule &&
+                      expense.paymentSchedule.length > 0 && (
+                        <button
+                          type='button'
+                          onClick={() => {
+                            setPaymentScheduleMode('edit');
+                            setShowAddPaymentSchedule(true);
+                          }}
+                          className='p-1 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors duration-200'
+                          title='Edit payment schedule'
+                        >
+                          <PencilIcon className='h-4 w-4' />
+                        </button>
+                      )}
                     <button
                       type='button'
                       onClick={handleDeleteAllPayments}
@@ -1006,7 +1027,7 @@ export default function ExpenseDetailPage() {
                   </div>
                 </div>
                 <div className='space-y-3'>
-                  {allPayments.map((payment: any) => {
+                  {allPayments.map((payment: Payment) => {
                     const status = getPaymentStatus(payment);
                     const StatusIcon = status.icon;
 
@@ -1140,7 +1161,6 @@ export default function ExpenseDetailPage() {
 
         {/* Attachments */}
         <div className='card'>
-          
           <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center'>
             <PaperClipIcon className='h-5 w-5 mr-2' />
             Attachments
@@ -1150,16 +1170,17 @@ export default function ExpenseDetailPage() {
             <div className='space-y-4'>
               {/* Attachments Grid */}
               <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
-                {expense.attachments.map((url: string, index: number) => {
+                {expense.attachments.map((url: string) => {
                   // Extract filename from URL for display
                   const urlParts = url.split('/');
                   const fullFilename = urlParts[urlParts.length - 1];
                   const parts = fullFilename.split('_');
-                  const originalName = parts.length >= 3 ? parts.slice(2).join('_') : fullFilename;
-                  
+                  const originalName =
+                    parts.length >= 3 ? parts.slice(2).join('_') : fullFilename;
+
                   return (
                     <AttachmentCard
-                      key={`${url}-${index}`}
+                      key={url}
                       url={url}
                       filename={fullFilename}
                       originalName={originalName}
@@ -1181,7 +1202,8 @@ export default function ExpenseDetailPage() {
                       Add New Attachment
                     </h4>
                     <p className='text-sm text-gray-600'>
-                      Upload receipts, invoices, contracts, or other documents related to this expense.
+                      Upload receipts, invoices, contracts, or other documents
+                      related to this expense.
                     </p>
                   </div>
                 </div>
@@ -1189,13 +1211,16 @@ export default function ExpenseDetailPage() {
                   file={uploadingFile}
                   onFileChange={handleFileChange}
                   onFileRemove={handleFileRemove}
-                  accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx"
+                  accept='.jpg,.jpeg,.png,.webp,.pdf,.doc,.docx'
                   maxSize={5}
                   disabled={updateExpenseMutation.isPending}
-                  isLoading={attachmentState.isOperationInProgress && attachmentState.operationType === 'uploading'}
-                  loadingMessage="Uploading attachment..."
-                  label="Choose file or drag and drop"
-                  description="JPG, PNG, WebP, PDF, DOC, DOCX files"
+                  isLoading={
+                    attachmentState.isOperationInProgress &&
+                    attachmentState.operationType === 'uploading'
+                  }
+                  loadingMessage='Uploading attachment...'
+                  label='Choose file or drag and drop'
+                  description='JPG, PNG, WebP, PDF, DOC, DOCX files'
                 />
               </div>
             </div>
@@ -1210,7 +1235,8 @@ export default function ExpenseDetailPage() {
                       No Attachments
                     </span>
                     <p className='text-sm text-gray-600 mt-1'>
-                      Upload receipts, invoices, contracts, or other documents related to this expense for better record keeping.
+                      Upload receipts, invoices, contracts, or other documents
+                      related to this expense for better record keeping.
                     </p>
                   </div>
                 </div>
@@ -1218,13 +1244,16 @@ export default function ExpenseDetailPage() {
                   file={uploadingFileEmpty}
                   onFileChange={handleFileChangeEmpty}
                   onFileRemove={handleFileRemoveEmpty}
-                  accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx"
+                  accept='.jpg,.jpeg,.png,.webp,.pdf,.doc,.docx'
                   maxSize={5}
                   disabled={updateExpenseMutation.isPending}
-                  isLoading={attachmentState.isOperationInProgress && attachmentState.operationType === 'uploading'}
-                  loadingMessage="Uploading attachment..."
-                  label="Choose file or drag and drop"
-                  description="JPG, PNG, WebP, PDF, DOC, DOCX files"
+                  isLoading={
+                    attachmentState.isOperationInProgress &&
+                    attachmentState.operationType === 'uploading'
+                  }
+                  loadingMessage='Uploading attachment...'
+                  label='Choose file or drag and drop'
+                  description='JPG, PNG, WebP, PDF, DOC, DOCX files'
                 />
               </div>
             </div>
@@ -1267,7 +1296,7 @@ export default function ExpenseDetailPage() {
       <MarkAsPaidModal
         isOpen={showMarkAsPaid}
         onClose={() => setShowMarkAsPaid(false)}
-        expenseId={expenseId!}
+        expenseId={expenseId}
         expenseName={expense.name}
         expenseAmount={expense.amount}
         onMarkAsPaid={handleMarkAsPaid}
@@ -1280,7 +1309,7 @@ export default function ExpenseDetailPage() {
           setShowMarkPaymentAsPaid(false);
           setSelectedPayment(null);
         }}
-        expenseId={expenseId!}
+        expenseId={expenseId}
         expenseName={
           selectedPayment?.name || selectedPayment?.description || 'Payment'
         }
@@ -1291,7 +1320,7 @@ export default function ExpenseDetailPage() {
       <PaymentScheduleModal
         isOpen={showAddPaymentSchedule}
         onClose={() => setShowAddPaymentSchedule(false)}
-        expenseId={expenseId!}
+        expenseId={expenseId}
         expenseName={expense.name}
         totalAmount={expense.amount}
         existingPayments={expense.paymentSchedule}
