@@ -1,7 +1,8 @@
 'use client';
 
-import { PaperClipIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { ArrowUpTrayIcon, PaperClipIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import React, { useState, useRef } from 'react';
+import { toast } from 'sonner';
 
 interface FileUploadProps {
   file: File | null;
@@ -13,6 +14,8 @@ interface FileUploadProps {
   className?: string;
   label?: string;
   description?: string;
+  isLoading?: boolean;
+  loadingMessage?: string;
 }
 
 export default function FileUpload({
@@ -25,6 +28,8 @@ export default function FileUpload({
   className = '',
   label = 'Upload File',
   description = 'Supported formats: JPG, PNG, PDF, DOC',
+  isLoading = false,
+  loadingMessage = 'Uploading...',
 }: FileUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -65,7 +70,7 @@ export default function FileUpload({
   const handleFileSelect = (selectedFile: File) => {
     const error = validateFile(selectedFile);
     if (error) {
-      alert(error);
+      toast.error(error);
       return;
     }
     onFileChange(selectedFile);
@@ -80,7 +85,7 @@ export default function FileUpload({
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    if (!disabled) {
+    if (!disabled && !isLoading) {
       setIsDragOver(true);
     }
   };
@@ -94,7 +99,7 @@ export default function FileUpload({
     e.preventDefault();
     setIsDragOver(false);
     
-    if (disabled) return;
+    if (disabled || isLoading) return;
 
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
@@ -103,7 +108,7 @@ export default function FileUpload({
   };
 
   const handleClick = () => {
-    if (!disabled && fileInputRef.current) {
+    if (!disabled && !isLoading && fileInputRef.current) {
       fileInputRef.current.click();
     }
   };
@@ -117,7 +122,7 @@ export default function FileUpload({
   };
 
   return (
-    <div className={className}>
+    <div className={`relative ${className}`}>
       <input
         ref={fileInputRef}
         type="file"
@@ -126,6 +131,18 @@ export default function FileUpload({
         className="hidden"
         disabled={disabled}
       />
+
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center rounded-lg z-10">
+          <div className="flex flex-col items-center space-y-3">
+            <div className="h-6 w-6 border-2 border-primary-600 border-t-transparent rounded-full animate-spin"></div>
+            <div className="text-sm font-medium text-gray-700">
+              {loadingMessage}
+            </div>
+          </div>
+        </div>
+      )}
 
       {!file ? (
         <div
@@ -139,11 +156,11 @@ export default function FileUpload({
               ? 'border-primary-500 bg-primary-50' 
               : 'border-gray-300 hover:border-gray-400'
             }
-            ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}
+            ${disabled || isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}
           `}
         >
           <div className="text-center">
-            <PaperClipIcon className="mx-auto h-8 w-8 text-gray-400" />
+            <ArrowUpTrayIcon className="mx-auto h-8 w-8 text-gray-400" />
             <div className="mt-3">
               <p className="text-sm font-medium text-gray-900">
                 {isDragOver ? 'Drop your file here' : label}
@@ -175,7 +192,7 @@ export default function FileUpload({
               type="button"
               onClick={handleRemove}
               className="ml-3 p-1 text-gray-400 hover:text-red-600 transition-colors duration-200 flex-shrink-0"
-              disabled={disabled}
+              disabled={disabled || isLoading}
               title="Remove file"
             >
               <XMarkIcon className="h-4 w-4" />

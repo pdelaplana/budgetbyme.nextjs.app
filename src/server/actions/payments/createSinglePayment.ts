@@ -16,7 +16,6 @@ interface CreateSinglePaymentDto {
   paymentMethod: PaymentMethod;
   paidDate: Date;
   notes?: string;
-  attachments?: string[];
 }
 
 export async function createSinglePayment(dto: CreateSinglePaymentDto): Promise<string> {
@@ -48,7 +47,6 @@ export async function createSinglePayment(dto: CreateSinglePaymentDto): Promise<
       isPaid: true,
       paidDate: Timestamp.fromDate(paidDate),
       notes: paymentData.notes || '',
-      attachments: paymentData.attachments || [],
       _createdDate: now,
       _createdBy: userId,
       _updatedDate: now,

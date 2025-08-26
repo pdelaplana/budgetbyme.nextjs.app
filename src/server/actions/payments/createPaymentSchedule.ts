@@ -16,7 +16,6 @@ interface CreatePaymentScheduleDto {
     paymentMethod: PaymentMethod;
     dueDate: Date;
     notes?: string;
-    attachments?: string[];
   }>;
 }
 
@@ -44,7 +43,6 @@ export async function createPaymentSchedule(dto: CreatePaymentScheduleDto): Prom
       dueDate: Timestamp.fromDate(payment.dueDate),
       isPaid: false,
       notes: payment.notes || '',
-      attachments: payment.attachments || [],
       _createdDate: Timestamp.fromMillis(now.toMillis() + index), // Ensure unique timestamps
       _createdBy: userId,
       _updatedDate: Timestamp.fromMillis(now.toMillis() + index),

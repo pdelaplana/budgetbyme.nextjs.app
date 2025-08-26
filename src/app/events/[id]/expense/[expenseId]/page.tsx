@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  ArrowUpTrayIcon,
   BuildingOfficeIcon,
   CalendarDaysIcon,
   CalendarIcon,
@@ -12,9 +13,11 @@ import {
   DocumentTextIcon,
   EllipsisVerticalIcon,
   ExclamationTriangleIcon,
+  EyeIcon,
   GlobeAltIcon,
   HomeIcon,
   MapPinIcon,
+  PaperClipIcon,
   PencilIcon,
   TagIcon,
   TrashIcon,
@@ -27,14 +30,18 @@ import AddOrEditExpenseModal from '@/components/modals/AddOrEditExpenseModal';
 import PaymentScheduleModal from '@/components/modals/AddPaymentScheduleModal';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
 import MarkAsPaidModal from '@/components/modals/MarkAsPaidModal';
+import AttachmentCard from '@/components/ui/AttachmentCard';
+import AttachmentsList from '@/components/ui/AttachmentsList';
+import FileUpload from '@/components/ui/FileUpload';
 import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import NotFoundState from '@/components/ui/NotFoundState';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
-import { useDeleteExpenseMutation } from '@/hooks/expenses';
+import { useDeleteExpenseMutation, useUpdateExpenseMutation } from '@/hooks/expenses';
 import { useClearAllPaymentsMutation } from '@/hooks/payments';
+import { uploadExpenseAttachment } from '@/server/actions/expenses/uploadExpenseAttachment';
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/formatters';
 import { Payment } from '@/types/Payment';
 import { Expense } from '@/types/Expense';
@@ -65,6 +72,17 @@ export default function ExpenseDetailPage() {
   const [isEditingTags, setIsEditingTags] = useState(false);
   const [newTag, setNewTag] = useState('');
   const [tags, setTags] = useState<string[]>([]);
+  const [uploadingFile, setUploadingFile] = useState<File | null>(null);
+  const [uploadingFileEmpty, setUploadingFileEmpty] = useState<File | null>(null);
+  
+  // Consolidated attachment operation state
+  const [attachmentState, setAttachmentState] = useState({
+    isOperationInProgress: false,
+    operationType: null as 'uploading' | 'deleting' | null,
+    showDeleteConfirm: false,
+    attachmentToDelete: null as string | null,
+    deletingAttachment: null as string | null,
+  });
 
   // Current expense state
   const [expense, setExpense] = useState<any>(null);
@@ -99,6 +117,29 @@ export default function ExpenseDetailPage() {
         error.message || 'Failed to delete expense. Please try again.',
       );
       setShowDeleteExpenseConfirm(false);
+    },
+  });
+
+  // Update expense mutation for attachments
+  const updateExpenseMutation = useUpdateExpenseMutation({
+    onSuccess: () => {
+      if (attachmentState.operationType === 'uploading') {
+        toast.success('Attachment uploaded successfully!');
+      } else if (attachmentState.operationType === 'deleting') {
+        toast.success('Attachment deleted successfully!');
+      } else {
+        toast.success('Attachments updated successfully!');
+      }
+    },
+    onError: (error) => {
+      console.error('Error updating attachments:', error);
+      if (attachmentState.operationType === 'uploading') {
+        toast.error(error.message || 'Failed to upload attachment');
+      } else if (attachmentState.operationType === 'deleting') {
+        toast.error(error.message || 'Failed to delete attachment');
+      } else {
+        toast.error(error.message || 'Failed to update attachments');
+      }
     },
   });
 
@@ -325,6 +366,153 @@ export default function ExpenseDetailPage() {
   }
 
   const remainingBalance = totalScheduled - totalPaid;
+
+  // File upload handlers for FileUpload component
+  const handleFileChange = async (file: File | null) => {
+    if (file) {
+      setAttachmentState(prev => ({
+        ...prev,
+        isOperationInProgress: true,
+        operationType: 'uploading'
+      }));
+      try {
+        await handleAttachmentAdd(file);
+        setUploadingFile(null); // Clear after successful upload
+      } catch (error) {
+        // Error handling is already done in handleAttachmentAdd
+        setUploadingFile(null); // Clear on error too
+      } finally {
+        setAttachmentState(prev => ({
+          ...prev,
+          isOperationInProgress: false,
+          operationType: null
+        }));
+      }
+    } else {
+      setUploadingFile(null);
+    }
+  };
+
+  const handleFileRemove = () => {
+    setUploadingFile(null);
+  };
+
+  const handleFileChangeEmpty = async (file: File | null) => {
+    if (file) {
+      setAttachmentState(prev => ({
+        ...prev,
+        isOperationInProgress: true,
+        operationType: 'uploading'
+      }));
+      try {
+        await handleAttachmentAdd(file);
+        setUploadingFileEmpty(null); // Clear after successful upload
+      } catch (error) {
+        // Error handling is already done in handleAttachmentAdd
+        setUploadingFileEmpty(null); // Clear on error too
+      } finally {
+        setAttachmentState(prev => ({
+          ...prev,
+          isOperationInProgress: false,
+          operationType: null
+        }));
+      }
+    } else {
+      setUploadingFileEmpty(null);
+    }
+  };
+
+  const handleFileRemoveEmpty = () => {
+    setUploadingFileEmpty(null);
+  };
+
+  // Attachment handling functions
+  const handleAttachmentAdd = async (file: File) => {
+    if (!user?.uid || !currentEvent?.id) {
+      throw new Error('User not authenticated or event not selected');
+    }
+
+    try {
+      // Upload file to storage
+      const formData = new FormData();
+      formData.append('attachment', file);
+      formData.append('userId', user.uid);
+      formData.append('expenseId', expense.id);
+      formData.append('type', 'document');
+
+      const result = await uploadExpenseAttachment(formData);
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to upload attachment');
+      }
+
+      // Update expense with new attachment
+      const currentAttachments = expense.attachments || [];
+      const updatedAttachments = [...currentAttachments, result.url];
+      
+      await updateExpenseMutation.mutateAsync({
+        userId: user.uid,
+        eventId: currentEvent.id,
+        expenseId: expense.id,
+        attachments: updatedAttachments,
+      });
+    } catch (error) {
+      console.error('Attachment upload error:', error);
+      throw error;
+    }
+  };
+
+  const handleAttachmentDeleteClick = (attachmentUrl: string) => {
+    setAttachmentState(prev => ({
+      ...prev,
+      attachmentToDelete: attachmentUrl,
+      showDeleteConfirm: true
+    }));
+  };
+
+  const handleAttachmentDeleteConfirm = async () => {
+    if (!attachmentState.attachmentToDelete || !user?.uid || !currentEvent?.id) {
+      return;
+    }
+
+    setAttachmentState(prev => ({
+      ...prev,
+      deletingAttachment: prev.attachmentToDelete,
+      operationType: 'deleting',
+      showDeleteConfirm: false
+    }));
+
+    try {
+      // Update expense to remove attachment URL
+      const currentAttachments = expense.attachments || [];
+      const updatedAttachments = currentAttachments.filter(url => url !== attachmentState.attachmentToDelete);
+      
+      await updateExpenseMutation.mutateAsync({
+        userId: user.uid,
+        eventId: currentEvent.id,
+        expenseId: expense.id,
+        attachments: updatedAttachments,
+      });
+    } catch (error) {
+      console.error('Attachment delete error:', error);
+      throw error;
+    } finally {
+      setAttachmentState(prev => ({
+        ...prev,
+        deletingAttachment: null,
+        attachmentToDelete: null,
+        operationType: null
+      }));
+    }
+  };
+
+  const handleAttachmentDeleteCancel = () => {
+    setAttachmentState(prev => ({
+      ...prev,
+      showDeleteConfirm: false,
+      attachmentToDelete: null
+    }));
+  };
 
   // Helper function to truncate text for mobile breadcrumbs
   const truncateForMobile = (text: string, maxLength: number = 20) => {
@@ -946,6 +1134,99 @@ export default function ExpenseDetailPage() {
           )}
         </div>
 
+        {/* Attachments */}
+        <div className='card'>
+          
+          <h3 className='text-lg font-semibold text-gray-900 mb-4 flex items-center'>
+            <PaperClipIcon className='h-5 w-5 mr-2' />
+            Attachments
+          </h3>
+
+          {expense.attachments && expense.attachments.length > 0 ? (
+            <div className='space-y-4'>
+              {/* Attachments Grid */}
+              <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'>
+                {expense.attachments.map((url: string, index: number) => {
+                  // Extract filename from URL for display
+                  const urlParts = url.split('/');
+                  const fullFilename = urlParts[urlParts.length - 1];
+                  const parts = fullFilename.split('_');
+                  const originalName = parts.length >= 3 ? parts.slice(2).join('_') : fullFilename;
+                  
+                  return (
+                    <AttachmentCard
+                      key={`${url}-${index}`}
+                      url={url}
+                      filename={fullFilename}
+                      originalName={originalName}
+                      canDelete={true}
+                      onDelete={() => handleAttachmentDeleteClick(url)}
+                      disabled={updateExpenseMutation.isPending}
+                      isDeleting={attachmentState.deletingAttachment === url}
+                    />
+                  );
+                })}
+              </div>
+
+              {/* Upload New Attachment */}
+              <div className='bg-gray-50 border border-gray-200 rounded-lg p-4'>
+                <div className='flex items-start space-x-4 mb-4'>
+                  <ArrowUpTrayIcon className='h-6 w-6 text-gray-500 flex-shrink-0 mt-0.5' />
+                  <div className='flex-1'>
+                    <h4 className='text-sm font-medium text-gray-800 mb-3'>
+                      Add New Attachment
+                    </h4>
+                    <p className='text-sm text-gray-600'>
+                      Upload receipts, invoices, contracts, or other documents related to this expense.
+                    </p>
+                  </div>
+                </div>
+                <FileUpload
+                  file={uploadingFile}
+                  onFileChange={handleFileChange}
+                  onFileRemove={handleFileRemove}
+                  accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx"
+                  maxSize={5}
+                  disabled={updateExpenseMutation.isPending}
+                  isLoading={attachmentState.isOperationInProgress && attachmentState.operationType === 'uploading'}
+                  loadingMessage="Uploading attachment..."
+                  label="Choose file or drag and drop"
+                  description="JPG, PNG, WebP, PDF, DOC, DOCX files"
+                />
+              </div>
+            </div>
+          ) : (
+            /* No Attachments - Show Upload Option */
+            <div className='space-y-4'>
+              <div className='p-4 bg-gray-50 rounded-lg border border-gray-200'>
+                <div className='flex items-start space-x-4 mb-4'>
+                  <ArrowUpTrayIcon className='h-6 w-6 text-gray-500 flex-shrink-0 mt-0.5' />
+                  <div className='flex-1'>
+                    <span className='font-semibold text-gray-700'>
+                      No Attachments
+                    </span>
+                    <p className='text-sm text-gray-600 mt-1'>
+                      Upload receipts, invoices, contracts, or other documents related to this expense for better record keeping.
+                    </p>
+                  </div>
+                </div>
+                <FileUpload
+                  file={uploadingFileEmpty}
+                  onFileChange={handleFileChangeEmpty}
+                  onFileRemove={handleFileRemoveEmpty}
+                  accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx"
+                  maxSize={5}
+                  disabled={updateExpenseMutation.isPending}
+                  isLoading={attachmentState.isOperationInProgress && attachmentState.operationType === 'uploading'}
+                  loadingMessage="Uploading attachment..."
+                  label="Choose file or drag and drop"
+                  description="JPG, PNG, WebP, PDF, DOC, DOCX files"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Metadata */}
         <div className='card'>
           <h3 className='text-lg font-semibold text-gray-900 mb-3 flex items-center'>
@@ -1043,6 +1324,16 @@ export default function ExpenseDetailPage() {
         onConfirm={confirmDeleteExpense}
         title='Delete Expense'
         message='Are you sure you want to delete this expense? This action cannot be undone. All payment schedules and associated data will be permanently removed.'
+        confirmText='Delete'
+        type='danger'
+      />
+
+      <ConfirmDialog
+        isOpen={attachmentState.showDeleteConfirm}
+        onClose={handleAttachmentDeleteCancel}
+        onConfirm={handleAttachmentDeleteConfirm}
+        title='Delete Attachment'
+        message='Are you sure you want to delete this attachment? This action cannot be undone.'
         confirmText='Delete'
         type='danger'
       />

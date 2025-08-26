@@ -46,7 +46,6 @@ export async function updatePaymentInExpense(
     if (updateData.dueDate !== undefined) paymentUpdateFields.dueDate = Timestamp.fromDate(updateData.dueDate);
     if (updateData.paidDate !== undefined) paymentUpdateFields.paidDate = Timestamp.fromDate(updateData.paidDate);
     if (updateData.notes !== undefined) paymentUpdateFields.notes = updateData.notes;
-    if (updateData.attachments !== undefined) paymentUpdateFields.attachments = updateData.attachments;
     
     paymentUpdateFields._updatedDate = now;
     paymentUpdateFields._updatedBy = userId;

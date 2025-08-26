@@ -3,6 +3,12 @@ const nextConfig = {
   turbopack: {
     // Enable Turbopack for faster development (stable in Next.js 15)
   },
+  experimental: {
+    serverActions: {
+      // Increase body size limit to 6MB to support 5MB file uploads + metadata
+      bodySizeLimit: '6mb',
+    },
+  },
   images: {
     remotePatterns: [
       {

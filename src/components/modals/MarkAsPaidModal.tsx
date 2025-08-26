@@ -13,9 +13,17 @@ import { toast } from 'sonner';
 import FileUpload from '@/components/ui/FileUpload';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
-import { useCreateSinglePaymentMutation, useMarkPaymentAsPaidMutation } from '@/hooks/payments';
-import type { PaymentMethod } from '@/types/Payment';
+import {
+  useUpdateExpenseMutation,
+  useFetchExpenses,
+} from '@/hooks/expenses';
+import {
+  useCreateSinglePaymentMutation,
+  useMarkPaymentAsPaidMutation,
+} from '@/hooks/payments';
 import { formatCurrency } from '@/lib/formatters';
+import { uploadExpenseAttachment } from '@/server/actions/expenses/uploadExpenseAttachment';
+import type { PaymentMethod } from '@/types/Payment';
 
 interface MarkAsPaidFormData {
   name: string;
@@ -63,6 +71,9 @@ export default function MarkAsPaidModal({
   const { user } = useAuth();
   const { event } = useEventDetails();
   
+  // Fetch expenses data to get current attachments
+  const { data: expenses } = useFetchExpenses(user?.uid || '', event?.id || '');
+
   const [formData, setFormData] = useState<MarkAsPaidFormData>({
     name: paymentId ? 'Payment' : `${expenseName} - Full Payment`,
     amount: expenseAmount.toString(),
@@ -96,8 +107,19 @@ export default function MarkAsPaidModal({
     },
   });
 
-  const isSubmitting = createSinglePaymentMutation.isPending || markPaymentAsPaidMutation.isPending;
+  const updateExpenseMutation = useUpdateExpenseMutation({
+    onSuccess: () => {
+      // This is used to add receipt attachments to the expense
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to save receipt attachment');
+    },
+  });
 
+  const isSubmitting =
+    createSinglePaymentMutation.isPending ||
+    markPaymentAsPaidMutation.isPending ||
+    updateExpenseMutation.isPending;
 
   // Reinitialize form data when modal opens or props change
   React.useEffect(() => {
@@ -113,7 +135,6 @@ export default function MarkAsPaidModal({
       setErrors({});
     }
   }, [isOpen, paymentId, expenseName, expenseAmount]);
-
 
   const handleInputChange = (
     field: keyof MarkAsPaidFormData,
@@ -143,7 +164,10 @@ export default function MarkAsPaidModal({
 
     if (!formData.amount.trim()) {
       newErrors.amount = 'Amount is required';
-    } else if (isNaN(Number(formData.amount)) || Number(formData.amount) <= 0) {
+    } else if (
+      Number.isNaN(Number(formData.amount)) ||
+      Number(formData.amount) <= 0
+    ) {
       newErrors.amount = 'Please enter a valid amount';
     } else if (Number(formData.amount) > expenseAmount * 1.1) {
       newErrors.amount = `Amount seems too high for this expense (${formatCurrency(expenseAmount)})`;
@@ -172,6 +196,31 @@ export default function MarkAsPaidModal({
     return Object.keys(newErrors).length === 0;
   };
 
+  const uploadReceiptAttachment = async (
+    receiptFile: File,
+  ): Promise<string | null> => {
+    if (!user?.uid) return null;
+
+    try {
+      const formData = new FormData();
+      formData.append('attachment', receiptFile);
+      formData.append('userId', user.uid);
+      formData.append('expenseId', expenseId);
+      formData.append('type', 'receipt');
+
+      const result = await uploadExpenseAttachment(formData);
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to upload receipt');
+      }
+
+      return result.url || null;
+    } catch (error) {
+      console.error('Receipt upload error:', error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -196,6 +245,12 @@ export default function MarkAsPaidModal({
     }
 
     try {
+      // Upload receipt if provided
+      let receiptUrl: string | null = null;
+      if (formData.receipt) {
+        receiptUrl = await uploadReceiptAttachment(formData.receipt);
+      }
+
       if (paymentId) {
         // Mark existing payment as paid
         await markPaymentAsPaidMutation.mutateAsync({
@@ -207,7 +262,6 @@ export default function MarkAsPaidModal({
             paidDate: new Date(formData.datePaid),
             paymentMethod: formData.paymentMethod as PaymentMethod,
             notes: formData.notes || undefined,
-            attachments: [], // TODO: Handle file uploads later
           },
         });
       } else {
@@ -222,8 +276,35 @@ export default function MarkAsPaidModal({
           paymentMethod: formData.paymentMethod as PaymentMethod,
           paidDate: new Date(formData.datePaid),
           notes: formData.notes || undefined,
-          attachments: [], // TODO: Handle file uploads later
         });
+      }
+
+      // If we uploaded a receipt, add it to the expense attachments
+      if (receiptUrl) {
+        try {
+          // Get current expense from the expenses data
+          const currentExpense = expenses?.find((exp: any) => exp.id === expenseId);
+          const existingAttachments = currentExpense?.attachments || [];
+          
+          // Append receipt to existing attachments (avoid duplicates)
+          const updatedAttachments = [...existingAttachments];
+          if (!updatedAttachments.includes(receiptUrl)) {
+            updatedAttachments.push(receiptUrl);
+          }
+
+          await updateExpenseMutation.mutateAsync({
+            userId: user.uid,
+            eventId: event.id,
+            expenseId,
+            attachments: updatedAttachments,
+          });
+        } catch (error) {
+          // Don't fail the payment if attachment update fails, just log it
+          console.warn('Failed to add receipt to expense attachments:', error);
+          toast.warning(
+            'Payment recorded, but receipt attachment may not have been saved to expense',
+          );
+        }
       }
 
       // Call callback if provided
@@ -279,6 +360,7 @@ export default function MarkAsPaidModal({
               </div>
             </div>
             <button
+              type='button'
               onClick={handleClose}
               disabled={isSubmitting}
               className='p-1.5 hover:bg-gray-100 rounded-lg transition-colors duration-200 disabled:opacity-50'
@@ -435,7 +517,7 @@ export default function MarkAsPaidModal({
 
             {/* Receipt Upload */}
             <div>
-              <label className='form-label'>
+              <label htmlFor='receipt-upload' className='form-label'>
                 Receipt/Proof of Payment (Optional)
               </label>
               <FileUpload

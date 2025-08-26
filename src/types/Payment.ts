@@ -16,7 +16,6 @@ export interface Payment extends Entity {
   paidDate?: Date;
   paymentMethod: PaymentMethod;
   notes?: string;
-  attachments?: string[];
 }
 
 export interface AddPaymentDto {
@@ -29,7 +28,6 @@ export interface AddPaymentDto {
   paymentMethod: PaymentMethod;
   dueDate: Date;
   notes?: string;
-  attachments?: string[];
 }
 
 export interface UpdatePaymentDto {
@@ -41,12 +39,10 @@ export interface UpdatePaymentDto {
   dueDate?: Date;
   paidDate?: Date;
   notes?: string;
-  attachments?: string[];
 }
 
 export interface MarkPaymentAsPaidDto {
   paidDate: Date;
   paymentMethod: PaymentMethod;
   notes?: string;
-  attachments?: string[];
 }

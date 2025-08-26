@@ -46,7 +46,6 @@ export async function markPaymentAsPaidInExpense(
       paidDate: Timestamp.fromDate(markAsPaidData.paidDate),
       paymentMethod: markAsPaidData.paymentMethod,
       notes: markAsPaidData.notes || '',
-      attachments: markAsPaidData.attachments || [],
       _updatedDate: now,
       _updatedBy: userId,
     };

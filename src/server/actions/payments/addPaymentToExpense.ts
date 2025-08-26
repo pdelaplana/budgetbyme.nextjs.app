@@ -33,7 +33,6 @@ export async function addPaymentToExpense(addPaymentDto: AddPaymentDto): Promise
       dueDate: Timestamp.fromDate(paymentData.dueDate),
       isPaid: false,
       notes: paymentData.notes || '',
-      attachments: paymentData.attachments || [],
       _createdDate: now,
       _createdBy: userId,
       _updatedDate: now,
