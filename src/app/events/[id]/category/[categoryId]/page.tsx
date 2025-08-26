@@ -25,6 +25,7 @@ import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
 import { useDeleteCategoryMutation } from '@/hooks/categories';
 import { formatCurrency, formatDate } from '@/lib/formatters';
+import { truncateForBreadcrumb } from '@/lib/textUtils';
 
 export default function CategoryPage() {
   const router = useRouter();
@@ -155,12 +156,12 @@ export default function CategoryPage() {
   // Breadcrumb items
   const breadcrumbItems: BreadcrumbItem[] = [
     {
-      label: currentEvent.name,
+      label: truncateForBreadcrumb(currentEvent.name, 15),
       href: `/events/${eventId}/dashboard`,
       icon: HomeIcon,
     },
     {
-      label: category.name,
+      label: truncateForBreadcrumb(category.name, 18),
       current: true,
     },
   ];

@@ -130,6 +130,26 @@ Centralized formatting utilities for consistent data display across the applicat
 - All functions handle edge cases (null, undefined, invalid inputs) gracefully
 - Comprehensive unit tests ensure reliability across different scenarios
 
+#### Text Utilities (`/src/lib/textUtils.ts`)
+Centralized text manipulation utilities for consistent text handling across the application:
+
+**Text Truncation:**
+- `truncateText(text, options)` - Core truncation function with intelligent word boundary preservation
+- `truncateForMobile(text, maxLength = 20)` - Mobile-optimized truncation with word preservation
+- `truncateForBreadcrumb(text, maxLength = 15)` - Breadcrumb-optimized truncation
+
+**Features:**
+- Intelligent word boundary preservation to avoid breaking words mid-text
+- Customizable suffix (default: "...")
+- Fallback to character truncation when word preservation isn't feasible
+- Comprehensive unit tests covering edge cases
+
+**Usage Guidelines:**
+- Always import from `@/lib/textUtils` instead of creating local truncation functions
+- Use `truncateForMobile` for general mobile-friendly text display
+- Use `truncateForBreadcrumb` for navigation breadcrumbs
+- Use `truncateText` directly for custom truncation requirements
+
 ## AI Enhancement Opportunities
 
 ### Budget Setup Assistant

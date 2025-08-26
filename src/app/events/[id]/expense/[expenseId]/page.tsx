@@ -43,6 +43,7 @@ import {
 } from '@/hooks/expenses';
 import { useClearAllPaymentsMutation } from '@/hooks/payments';
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/formatters';
+import { truncateForBreadcrumb } from '@/lib/textUtils';
 import { uploadExpenseAttachment } from '@/server/actions/expenses/uploadExpenseAttachment';
 import type { Expense } from '@/types/Expense';
 import type { Payment } from '@/types/Payment';
@@ -536,25 +537,19 @@ export default function ExpenseDetailPage() {
     }));
   };
 
-  // Helper function to truncate text for mobile breadcrumbs
-  const truncateForMobile = (text: string, maxLength: number = 20) => {
-    if (text.length <= maxLength) return text;
-    return `${text.substring(0, maxLength - 3)}...`;
-  };
-
   // Breadcrumb items with mobile-friendly labels
   const breadcrumbItems: BreadcrumbItem[] = [
     {
-      label: truncateForMobile(currentEvent.name, 15),
+      label: truncateForBreadcrumb(currentEvent.name, 15),
       href: `/events/${eventId}/dashboard`,
       icon: HomeIcon,
     },
     {
-      label: truncateForMobile(expense.category.name, 12),
+      label: truncateForBreadcrumb(expense.category.name, 12),
       href: `/events/${eventId}/category/${expense.category.id}`,
     },
     {
-      label: truncateForMobile(expense.name, 18),
+      label: truncateForBreadcrumb(expense.name, 18),
       current: true,
     },
   ];

@@ -5,6 +5,7 @@ import type React from 'react';
 import { useEffect } from 'react';
 import RootLayout from '@/components/layouts/RootLayout';
 import { useEvents } from '@/contexts/EventsContext';
+import { truncateForMobile } from '@/lib/textUtils';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -28,14 +29,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const getAbbreviatedEventName = (name: string) => {
     // For very long event names, show abbreviated version on mobile
-    if (name.length > 25) {
-      const words = name.split(' ');
-      if (words.length > 2) {
-        return `${words[0]} ${words[1]}...`;
-      }
-      return name.substring(0, 22) + '...';
-    }
-    return name;
+    return truncateForMobile(name, 25);
   };
 
   // Update the header slot with event information
