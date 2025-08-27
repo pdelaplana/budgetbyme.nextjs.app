@@ -31,6 +31,7 @@ interface TabbedChartsProps {
   budgetData: {
     totalBudget: number;
     totalSpent: number;
+    totalScheduled: number;
     percentage: number;
     status: 'under-budget' | 'on-track' | 'approaching-limit' | 'over-budget';
   };
@@ -87,6 +88,7 @@ export default function TabbedCharts({
           <BudgetGaugeChart
             totalBudget={budgetData.totalBudget}
             totalSpent={budgetData.totalSpent}
+            totalScheduled={budgetData.totalScheduled}
             percentage={budgetData.percentage}
             status={budgetData.status}
           />

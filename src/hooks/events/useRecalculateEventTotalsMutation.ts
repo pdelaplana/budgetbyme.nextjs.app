@@ -14,32 +14,45 @@ export const useRecalculateEventTotalsMutation = (
 
   return useMutation({
     mutationFn: (dto: RecalculateEventTotalsDto) => recalculateEventTotals(dto),
-    onSuccess: (result, variables) => {
+    onSuccess: async (result, variables) => {
       // Invalidate event queries to refresh UI with updated totals
+      const invalidationPromises = [];
+
       if (variables.eventId) {
-        queryClient.invalidateQueries({
-          queryKey: ['event', variables.eventId],
-        });
+        invalidationPromises.push(
+          queryClient.invalidateQueries({
+            queryKey: ['event', variables.eventId],
+          })
+        );
       }
       
       // Always invalidate user's events list
-      queryClient.invalidateQueries({
-        queryKey: ['events', variables.userId],
-      });
+      invalidationPromises.push(
+        queryClient.invalidateQueries({
+          queryKey: ['events', variables.userId],
+        })
+      );
 
       // Invalidate categories for the event
       if (variables.eventId) {
-        queryClient.invalidateQueries({
-          queryKey: ['categories', variables.eventId],
-        });
+        invalidationPromises.push(
+          queryClient.invalidateQueries({
+            queryKey: ['categories', variables.eventId],
+          })
+        );
       }
 
       // Invalidate expenses for the event
       if (variables.eventId) {
-        queryClient.invalidateQueries({
-          queryKey: ['expenses', variables.userId, variables.eventId],
-        });
+        invalidationPromises.push(
+          queryClient.invalidateQueries({
+            queryKey: ['expenses', variables.userId, variables.eventId],
+          })
+        );
       }
+
+      // Wait for all invalidations to complete
+      await Promise.all(invalidationPromises);
 
       options?.onSuccess?.();
     },

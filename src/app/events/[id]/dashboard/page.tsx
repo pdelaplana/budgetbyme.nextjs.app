@@ -14,6 +14,7 @@ import AddOrEditCategoryModal from '@/components/modals/AddOrEditCategoryModal';
 import AddOrEditEventModal from '@/components/modals/AddOrEditEventModal';
 import AddOrEditExpenseModal from '@/components/modals/AddOrEditExpenseModal';
 import ExpenseDetailModal from '@/components/modals/ExpenseDetailModal';
+import ConfirmRecalculateModal from '@/components/modals/ConfirmRecalculateModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
@@ -38,7 +39,7 @@ export default function EventDashboardPage() {
   // Recalculate totals mutation
   const recalculateEventTotalsMutation = useRecalculateEventTotalsMutation({
     onSuccess: () => {
-      toast.success('Event totals recalculated successfully!');
+      toast.success('Event totals recalculated successfully! All budget data has been refreshed.');
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to recalculate event totals');
@@ -53,6 +54,7 @@ export default function EventDashboardPage() {
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [isEditCategoryMode, setIsEditCategoryMode] = useState(false);
   const [showEditEventModal, setShowEditEventModal] = useState(false);
+  const [showRecalculateModal, setShowRecalculateModal] = useState(false);
 
   // Set the selected event when events are loaded and we have an eventId
   useEffect(() => {
@@ -99,7 +101,7 @@ export default function EventDashboardPage() {
         setShowAddCategoryModal(true);
         break;
       case 'recalculate-totals':
-        handleRecalculateTotals();
+        setShowRecalculateModal(true);
         break;
       case 'import-data':
         console.log('Import Data clicked');
@@ -120,6 +122,7 @@ export default function EventDashboardPage() {
         userId: user.uid,
         eventId: eventId,
       });
+      setShowRecalculateModal(false);
     } catch (error) {
       // Error is already handled by the mutation's onError callback
       console.error('Recalculate totals error:', error);
@@ -250,16 +253,37 @@ export default function EventDashboardPage() {
               {dropdownOpen && (
                 <div className='absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-50'>
                   <div className='py-1'>
-                    {dropdownItems.map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => handleDropdownAction(item.id)}
-                        className='flex items-center gap-3 w-full px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors duration-200'
-                      >
-                        <span className='text-base'>{item.icon}</span>
-                        <span>{item.label}</span>
-                      </button>
-                    ))}
+                    {dropdownItems.map((item) => {
+                      const isRecalculating = item.id === 'recalculate-totals' && recalculateEventTotalsMutation.isPending;
+                      const isDisabled = isRecalculating;
+                      
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => handleDropdownAction(item.id)}
+                          disabled={isDisabled}
+                          className={`flex items-center gap-3 w-full px-4 py-3 text-sm transition-colors duration-200 ${
+                            isDisabled 
+                              ? 'text-gray-400 cursor-not-allowed bg-gray-50' 
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          <span className='text-base'>
+                            {isRecalculating ? (
+                              <svg className="animate-spin h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                            ) : (
+                              item.icon
+                            )}
+                          </span>
+                          <span>
+                            {isRecalculating ? 'Recalculating...' : item.label}
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -326,6 +350,14 @@ export default function EventDashboardPage() {
         onClose={() => setShowEditEventModal(false)}
         editingEvent={currentEvent}
         isEditMode={true}
+      />
+
+      {/* Confirm Recalculate Modal */}
+      <ConfirmRecalculateModal
+        isOpen={showRecalculateModal}
+        onClose={() => setShowRecalculateModal(false)}
+        onConfirm={handleRecalculateTotals}
+        isLoading={recalculateEventTotalsMutation.isPending}
       />
     </DashboardLayout>
   );

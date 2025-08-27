@@ -6,6 +6,7 @@ import { formatCurrency } from '@/lib/formatters';
 interface BudgetGaugeChartProps {
   totalBudget: number;
   totalSpent: number;
+  totalScheduled: number;
   percentage: number;
   status: 'under-budget' | 'on-track' | 'approaching-limit' | 'over-budget';
 }
@@ -13,6 +14,7 @@ interface BudgetGaugeChartProps {
 export default function BudgetGaugeChart({
   totalBudget,
   totalSpent,
+  totalScheduled,
   percentage,
   status,
 }: BudgetGaugeChartProps) {
@@ -128,7 +130,16 @@ export default function BudgetGaugeChart({
 
         <div className='flex justify-between items-center'>
           <span className='text-xs sm:text-sm text-gray-600'>
-            Amount Spent:
+            Total Scheduled:
+          </span>
+          <span className='font-semibold text-gray-900 text-sm sm:text-base'>
+            {formatCurrency(totalScheduled)}
+          </span>
+        </div>
+
+        <div className='flex justify-between items-center'>
+          <span className='text-xs sm:text-sm text-gray-600'>
+            Total Spent:
           </span>
           <span className='font-semibold text-gray-900 text-sm sm:text-base'>
             {formatCurrency(totalSpent)}

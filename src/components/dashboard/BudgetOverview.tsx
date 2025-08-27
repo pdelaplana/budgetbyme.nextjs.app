@@ -40,6 +40,7 @@ export default function BudgetOverview({ event, categories }: BudgetOverviewProp
         budgetData={{
           totalBudget: event.totalBudgetedAmount,
           totalSpent: event.totalSpentAmount,
+          totalScheduled: event.totalScheduledAmount,
           percentage: event.spentPercentage,
           status:
             event.status === 'completed'
