@@ -80,6 +80,7 @@ export const fetchEvent = withSentryServerAction(
         description: data.description,
         eventDate: data.eventDate.toDate(),
         totalBudgetedAmount: data.totalBudgetedAmount,
+        totalScheduledAmount: data.totalScheduledAmount,
         totalSpentAmount: data.totalSpentAmount,
         spentPercentage,
         status: data.status as EventStatus,

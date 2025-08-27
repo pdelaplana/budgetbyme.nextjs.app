@@ -6,6 +6,7 @@ export interface EventDocument {
   description?: string;
   eventDate: Timestamp;
   totalBudgetedAmount: number;
+  totalScheduledAmount: number;
   totalSpentAmount: number;
   status: string;
   currency: string;

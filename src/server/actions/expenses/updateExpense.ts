@@ -217,6 +217,28 @@ export const updateExpense = withSentryServerAction(
           }
         }
 
+        // Update event totalScheduledAmount
+        const amountDifference = newAmount - currentAmount;
+        if (amountDifference !== 0) {
+          const eventRef = db
+            .collection('workspaces')
+            .doc(updateExpenseDto.userId)
+            .collection('events')
+            .doc(updateExpenseDto.eventId);
+
+          const eventDoc = await eventRef.get();
+          if (eventDoc.exists) {
+            const eventData = eventDoc.data()!;
+            const newTotalScheduledAmount = (eventData.totalScheduledAmount || 0) + amountDifference;
+
+            batch.update(eventRef, {
+              totalScheduledAmount: Math.max(0, newTotalScheduledAmount),
+              _updatedDate: Timestamp.now(),
+              _updatedBy: updateExpenseDto.userId,
+            });
+          }
+        }
+
         // Commit the batch
         await batch.commit();
       } else {

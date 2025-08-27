@@ -5,6 +5,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { db } from '../../lib/firebase-admin';
 import { withSentryServerAction } from '../../lib/sentryServerAction';
 import { deleteExpenseAttachment } from './deleteExpenseAttachment';
+import { subtractFromEventTotals } from '../../lib/eventAggregation';
 
 export interface DeleteExpenseDto {
   userId: string;
@@ -16,7 +17,7 @@ export interface DeleteExpenseDto {
  * Server action to delete an expense from Firestore
  * Expense is deleted from: /workspaces/{userId}/events/{eventId}/expenses/{expenseId}
  * Also deletes all associated attachments from Firebase Storage
- * Also updates the category's scheduledAmount (subtracts expense amount) and spentAmount (subtracts paid amount)
+ * Also updates category amounts (scheduledAmount, spentAmount) and event totals atomically
  * Wrapped with Sentry monitoring
  */
 export const deleteExpense = withSentryServerAction(
@@ -129,6 +130,30 @@ export const deleteExpense = withSentryServerAction(
           batch.update(categoryRef, {
             scheduledAmount: newScheduledAmount,
             spentAmount: newSpentAmount,
+            _updatedDate: Timestamp.now(),
+            _updatedBy: deleteExpenseDto.userId,
+          });
+        }
+      }
+
+      // Update event totals (subtract scheduled and spent amounts)
+      if (expenseAmount > 0 || totalSpentAmount > 0) {
+        const eventRef = db
+          .collection('workspaces')
+          .doc(deleteExpenseDto.userId)
+          .collection('events')
+          .doc(deleteExpenseDto.eventId);
+
+        const eventDoc = await eventRef.get();
+        if (eventDoc.exists) {
+          const eventData = eventDoc.data()!;
+          
+          const newEventScheduledAmount = Math.max(0, (eventData.totalScheduledAmount || 0) - expenseAmount);
+          const newEventSpentAmount = Math.max(0, (eventData.totalSpentAmount || 0) - totalSpentAmount);
+
+          batch.update(eventRef, {
+            totalScheduledAmount: newEventScheduledAmount,
+            totalSpentAmount: newEventSpentAmount,
             _updatedDate: Timestamp.now(),
             _updatedBy: deleteExpenseDto.userId,
           });

@@ -1,9 +1,10 @@
 'use server';
 
 import { db } from '@/server/lib/firebase-admin';
-import { addToCategorySpentAmount, getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
+import { getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
 import type { MarkPaymentAsPaidDto } from '@/types/Payment';
 import { Timestamp } from 'firebase-admin/firestore';
+import { addToEventTotals } from '@/server/lib/eventAggregation';
 
 export async function markPaymentAsPaidInExpense(
   userId: string,
@@ -51,10 +52,12 @@ export async function markPaymentAsPaidInExpense(
     };
 
     let paymentAmount = 0;
+    let paymentSchedule: any[] | undefined;
+    let updatedPayment: any | undefined;
 
     if (hasPaymentSchedule && expenseData.paymentSchedule) {
       // Update payment in schedule array
-      const paymentSchedule = [...expenseData.paymentSchedule];
+      paymentSchedule = [...expenseData.paymentSchedule];
       const paymentIndex = paymentSchedule.findIndex(
         payment => payment._createdDate.toMillis().toString() === paymentId
       );
@@ -71,35 +74,97 @@ export async function markPaymentAsPaidInExpense(
         ...paymentSchedule[paymentIndex],
         ...paymentUpdateFields,
       };
-
-      await expenseRef.update({
-        paymentSchedule,
-        _updatedDate: now,
-        _updatedBy: userId,
-      });
     } else if (expenseData.oneOffPayment) {
       // Get payment amount before marking as paid
       paymentAmount = expenseData.oneOffPayment.amount;
 
       // Mark one-off payment as paid
-      const updatedPayment = {
+      updatedPayment = {
         ...expenseData.oneOffPayment,
         ...paymentUpdateFields,
       };
-
-      await expenseRef.update({
-        oneOffPayment: updatedPayment,
-        _updatedDate: now,
-        _updatedBy: userId,
-      });
     } else {
       throw new Error('Payment not found');
     }
 
-    // Update category spentAmount
+    // Update expense, category spentAmount and event totals atomically
     const categoryId = await getCategoryIdFromExpense(userId, eventId, expenseId);
     if (categoryId && paymentAmount > 0) {
-      await addToCategorySpentAmount(userId, eventId, categoryId, paymentAmount);
+      // Start batch transaction for all updates
+      const batch = db.batch();
+
+      // Update expense with payment status
+      if (paymentSchedule) {
+        batch.update(expenseRef, {
+          paymentSchedule,
+          _updatedDate: now,
+          _updatedBy: userId,
+        });
+      } else if (updatedPayment) {
+        batch.update(expenseRef, {
+          oneOffPayment: updatedPayment,
+          _updatedDate: now,
+          _updatedBy: userId,
+        });
+      }
+
+      // Update category spentAmount
+      const categoryRef = db
+        .collection('workspaces')
+        .doc(userId)
+        .collection('events')
+        .doc(eventId)
+        .collection('categories')
+        .doc(categoryId);
+
+      const categoryDoc = await categoryRef.get();
+      if (categoryDoc.exists) {
+        const categoryData = categoryDoc.data()!;
+        const newSpentAmount = (categoryData.spentAmount || 0) + paymentAmount;
+
+        batch.update(categoryRef, {
+          spentAmount: newSpentAmount,
+          _updatedDate: now,
+          _updatedBy: userId,
+        });
+      }
+
+      // Update event totalSpentAmount
+      const eventRef = db
+        .collection('workspaces')
+        .doc(userId)
+        .collection('events')
+        .doc(eventId);
+
+      const eventDoc = await eventRef.get();
+      if (eventDoc.exists) {
+        const eventData = eventDoc.data()!;
+        const newTotalSpentAmount = (eventData.totalSpentAmount || 0) + paymentAmount;
+
+        batch.update(eventRef, {
+          totalSpentAmount: newTotalSpentAmount,
+          _updatedDate: now,
+          _updatedBy: userId,
+        });
+      }
+
+      // Commit the batch - all updates happen atomically
+      await batch.commit();
+    } else {
+      // If no category found or payment amount is 0, still need to update the expense
+      if (paymentSchedule) {
+        await expenseRef.update({
+          paymentSchedule,
+          _updatedDate: now,
+          _updatedBy: userId,
+        });
+      } else if (updatedPayment) {
+        await expenseRef.update({
+          oneOffPayment: updatedPayment,
+          _updatedDate: now,
+          _updatedBy: userId,
+        });
+      }
     }
 
     console.log('Payment marked as paid successfully:', paymentId);

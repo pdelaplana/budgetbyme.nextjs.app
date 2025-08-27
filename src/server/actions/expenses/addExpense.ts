@@ -5,6 +5,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { db } from '../../lib/firebase-admin';
 import { withSentryServerAction } from '../../lib/sentryServerAction';
 import type { ExpenseDocument } from '../../types/ExpenseDocument';
+import { addToEventTotals } from '../../lib/eventAggregation';
 
 export interface AddExpenseDto {
   userId: string;
@@ -32,7 +33,8 @@ export interface AddExpenseDto {
 /**
  * Server action to create a new expense in Firestore
  * Expenses are stored under the event: /workspaces/{userId}/events/{eventId}/expenses/{expenseId}
- * Also updates the category's scheduledAmount (expenses are scheduled when created, not spent)
+ * Also updates the category's scheduledAmount and event's totalScheduledAmount atomically
+ * (expenses are scheduled when created, not spent)
  * Wrapped with Sentry monitoring
  */
 export const addExpense = withSentryServerAction(
@@ -118,7 +120,21 @@ export const addExpense = withSentryServerAction(
         _updatedBy: addExpenseDto.userId,
       };
 
-      // Start a batch write to update both expense and category
+      // Get current event data for aggregation
+      const currentEventRef = db
+        .collection('workspaces')
+        .doc(addExpenseDto.userId)
+        .collection('events')
+        .doc(addExpenseDto.eventId);
+
+      const currentEventDoc = await currentEventRef.get();
+      if (!currentEventDoc.exists) {
+        throw new Error('Event not found');
+      }
+
+      const eventData = currentEventDoc.data()!;
+
+      // Start a batch write to update expense, category, and event atomically
       const batch = db.batch();
 
       // Add the expense
@@ -131,6 +147,15 @@ export const addExpense = withSentryServerAction(
 
       batch.update(categoryRef, {
         scheduledAmount: newScheduledAmount,
+        _updatedDate: now,
+        _updatedBy: addExpenseDto.userId,
+      });
+
+      // Update event totals (scheduled amount increases)
+      const newEventScheduledAmount = (eventData.totalScheduledAmount || 0) + addExpenseDto.amount;
+      
+      batch.update(currentEventRef, {
+        totalScheduledAmount: newEventScheduledAmount,
         _updatedDate: now,
         _updatedBy: addExpenseDto.userId,
       });
@@ -151,6 +176,7 @@ export const addExpense = withSentryServerAction(
           amount: addExpenseDto.amount,
           categoryId: addExpenseDto.categoryId,
           newCategoryScheduledAmount: newScheduledAmount,
+          newEventScheduledAmount: newEventScheduledAmount,
         },
       });
 

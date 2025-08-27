@@ -32,6 +32,16 @@ export const useMarkPaymentAsPaidMutation = (options?: UseMarkPaymentAsPaidMutat
         queryKey: ['categories', variables.eventId],
       });
 
+      // Invalidate event query to update event totals
+      queryClient.invalidateQueries({
+        queryKey: ['event', variables.eventId],
+      });
+
+      // Invalidate events list to update event totals in list view
+      queryClient.invalidateQueries({
+        queryKey: ['events', variables.userId],
+      });
+
       options?.onSuccess?.(variables.paymentId);
     },
     onError: (error: Error) => {

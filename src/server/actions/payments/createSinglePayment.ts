@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/server/lib/firebase-admin';
-import { addToCategorySpentAmount, getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
+import { getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
 import type { PaymentMethod } from '@/types/Payment';
 import type { PaymentDocument } from '@/server/types/PaymentDocument';
 import { Timestamp } from 'firebase-admin/firestore';
@@ -62,19 +62,72 @@ export async function createSinglePayment(dto: CreateSinglePaymentDto): Promise<
       .collection('expenses')
       .doc(expenseId);
 
-    // Update expense with single payment
-    await expenseRef.update({
-      hasPaymentSchedule: false, // False for single payment (not a schedule)
-      oneOffPayment: paymentDoc,
-      paymentSchedule: null, // Clear any existing schedule
-      _updatedDate: now,
-      _updatedBy: userId,
-    });
-
-    // Update category spentAmount since this payment is already marked as paid
+    // Update category spentAmount and event totals since this payment is already marked as paid
     const categoryId = await getCategoryIdFromExpense(userId, eventId, expenseId);
     if (categoryId && paymentData.amount > 0) {
-      await addToCategorySpentAmount(userId, eventId, categoryId, paymentData.amount);
+      // Start batch transaction for all updates
+      const batch = db.batch();
+
+      // Update expense with single payment
+      batch.update(expenseRef, {
+        hasPaymentSchedule: false, // False for single payment (not a schedule)
+        oneOffPayment: paymentDoc,
+        paymentSchedule: null, // Clear any existing schedule
+        _updatedDate: now,
+        _updatedBy: userId,
+      });
+
+      // Update category spentAmount
+      const categoryRef = db
+        .collection('workspaces')
+        .doc(userId)
+        .collection('events')
+        .doc(eventId)
+        .collection('categories')
+        .doc(categoryId);
+
+      const categoryDoc = await categoryRef.get();
+      if (categoryDoc.exists) {
+        const categoryData = categoryDoc.data()!;
+        const newSpentAmount = (categoryData.spentAmount || 0) + paymentData.amount;
+
+        batch.update(categoryRef, {
+          spentAmount: newSpentAmount,
+          _updatedDate: now,
+          _updatedBy: userId,
+        });
+      }
+
+      // Update event totalSpentAmount
+      const eventRef = db
+        .collection('workspaces')
+        .doc(userId)
+        .collection('events')
+        .doc(eventId);
+
+      const eventDoc = await eventRef.get();
+      if (eventDoc.exists) {
+        const eventData = eventDoc.data()!;
+        const newTotalSpentAmount = (eventData.totalSpentAmount || 0) + paymentData.amount;
+
+        batch.update(eventRef, {
+          totalSpentAmount: newTotalSpentAmount,
+          _updatedDate: now,
+          _updatedBy: userId,
+        });
+      }
+
+      // Commit all updates atomically
+      await batch.commit();
+    } else {
+      // If no category found, just update the expense
+      await expenseRef.update({
+        hasPaymentSchedule: false, // False for single payment (not a schedule)
+        oneOffPayment: paymentDoc,
+        paymentSchedule: null, // Clear any existing schedule
+        _updatedDate: now,
+        _updatedBy: userId,
+      });
     }
 
     const paymentId = now.toMillis().toString();

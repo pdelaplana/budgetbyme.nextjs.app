@@ -24,6 +24,7 @@ export interface Event extends Entity {
   description?: string;
   eventDate: Date;
   totalBudgetedAmount: number;
+  totalScheduledAmount: number;
   totalSpentAmount: number;
   spentPercentage: number;
   status: EventStatus;

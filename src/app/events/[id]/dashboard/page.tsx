@@ -3,6 +3,7 @@
 import { ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import NotFoundState from '@/components/ui/NotFoundState';
@@ -13,8 +14,10 @@ import AddOrEditCategoryModal from '@/components/modals/AddOrEditCategoryModal';
 import AddOrEditEventModal from '@/components/modals/AddOrEditEventModal';
 import AddOrEditExpenseModal from '@/components/modals/AddOrEditExpenseModal';
 import ExpenseDetailModal from '@/components/modals/ExpenseDetailModal';
+import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
+import { useRecalculateEventTotalsMutation } from '@/hooks/events/useRecalculateEventTotalsMutation';
 
 
 
@@ -22,6 +25,7 @@ export default function EventDashboardPage() {
   const router = useRouter();
   const params = useParams();
   const eventId = params?.id as string;
+  const { user } = useAuth();
   const { events, isLoading, selectEventById } = useEvents();
   const { 
     event: currentEvent,
@@ -30,6 +34,16 @@ export default function EventDashboardPage() {
     categories,
     expenses
   } = useEventDetails();
+
+  // Recalculate totals mutation
+  const recalculateEventTotalsMutation = useRecalculateEventTotalsMutation({
+    onSuccess: () => {
+      toast.success('Event totals recalculated successfully!');
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to recalculate event totals');
+    },
+  });
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
@@ -64,6 +78,7 @@ export default function EventDashboardPage() {
     { id: 'add-expense', label: 'Add Expense', icon: '💰' },
     { id: 'add-payment', label: 'Record Payment', icon: '💳' },
     { id: 'add-category', label: 'New Category', icon: '📊' },
+    { id: 'recalculate-totals', label: 'Recalculate Totals', icon: '🔄' },
     { id: 'import-data', label: 'Import Data', icon: '📤' },
   ];
 
@@ -83,11 +98,31 @@ export default function EventDashboardPage() {
       case 'add-category':
         setShowAddCategoryModal(true);
         break;
+      case 'recalculate-totals':
+        handleRecalculateTotals();
+        break;
       case 'import-data':
         console.log('Import Data clicked');
         break;
       default:
         console.log(`Unknown action: ${actionId}`);
+    }
+  };
+
+  const handleRecalculateTotals = async () => {
+    if (!user?.uid || !eventId) {
+      toast.error('Unable to recalculate totals: missing user or event information');
+      return;
+    }
+
+    try {
+      await recalculateEventTotalsMutation.mutateAsync({
+        userId: user.uid,
+        eventId: eventId,
+      });
+    } catch (error) {
+      // Error is already handled by the mutation's onError callback
+      console.error('Recalculate totals error:', error);
     }
   };
 
