@@ -94,6 +94,7 @@ export default function ExpenseDetailPage() {
   // Payment deletion state
   const [showDeletePaymentsConfirm, setShowDeletePaymentsConfirm] =
     useState(false);
+  const [isDeletingPayments, setIsDeletingPayments] = useState(false);
 
   // Expense deletion state
   const [showDeleteExpenseConfirm, setShowDeleteExpenseConfirm] =
@@ -104,10 +105,17 @@ export default function ExpenseDetailPage() {
   // Clear all payments mutation
   const clearAllPaymentsMutation = useClearAllPaymentsMutation({
     onSuccess: () => {
+      setIsDeletingPayments(false);
       setShowDeletePaymentsConfirm(false);
+      toast.success('Payments removed successfully!');
     },
     onError: (error) => {
+      setIsDeletingPayments(false);
       console.error('Error clearing payments:', error);
+      toast.error(
+        error.message || 'Failed to remove payments. Please try again.',
+      );
+      // Don't close the modal on error so user can retry
     },
   });
 
@@ -269,14 +277,18 @@ export default function ExpenseDetailPage() {
       return;
     }
 
+    setIsDeletingPayments(true);
+
     try {
       await clearAllPaymentsMutation.mutateAsync({
         userId: user.uid,
         eventId: currentEvent.id,
         expenseId: expense.id,
       });
+      // Success handling is done in the mutation's onSuccess callback
     } catch (error) {
       console.error('Error clearing payments:', error);
+      // Error handling is done in the mutation's onError callback
     }
   };
 
@@ -1374,6 +1386,7 @@ export default function ExpenseDetailPage() {
         }
         confirmText='Remove'
         type='danger'
+        isLoading={isDeletingPayments}
       />
 
       <ConfirmDialog
