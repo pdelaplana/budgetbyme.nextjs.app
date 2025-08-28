@@ -98,6 +98,8 @@ export default function ExpenseDetailPage() {
   // Expense deletion state
   const [showDeleteExpenseConfirm, setShowDeleteExpenseConfirm] =
     useState(false);
+  const [isDeletingExpense, setIsDeletingExpense] = useState(false);
+  const [categoryId, setCategoryId] = useState<string | null>(null);
 
   // Clear all payments mutation
   const clearAllPaymentsMutation = useClearAllPaymentsMutation({
@@ -112,15 +114,21 @@ export default function ExpenseDetailPage() {
   // Delete expense mutation
   const deleteExpenseMutation = useDeleteExpenseMutation({
     onSuccess: () => {
+      setIsDeletingExpense(false);
       setShowDeleteExpenseConfirm(false);
       toast.success('Expense deleted successfully!');
+      // Navigate after successful deletion
+      if (categoryId) {
+        router.push(`/events/${eventId}/category/${categoryId}`);
+      }
     },
     onError: (error) => {
+      setIsDeletingExpense(false);
       console.error('Error deleting expense:', error);
       toast.error(
         error.message || 'Failed to delete expense. Please try again.',
       );
-      setShowDeleteExpenseConfirm(false);
+      // Don't close the modal on error so user can retry
     },
   });
 
@@ -323,6 +331,7 @@ export default function ExpenseDetailPage() {
   };
 
   const handleDelete = () => {
+    setCategoryId(expense.category.id);
     setShowDeleteExpenseConfirm(true);
   };
 
@@ -331,9 +340,7 @@ export default function ExpenseDetailPage() {
       return;
     }
 
-    // Navigate immediately to avoid "Expense Not Found" page
-    // Go back to the category page where this expense belongs
-    router.push(`/events/${eventId}/category/${expense.category.id}`);
+    setIsDeletingExpense(true);
 
     try {
       await deleteExpenseMutation.mutateAsync({
@@ -341,9 +348,10 @@ export default function ExpenseDetailPage() {
         eventId: currentEvent.id,
         expenseId: expense.id,
       });
+      // Success handling is done in the mutation's onSuccess callback
     } catch (error) {
       console.error('Error deleting expense:', error);
-      // Don't navigate back on error since we already left the page
+      // Error handling is done in the mutation's onError callback
     }
   };
 
@@ -1366,6 +1374,7 @@ export default function ExpenseDetailPage() {
         message='Are you sure you want to delete this expense? This action cannot be undone. All payment schedules and associated data will be permanently removed.'
         confirmText='Delete'
         type='danger'
+        isLoading={isDeletingExpense}
       />
 
       <ConfirmDialog
