@@ -508,7 +508,8 @@ export default function ExpenseDetailPage() {
       ...prev,
       deletingAttachment: prev.attachmentToDelete,
       operationType: 'deleting',
-      showDeleteConfirm: false,
+      isOperationInProgress: true,
+      // Keep modal open during deletion
     }));
 
     try {
@@ -524,16 +525,25 @@ export default function ExpenseDetailPage() {
         expenseId: expense.id,
         attachments: updatedAttachments,
       });
-    } catch (error) {
-      console.error('Attachment delete error:', error);
-      throw error;
-    } finally {
+
+      // Success: close modal and reset state
       setAttachmentState((prev) => ({
         ...prev,
+        showDeleteConfirm: false,
         deletingAttachment: null,
         attachmentToDelete: null,
         operationType: null,
+        isOperationInProgress: false,
       }));
+    } catch (error) {
+      console.error('Attachment delete error:', error);
+      // Error: reset loading state but keep modal open for retry
+      setAttachmentState((prev) => ({
+        ...prev,
+        operationType: null,
+        isOperationInProgress: false,
+      }));
+      throw error;
     }
   };
 
@@ -1385,6 +1395,7 @@ export default function ExpenseDetailPage() {
         message='Are you sure you want to delete this attachment? This action cannot be undone.'
         confirmText='Delete'
         type='danger'
+        isLoading={attachmentState.isOperationInProgress}
       />
     </DashboardLayout>
   );
