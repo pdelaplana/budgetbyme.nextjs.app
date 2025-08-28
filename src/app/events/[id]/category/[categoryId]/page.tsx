@@ -55,18 +55,23 @@ export default function CategoryPage() {
   const [isEditCategoryMode, setIsEditCategoryMode] = useState(false);
   const [showDeleteCategoryConfirm, setShowDeleteCategoryConfirm] =
     useState(false);
+  const [isDeletingCategory, setIsDeletingCategory] = useState(false);
 
   // Delete category mutation
   const deleteCategoryMutation = useDeleteCategoryMutation({
     onSuccess: () => {
+      setIsDeletingCategory(false);
+      setShowDeleteCategoryConfirm(false);
       toast.success('Category deleted successfully!');
       router.push(`/events/${eventId}/dashboard`);
     },
     onError: (error) => {
+      setIsDeletingCategory(false);
       console.error('Failed to delete category:', error);
       toast.error(
         error.message || 'Failed to delete category. Please try again.',
       );
+      // Don't close modal on error - allow retry
     },
   });
 
@@ -131,12 +136,15 @@ export default function CategoryPage() {
       return;
     }
 
+    setIsDeletingCategory(true);
+
     try {
       await deleteCategoryMutation.mutateAsync({
         userId: user.uid,
         eventId: currentEvent.id,
         categoryId: categoryId,
       });
+      // Success/error handling is done in mutation callbacks
     } catch (error) {
       // Error handling is done in mutation callbacks
       console.error('Error deleting category:', error);
@@ -561,6 +569,7 @@ export default function CategoryPage() {
         }
         confirmText={categoryExpenses.length > 0 ? undefined : 'Delete'}
         type='danger'
+        isLoading={isDeletingCategory}
       />
     </DashboardLayout>
   );
