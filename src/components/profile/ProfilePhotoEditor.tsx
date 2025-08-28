@@ -20,10 +20,10 @@ import { CameraIcon, TrashIcon } from '@heroicons/react/24/outline';
 import type { User } from 'firebase/auth';
 import Image from 'next/image';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
 import ImageCropModal from '@/components/modals/ImageCropModal';
 import { useAuth } from '@/contexts/AuthContext';
-import { useConfirmDialog } from '@/hooks/common';
 import { usePhotoUpload } from '@/hooks/media';
 import { useCamera } from '@/hooks/media/useCamera';
 import { validateImageFile } from '@/lib/media';
@@ -50,15 +50,9 @@ export default function ProfilePhotoEditor({
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [imageToCrop, setImageToCrop] = useState<string | null>(null);
 
-  // Confirm dialog for photo removal
-  const confirmDialog = useConfirmDialog({
-    title: 'Remove Profile Photo',
-    message:
-      'Are you sure you want to remove your profile photo? This action cannot be undone.',
-    confirmText: 'Remove Photo',
-    cancelText: 'Keep Photo',
-    type: 'danger',
-  });
+  // State for photo removal confirmation
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+  const [isRemovingPhoto, setIsRemovingPhoto] = useState(false);
 
   // Generate initials if no image is provided
   const getInitials = (name: string) => {
@@ -149,16 +143,13 @@ export default function ProfilePhotoEditor({
     }
   };
 
-  const handlePhotoRemove = async () => {
+  const handlePhotoRemove = () => {
     if (!hasPhoto && !user?.photoURL) return;
+    setShowRemoveConfirm(true);
+  };
 
-    // Show confirmation dialog
-    const confirmed = await confirmDialog.showDialog();
-
-    if (!confirmed) {
-      console.log('👤 [Photo] User cancelled photo removal');
-      return;
-    }
+  const confirmPhotoRemoval = async () => {
+    setIsRemovingPhoto(true);
 
     try {
       if (onPhotoRemove) {
@@ -181,7 +172,13 @@ export default function ProfilePhotoEditor({
           }
         }
       }
+
+      // Success: close modal and reset state
+      setIsRemovingPhoto(false);
+      setShowRemoveConfirm(false);
+      toast.success('Profile photo removed successfully!');
     } catch (removeError) {
+      setIsRemovingPhoto(false);
       console.error('Failed to remove photo:', removeError);
 
       // Enhanced error handling
@@ -194,7 +191,8 @@ export default function ProfilePhotoEditor({
         }
       }
 
-      alert(errorMessage);
+      toast.error(errorMessage);
+      // Don't close the modal on error so user can retry
     }
   };
 
@@ -273,7 +271,17 @@ export default function ProfilePhotoEditor({
       )}
 
       {/* Confirm Dialog */}
-      <ConfirmDialog {...confirmDialog.dialogProps} />
+      <ConfirmDialog
+        isOpen={showRemoveConfirm}
+        onClose={() => setShowRemoveConfirm(false)}
+        onConfirm={confirmPhotoRemoval}
+        title='Remove Profile Photo'
+        message='Are you sure you want to remove your profile photo? This action cannot be undone.'
+        confirmText='Remove Photo'
+        cancelText='Keep Photo'
+        type='danger'
+        isLoading={isRemovingPhoto}
+      />
 
       {/* Image Crop Modal */}
       {imageToCrop && (
