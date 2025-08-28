@@ -34,6 +34,16 @@ const generateTimelineData = (event: Event) => {
 };
 
 export default function BudgetOverview({ event, categories }: BudgetOverviewProps) {
+  // Transform BudgetCategory data to CategoryData format expected by charts
+  const transformedCategories = categories.map((category) => ({
+    id: category.id,
+    name: category.name,
+    budgeted: category.budgetedAmount || 0,
+    spent: category.spentAmount || 0,
+    percentage: 0, // Will be calculated in the chart component
+    color: category.color || '#3B82F6', // Default blue color if none provided
+  }));
+
   return (
     <div className='mb-6 sm:mb-8'>
       <TabbedCharts
@@ -50,7 +60,7 @@ export default function BudgetOverview({ event, categories }: BudgetOverviewProp
                 : (event.status as any),
         }}
         timelineData={generateTimelineData(event)}
-        categoryData={categories}
+        categoryData={transformedCategories}
         quickStatsData={{
           totalBudget: event.totalBudgetedAmount,
           totalSpent: event.totalSpentAmount,

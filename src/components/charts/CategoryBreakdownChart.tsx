@@ -43,12 +43,12 @@ export default function CategoryBreakdownChart({
   };
 
   // Prepare data for the pie chart
+  const totalBudget = data.reduce((sum, cat) => sum + cat.budgeted, 0);
   const pieData = data.map((item) => ({
     name: item.name,
     value: item.budgeted,
     spent: item.spent,
-    percentage:
-      (item.budgeted / data.reduce((sum, cat) => sum + cat.budgeted, 0)) * 100,
+    percentage: totalBudget > 0 ? (item.budgeted / totalBudget) * 100 : 0,
     color: item.color,
   }));
 
@@ -77,7 +77,7 @@ export default function CategoryBreakdownChart({
             <div className='flex justify-between pt-1 border-t border-gray-200'>
               <span className='text-sm text-gray-600'>Percentage:</span>
               <span className='text-sm font-medium'>
-                {data.percentage.toFixed(1)}%
+                {isNaN(data.percentage) ? '0.0' : data.percentage.toFixed(1)}%
               </span>
             </div>
           </div>
@@ -94,6 +94,21 @@ export default function CategoryBreakdownChart({
   const onPieLeave = () => {
     setActiveIndex(-1);
   };
+
+  // Show empty state if no data or all budgets are zero
+  if (data.length === 0 || totalBudget === 0) {
+    return (
+      <div className='flex flex-col items-center justify-center h-64 sm:h-72 lg:h-80 text-center'>
+        <div className='text-6xl mb-4'>📊</div>
+        <h3 className='text-lg font-medium text-gray-900 mb-2'>
+          No Budget Categories Yet
+        </h3>
+        <p className='text-gray-600 max-w-md'>
+          Create budget categories and allocate amounts to see your spending breakdown here.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className='flex flex-col'>
@@ -161,7 +176,7 @@ export default function CategoryBreakdownChart({
                 {formatCurrency(item.value)}
               </div>
               <div className='text-xs text-gray-500'>
-                {item.percentage.toFixed(1)}%
+                {isNaN(item.percentage) ? '0.0' : item.percentage.toFixed(1)}%
               </div>
             </div>
           </div>
@@ -209,7 +224,7 @@ export default function CategoryBreakdownChart({
               <td>{item.name}</td>
               <td>{formatCurrency(item.budgeted)}</td>
               <td>{formatCurrency(item.spent)}</td>
-              <td>{pieData[index].percentage.toFixed(1)}%</td>
+              <td>{isNaN(pieData[index].percentage) ? '0.0' : pieData[index].percentage.toFixed(1)}%</td>
             </tr>
           ))}
         </tbody>
