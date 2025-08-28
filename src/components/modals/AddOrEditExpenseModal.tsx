@@ -7,7 +7,6 @@ import {
   DocumentTextIcon,
   GlobeAltIcon,
   MapPinIcon,
-  PhotoIcon,
   TagIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
@@ -35,7 +34,6 @@ interface ExpenseFormData {
   vendorAddress: string;
   vendorWebsite: string;
   vendorEmail: string;
-  receipt?: File | null;
 }
 
 interface AddOrEditExpenseModalProps {
@@ -127,7 +125,6 @@ export default function AddOrEditExpenseModal({
     vendorAddress: '',
     vendorWebsite: '',
     vendorEmail: '',
-    receipt: null,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -153,7 +150,6 @@ export default function AddOrEditExpenseModal({
         vendorAddress: editingExpense.vendor?.address || '',
         vendorWebsite: editingExpense.vendor?.website || '',
         vendorEmail: editingExpense.vendor?.email || '',
-        receipt: null, // Don't pre-populate receipt
       });
     } else if (!isOpen) {
       // Reset form when modal closes
@@ -170,7 +166,6 @@ export default function AddOrEditExpenseModal({
         vendorAddress: '',
         vendorWebsite: '',
         vendorEmail: '',
-        receipt: null,
       });
       setErrors({});
       setTagInput('');
@@ -185,10 +180,6 @@ export default function AddOrEditExpenseModal({
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setFormData((prev) => ({ ...prev, receipt: file }));
-  };
 
   const addTag = () => {
     if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
@@ -343,7 +334,6 @@ export default function AddOrEditExpenseModal({
         vendorAddress: '',
         vendorWebsite: '',
         vendorEmail: '',
-        receipt: null,
       });
       setErrors({});
       setTagInput('');
@@ -684,19 +674,6 @@ export default function AddOrEditExpenseModal({
               </div>
             </div>
 
-            {/* File Upload - TODO: Implement later */}
-            <div>
-              <label className='form-label'>
-                <PhotoIcon className='h-4 w-4 inline mr-2' />
-                Receipt/Document (Coming Soon)
-              </label>
-              <div className='border-2 border-dashed border-gray-300 rounded-lg p-6 text-center bg-gray-50'>
-                <PhotoIcon className='h-8 w-8 text-gray-400 mx-auto mb-2' />
-                <p className='text-sm text-gray-500'>
-                  File upload functionality will be available soon
-                </p>
-              </div>
-            </div>
           </form>
         </div>
       </div>
