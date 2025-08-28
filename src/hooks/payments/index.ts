@@ -6,3 +6,5 @@ export { useCreatePaymentScheduleMutation } from './useCreatePaymentScheduleMuta
 export { useUpdatePaymentScheduleMutation } from './useUpdatePaymentScheduleMutation';
 export { useCreateSinglePaymentMutation } from './useCreateSinglePaymentMutation';
 export { useClearAllPaymentsMutation } from './useClearAllPaymentsMutation';
+export { useUpcomingPayments } from './useUpcomingPayments';
+export type { UpcomingPayment } from './useUpcomingPayments';
