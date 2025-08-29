@@ -12,7 +12,9 @@ interface UseClearAllPaymentsMutationOptions {
   onError?: (error: Error) => void;
 }
 
-export const useClearAllPaymentsMutation = (options?: UseClearAllPaymentsMutationOptions) => {
+export const useClearAllPaymentsMutation = (
+  options?: UseClearAllPaymentsMutationOptions,
+) => {
   const queryClient = useQueryClient();
 
   return useMutation({

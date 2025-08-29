@@ -1,9 +1,30 @@
 'use client';
 
 const AVAILABLE_ICONS = [
-  '🏛️', '🍰', '📸', '👗', '💐', '🎵', '🚗', '✉️', 
-  '🎂', '🍾', '💎', '🎁', '📋', '🏨', '💒', '🎉', 
-  '💄', '🌟', '🎊', '🎭', '🎪', '🎨', '🎯', '⭐'
+  '🏛️',
+  '🍰',
+  '📸',
+  '👗',
+  '💐',
+  '🎵',
+  '🚗',
+  '✉️',
+  '🎂',
+  '🍾',
+  '💎',
+  '🎁',
+  '📋',
+  '🏨',
+  '💒',
+  '🎉',
+  '💄',
+  '🌟',
+  '🎊',
+  '🎭',
+  '🎪',
+  '🎨',
+  '🎯',
+  '⭐',
 ];
 
 interface IconSelectorProps {
@@ -39,13 +60,11 @@ export default function IconSelector({
             } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} flex items-center justify-center`}
             aria-label={`Select icon ${icon}`}
           >
-            <span className="text-xl">{icon}</span>
+            <span className='text-xl'>{icon}</span>
           </button>
         ))}
       </div>
-      {error && (
-        <p className='mt-1 text-sm text-red-600'>{error}</p>
-      )}
+      {error && <p className='mt-1 text-sm text-red-600'>{error}</p>}
     </div>
   );
 }

@@ -1,17 +1,17 @@
 'use server';
 
-import { db } from '@/server/lib/firebase-admin';
-import { getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
-import type { MarkPaymentAsPaidDto } from '@/types/Payment';
 import { Timestamp } from 'firebase-admin/firestore';
+import { getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
 import { addToEventTotals } from '@/server/lib/eventAggregation';
+import { db } from '@/server/lib/firebase-admin';
+import type { MarkPaymentAsPaidDto } from '@/types/Payment';
 
 export async function markPaymentAsPaidInExpense(
   userId: string,
   eventId: string,
   expenseId: string,
   paymentId: string,
-  markAsPaidData: MarkPaymentAsPaidDto
+  markAsPaidData: MarkPaymentAsPaidDto,
 ): Promise<void> {
   try {
     if (!userId || !eventId || !expenseId || !paymentId) {
@@ -59,9 +59,9 @@ export async function markPaymentAsPaidInExpense(
       // Update payment in schedule array
       paymentSchedule = [...expenseData.paymentSchedule];
       const paymentIndex = paymentSchedule.findIndex(
-        payment => payment._createdDate.toMillis().toString() === paymentId
+        (payment) => payment._createdDate.toMillis().toString() === paymentId,
       );
-      
+
       if (paymentIndex === -1) {
         throw new Error('Payment not found in schedule');
       }
@@ -88,7 +88,11 @@ export async function markPaymentAsPaidInExpense(
     }
 
     // Update expense, category spentAmount and event totals atomically
-    const categoryId = await getCategoryIdFromExpense(userId, eventId, expenseId);
+    const categoryId = await getCategoryIdFromExpense(
+      userId,
+      eventId,
+      expenseId,
+    );
     if (categoryId && paymentAmount > 0) {
       // Start batch transaction for all updates
       const batch = db.batch();
@@ -139,7 +143,8 @@ export async function markPaymentAsPaidInExpense(
       const eventDoc = await eventRef.get();
       if (eventDoc.exists) {
         const eventData = eventDoc.data()!;
-        const newTotalSpentAmount = (eventData.totalSpentAmount || 0) + paymentAmount;
+        const newTotalSpentAmount =
+          (eventData.totalSpentAmount || 0) + paymentAmount;
 
         batch.update(eventRef, {
           totalSpentAmount: newTotalSpentAmount,
@@ -170,6 +175,8 @@ export async function markPaymentAsPaidInExpense(
     console.log('Payment marked as paid successfully:', paymentId);
   } catch (error) {
     console.error('Error marking payment as paid:', error);
-    throw new Error(error instanceof Error ? error.message : 'Failed to mark payment as paid');
+    throw new Error(
+      error instanceof Error ? error.message : 'Failed to mark payment as paid',
+    );
   }
 }

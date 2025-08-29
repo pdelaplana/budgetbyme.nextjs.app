@@ -26,11 +26,14 @@ export const addCategory = withSentryServerAction(
   async (addCategoryDto: AddCategoryDto): Promise<string> => {
     if (!addCategoryDto.userId) throw new Error('User ID is required');
     if (!addCategoryDto.eventId) throw new Error('Event ID is required');
-    if (!addCategoryDto.name?.trim()) throw new Error('Category name is required');
+    if (!addCategoryDto.name?.trim())
+      throw new Error('Category name is required');
     if (addCategoryDto.budgetedAmount < 0)
       throw new Error('Budget amount cannot be negative');
-    if (!addCategoryDto.color?.trim()) throw new Error('Category color is required');
-    if (!addCategoryDto.icon?.trim()) throw new Error('Category icon is required');
+    if (!addCategoryDto.color?.trim())
+      throw new Error('Category color is required');
+    if (!addCategoryDto.icon?.trim())
+      throw new Error('Category icon is required');
 
     try {
       // Set user context for debugging

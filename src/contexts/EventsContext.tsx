@@ -3,7 +3,7 @@
 import type React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useFetchEvents, useFetchEvent } from '@/hooks/events';
+import { useFetchEvent, useFetchEvents } from '@/hooks/events';
 import type { Event } from '@/types/Event';
 
 interface EventsContextType {
@@ -28,7 +28,7 @@ interface EventsProviderProps {
 
 export function EventsProvider({ children }: EventsProviderProps) {
   const { user } = useAuth();
-  
+
   // Use the real useFetchEvents hook
   const {
     data: events = [],
@@ -43,7 +43,7 @@ export function EventsProvider({ children }: EventsProviderProps) {
 
   // Function to select event by ID (useful for URL-based navigation)
   const selectEventById = (eventId: string) => {
-    const event = events.find(e => e.id === eventId);
+    const event = events.find((e) => e.id === eventId);
     if (event) {
       setSelectedEvent(event);
     } else {
@@ -56,7 +56,7 @@ export function EventsProvider({ children }: EventsProviderProps) {
   // Update selected event when events list changes (e.g., after refetch)
   useEffect(() => {
     if (selectedEvent && events.length > 0) {
-      const updatedEvent = events.find(e => e.id === selectedEvent.id);
+      const updatedEvent = events.find((e) => e.id === selectedEvent.id);
       if (updatedEvent) {
         setSelectedEvent(updatedEvent);
       }
@@ -66,17 +66,23 @@ export function EventsProvider({ children }: EventsProviderProps) {
   // These functions are now placeholder - actual mutations should be handled
   // by the respective mutation hooks (useAddEventMutation, etc.)
   const addEvent = (eventData: Omit<Event, 'id' | 'createdAt'>) => {
-    console.warn('addEvent called on EventsContext - use useAddEventMutation hook instead');
+    console.warn(
+      'addEvent called on EventsContext - use useAddEventMutation hook instead',
+    );
     // The AddEventModal already uses the proper mutation hook
   };
 
   const updateEvent = (eventId: string, updates: Partial<Event>) => {
-    console.warn('updateEvent called on EventsContext - use useUpdateEventMutation hook instead');
+    console.warn(
+      'updateEvent called on EventsContext - use useUpdateEventMutation hook instead',
+    );
     // TODO: Implement useUpdateEventMutation hook when needed
   };
 
   const deleteEvent = (eventId: string) => {
-    console.warn('deleteEvent called on EventsContext - use useDeleteEventMutation hook instead');
+    console.warn(
+      'deleteEvent called on EventsContext - use useDeleteEventMutation hook instead',
+    );
     // TODO: Implement useDeleteEventMutation hook when needed
   };
 

@@ -1,5 +1,9 @@
-import type { DashboardState, DashboardAction, ExpenseDetail } from './useDashboardState';
 import type { BudgetCategory } from '@/types/BudgetCategory';
+import type {
+  DashboardAction,
+  DashboardState,
+  ExpenseDetail,
+} from './useDashboardState';
 
 export interface ModalControlsProps {
   state: DashboardState;
@@ -19,7 +23,10 @@ export function useModalControls({ state, dispatch }: ModalControlsProps) {
     dispatch({ type: 'SET_SELECTED_EXPENSE', expense });
   };
 
-  const setEditingCategory = (category: BudgetCategory | null, isEditMode = false) => {
+  const setEditingCategory = (
+    category: BudgetCategory | null,
+    isEditMode = false,
+  ) => {
     dispatch({ type: 'SET_EDITING_CATEGORY', category, isEditMode });
   };
 
@@ -34,7 +41,7 @@ export function useModalControls({ state, dispatch }: ModalControlsProps) {
   // Convenience methods for specific modals
   const openAddExpenseModal = () => openModal('addExpense');
   const closeAddExpenseModal = () => closeModal('addExpense');
-  
+
   const openExpenseDetailModal = (expense: ExpenseDetail) => {
     setSelectedExpense(expense);
     openModal('expenseDetail');

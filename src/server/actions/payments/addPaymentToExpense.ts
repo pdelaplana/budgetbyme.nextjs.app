@@ -1,11 +1,13 @@
 'use server';
 
-import { db } from '@/server/lib/firebase-admin';
-import type { AddPaymentDto } from '@/types/Payment';
-import type { PaymentDocument } from '@/server/types/PaymentDocument';
 import { Timestamp } from 'firebase-admin/firestore';
+import { db } from '@/server/lib/firebase-admin';
+import type { PaymentDocument } from '@/server/types/PaymentDocument';
+import type { AddPaymentDto } from '@/types/Payment';
 
-export async function addPaymentToExpense(addPaymentDto: AddPaymentDto): Promise<string> {
+export async function addPaymentToExpense(
+  addPaymentDto: AddPaymentDto,
+): Promise<string> {
   try {
     const { userId, eventId, expenseId, ...paymentData } = addPaymentDto;
 
@@ -14,8 +16,15 @@ export async function addPaymentToExpense(addPaymentDto: AddPaymentDto): Promise
       throw new Error('Missing required fields: userId, eventId, or expenseId');
     }
 
-    if (!paymentData.name || !paymentData.description || !paymentData.amount || paymentData.amount <= 0) {
-      throw new Error('Payment name, description and valid amount are required');
+    if (
+      !paymentData.name ||
+      !paymentData.description ||
+      !paymentData.amount ||
+      paymentData.amount <= 0
+    ) {
+      throw new Error(
+        'Payment name, description and valid amount are required',
+      );
     }
 
     if (!paymentData.dueDate) {
@@ -59,7 +68,10 @@ export async function addPaymentToExpense(addPaymentDto: AddPaymentDto): Promise
 
     if (hasPaymentSchedule) {
       // Check if we have existing payments to determine structure
-      if (expenseData?.paymentSchedule && Array.isArray(expenseData.paymentSchedule)) {
+      if (
+        expenseData?.paymentSchedule &&
+        Array.isArray(expenseData.paymentSchedule)
+      ) {
         // Add to existing payment schedule array
         const currentSchedule = expenseData.paymentSchedule;
         await expenseRef.update({
@@ -98,6 +110,10 @@ export async function addPaymentToExpense(addPaymentDto: AddPaymentDto): Promise
     return paymentId;
   } catch (error) {
     console.error('Error adding payment to expense:', error);
-    throw new Error(error instanceof Error ? error.message : 'Failed to add payment to expense');
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : 'Failed to add payment to expense',
+    );
   }
 }

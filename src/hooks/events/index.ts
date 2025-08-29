@@ -11,13 +11,13 @@ export {
   useAddEventMutation,
 } from './useAddEventMutation';
 export {
-  type UseUpdateEventMutationOptions,
-  useUpdateEventMutation,
-  useUpdateEvent,
-} from './useUpdateEventMutation';
-export {
   type UseDeleteEventMutationOptions,
   useDeleteEventMutation,
 } from './useDeleteEventMutation';
 export { useFetchEvent } from './useFetchEvent';
 export { useFetchEvents } from './useFetchEvents';
+export {
+  type UseUpdateEventMutationOptions,
+  useUpdateEvent,
+  useUpdateEventMutation,
+} from './useUpdateEventMutation';

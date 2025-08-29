@@ -1,5 +1,5 @@
-import { db } from './firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
+import { db } from './firebase-admin';
 
 /**
  * Updates category spentAmount by adding the specified amount
@@ -9,7 +9,7 @@ export async function addToCategorySpentAmount(
   eventId: string,
   categoryId: string,
   amount: number,
-  batch?: FirebaseFirestore.WriteBatch
+  batch?: FirebaseFirestore.WriteBatch,
 ): Promise<void> {
   const categoryRef = db
     .collection('workspaces')
@@ -49,7 +49,7 @@ export async function subtractFromCategorySpentAmount(
   eventId: string,
   categoryId: string,
   amount: number,
-  batch?: FirebaseFirestore.WriteBatch
+  batch?: FirebaseFirestore.WriteBatch,
 ): Promise<void> {
   const categoryRef = db
     .collection('workspaces')
@@ -87,7 +87,7 @@ export async function subtractFromCategorySpentAmount(
 export async function getCategoryIdFromExpense(
   userId: string,
   eventId: string,
-  expenseId: string
+  expenseId: string,
 ): Promise<string | null> {
   const expenseRef = db
     .collection('workspaces')

@@ -106,7 +106,7 @@ export const uploadExpenseAttachment = withSentryServerAction(
       const timestamp = Date.now();
       const fileExtension =
         attachmentFile.name.split('.').pop()?.toLowerCase() || 'bin';
-      
+
       // Remove extension from original name to avoid duplication
       const nameWithoutExtension = attachmentFile.name
         .replace(/\.[^/.]+$/, '') // Remove extension

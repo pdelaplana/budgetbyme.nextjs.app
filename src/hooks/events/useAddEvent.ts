@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { addEvent, type AddEventDto } from '@/server/actions/events';
+import { type AddEventDto, addEvent } from '@/server/actions/events';
 import type { Event } from '@/types/Event';
 import {
   type UseServerActionReturn,

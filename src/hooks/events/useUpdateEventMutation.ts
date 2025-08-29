@@ -4,14 +4,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { type UpdateEventDto, updateEvent } from '@/server/actions/events';
 
 export interface UseUpdateEventMutationOptions {
-  onSuccess?: (
-    id: string,
-    variables: UpdateEventDto,
-  ) => void;
-  onError?: (
-    error: Error,
-    variables: UpdateEventDto,
-  ) => void;
+  onSuccess?: (id: string, variables: UpdateEventDto) => void;
+  onError?: (error: Error, variables: UpdateEventDto) => void;
 }
 
 /**
@@ -48,7 +42,9 @@ export interface UseUpdateEventMutationOptions {
  * };
  * ```
  */
-export function useUpdateEventMutation(options?: UseUpdateEventMutationOptions) {
+export function useUpdateEventMutation(
+  options?: UseUpdateEventMutationOptions,
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -63,10 +59,16 @@ export function useUpdateEventMutation(options?: UseUpdateEventMutationOptions) 
       if (updateEventDto.name !== undefined && !updateEventDto.name?.trim()) {
         throw new Error('Event name cannot be empty');
       }
-      if (updateEventDto.totalBudgetedAmount !== undefined && updateEventDto.totalBudgetedAmount < 0) {
+      if (
+        updateEventDto.totalBudgetedAmount !== undefined &&
+        updateEventDto.totalBudgetedAmount < 0
+      ) {
         throw new Error('Budget amount cannot be negative');
       }
-      if (updateEventDto.totalSpentAmount !== undefined && updateEventDto.totalSpentAmount < 0) {
+      if (
+        updateEventDto.totalSpentAmount !== undefined &&
+        updateEventDto.totalSpentAmount < 0
+      ) {
         throw new Error('Spent amount cannot be negative');
       }
 

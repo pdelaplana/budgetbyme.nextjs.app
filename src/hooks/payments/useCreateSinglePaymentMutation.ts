@@ -20,11 +20,14 @@ interface UseCreateSinglePaymentMutationOptions {
   onError?: (error: Error) => void;
 }
 
-export function useCreateSinglePaymentMutation(options: UseCreateSinglePaymentMutationOptions = {}) {
+export function useCreateSinglePaymentMutation(
+  options: UseCreateSinglePaymentMutationOptions = {},
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateSinglePaymentMutationData) => createSinglePayment(data),
+    mutationFn: (data: CreateSinglePaymentMutationData) =>
+      createSinglePayment(data),
     onSuccess: (_, variables) => {
       // Invalidate expenses query to refetch updated data
       queryClient.invalidateQueries({

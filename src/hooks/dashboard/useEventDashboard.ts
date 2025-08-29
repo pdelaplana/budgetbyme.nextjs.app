@@ -1,21 +1,21 @@
-import { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
 import { useDeleteEventMutation } from '@/hooks/events';
 import { useRecalculateEventTotalsMutation } from '@/hooks/events/useRecalculateEventTotalsMutation';
+import { useDashboardActions } from './useDashboardActions';
 import { useDashboardState } from './useDashboardState';
 import { useModalControls } from './useModalControls';
-import { useDashboardActions } from './useDashboardActions';
 
 export function useEventDashboard() {
   const router = useRouter();
   const params = useParams();
   const eventId = params?.id as string;
   const { user } = useAuth();
-  
+
   const { events, isLoading, selectEventById } = useEvents();
   const {
     event: currentEvent,
@@ -103,29 +103,29 @@ export function useEventDashboard() {
     currentEvent,
     categories,
     events,
-    
+
     // Loading states
     isLoading,
     isEventLoading,
     eventError,
-    
+
     // State
     dashboardState: state,
-    
+
     // Modal controls
     modals: modalControls,
-    
+
     // Actions
     actions,
-    
+
     // Mutations
     recalculateEventTotalsMutation,
     isRecalculatingTotals: recalculateEventTotalsMutation.isPending,
-    
+
     // Handlers
     handleRecalculateTotals,
     confirmDeleteEvent,
-    
+
     // Navigation
     router,
   };

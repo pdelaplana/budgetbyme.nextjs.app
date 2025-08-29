@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { recalculateEventTotals } from '@/server/actions/events/recalculateEventTotals';
 import type { RecalculateEventTotalsDto } from '@/server/actions/events/recalculateEventTotals';
+import { recalculateEventTotals } from '@/server/actions/events/recalculateEventTotals';
 
 interface UseRecalculateEventTotalsMutationOptions {
   onSuccess?: () => void;
@@ -8,7 +8,7 @@ interface UseRecalculateEventTotalsMutationOptions {
 }
 
 export const useRecalculateEventTotalsMutation = (
-  options?: UseRecalculateEventTotalsMutationOptions
+  options?: UseRecalculateEventTotalsMutationOptions,
 ) => {
   const queryClient = useQueryClient();
 
@@ -22,15 +22,15 @@ export const useRecalculateEventTotalsMutation = (
         invalidationPromises.push(
           queryClient.invalidateQueries({
             queryKey: ['event', variables.eventId],
-          })
+          }),
         );
       }
-      
+
       // Always invalidate user's events list
       invalidationPromises.push(
         queryClient.invalidateQueries({
           queryKey: ['events', variables.userId],
-        })
+        }),
       );
 
       // Invalidate categories for the event
@@ -38,7 +38,7 @@ export const useRecalculateEventTotalsMutation = (
         invalidationPromises.push(
           queryClient.invalidateQueries({
             queryKey: ['categories', variables.eventId],
-          })
+          }),
         );
       }
 
@@ -47,7 +47,7 @@ export const useRecalculateEventTotalsMutation = (
         invalidationPromises.push(
           queryClient.invalidateQueries({
             queryKey: ['expenses', variables.userId, variables.eventId],
-          })
+          }),
         );
       }
 

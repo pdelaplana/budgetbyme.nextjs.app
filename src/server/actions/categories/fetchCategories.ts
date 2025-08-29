@@ -1,9 +1,9 @@
 'use server';
 
 import * as Sentry from '@sentry/nextjs';
+import type { BudgetCategory } from '../../../types/BudgetCategory';
 import { db } from '../../lib/firebase-admin';
 import { withSentryServerAction } from '../../lib/sentryServerAction';
-import type { BudgetCategory } from '../../../types/BudgetCategory';
 import type { BudgetCategoryDocument } from '../../types/BudgetCategoryDocument';
 
 /**
@@ -64,24 +64,26 @@ export const fetchCategories = withSentryServerAction(
       }
 
       // Convert all documents to BudgetCategory objects
-      const categories: BudgetCategory[] = categoriesSnapshot.docs.map((doc) => {
-        const data = doc.data() as BudgetCategoryDocument;
+      const categories: BudgetCategory[] = categoriesSnapshot.docs.map(
+        (doc) => {
+          const data = doc.data() as BudgetCategoryDocument;
 
-        return {
-          id: doc.id,
-          name: data.name,
-          description: data.description,
-          budgetedAmount: data.budgetedAmount,
-          scheduledAmount: data.scheduledAmount || 0, // Default to 0 for existing categories
-          spentAmount: data.spentAmount,
-          color: data.color,
-          icon: data.icon || '🎉', // Default icon for existing categories
-          _createdDate: data._createdDate.toDate(),
-          _createdBy: data._createdBy,
-          _updatedDate: data._updatedDate.toDate(),
-          _updatedBy: data._updatedBy,
-        };
-      });
+          return {
+            id: doc.id,
+            name: data.name,
+            description: data.description,
+            budgetedAmount: data.budgetedAmount,
+            scheduledAmount: data.scheduledAmount || 0, // Default to 0 for existing categories
+            spentAmount: data.spentAmount,
+            color: data.color,
+            icon: data.icon || '🎉', // Default icon for existing categories
+            _createdDate: data._createdDate.toDate(),
+            _createdBy: data._createdBy,
+            _updatedDate: data._updatedDate.toDate(),
+            _updatedBy: data._updatedBy,
+          };
+        },
+      );
 
       // Add breadcrumb for successful fetch
       Sentry.addBreadcrumb({

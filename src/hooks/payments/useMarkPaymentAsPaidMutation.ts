@@ -15,12 +15,26 @@ interface UseMarkPaymentAsPaidMutationOptions {
   onError?: (error: Error) => void;
 }
 
-export const useMarkPaymentAsPaidMutation = (options?: UseMarkPaymentAsPaidMutationOptions) => {
+export const useMarkPaymentAsPaidMutation = (
+  options?: UseMarkPaymentAsPaidMutationOptions,
+) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ userId, eventId, expenseId, paymentId, markAsPaidData }: MarkPaymentAsPaidVariables) =>
-      markPaymentAsPaidInExpense(userId, eventId, expenseId, paymentId, markAsPaidData),
+    mutationFn: ({
+      userId,
+      eventId,
+      expenseId,
+      paymentId,
+      markAsPaidData,
+    }: MarkPaymentAsPaidVariables) =>
+      markPaymentAsPaidInExpense(
+        userId,
+        eventId,
+        expenseId,
+        paymentId,
+        markAsPaidData,
+      ),
     onSuccess: (_, variables) => {
       // Invalidate expenses query to update expense data with payment marked as paid
       queryClient.invalidateQueries({

@@ -1,14 +1,19 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { addExpense, type AddExpenseDto } from '@/server/actions/expenses/addExpense';
-import type { Expense } from '@/types/Expense';
+import {
+  type AddExpenseDto,
+  addExpense,
+} from '@/server/actions/expenses/addExpense';
 import type { BudgetCategory } from '@/types/BudgetCategory';
+import type { Expense } from '@/types/Expense';
 
 interface UseAddExpenseMutationOptions {
   onSuccess?: (expenseId: string) => void;
   onError?: (error: Error) => void;
 }
 
-export const useAddExpenseMutation = (options?: UseAddExpenseMutationOptions) => {
+export const useAddExpenseMutation = (
+  options?: UseAddExpenseMutationOptions,
+) => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -23,12 +28,21 @@ export const useAddExpenseMutation = (options?: UseAddExpenseMutationOptions) =>
 
     onMutate: async ({ userId, eventId, addExpenseDto }) => {
       // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['expenses', userId, eventId] });
+      await queryClient.cancelQueries({
+        queryKey: ['expenses', userId, eventId],
+      });
       await queryClient.cancelQueries({ queryKey: ['categories', eventId] });
 
       // Snapshot the previous values
-      const previousExpenses = queryClient.getQueryData<Expense[]>(['expenses', userId, eventId]);
-      const previousCategories = queryClient.getQueryData<BudgetCategory[]>(['categories', eventId]);
+      const previousExpenses = queryClient.getQueryData<Expense[]>([
+        'expenses',
+        userId,
+        eventId,
+      ]);
+      const previousCategories = queryClient.getQueryData<BudgetCategory[]>([
+        'categories',
+        eventId,
+      ]);
 
       // Optimistically update expenses list
       if (previousExpenses) {
@@ -57,17 +71,18 @@ export const useAddExpenseMutation = (options?: UseAddExpenseMutationOptions) =>
 
         queryClient.setQueryData<Expense[]>(
           ['expenses', userId, eventId],
-          [optimisticExpense, ...previousExpenses]
+          [optimisticExpense, ...previousExpenses],
         );
       }
 
       // Optimistically update categories list (add to scheduledAmount)
       if (previousCategories) {
-        const updatedCategories = previousCategories.map(category => {
+        const updatedCategories = previousCategories.map((category) => {
           if (category.id === addExpenseDto.categoryId) {
             return {
               ...category,
-              scheduledAmount: (category.scheduledAmount || 0) + addExpenseDto.amount,
+              scheduledAmount:
+                (category.scheduledAmount || 0) + addExpenseDto.amount,
             };
           }
           return category;
@@ -75,7 +90,7 @@ export const useAddExpenseMutation = (options?: UseAddExpenseMutationOptions) =>
 
         queryClient.setQueryData<BudgetCategory[]>(
           ['categories', eventId],
-          updatedCategories
+          updatedCategories,
         );
       }
 
@@ -86,10 +101,16 @@ export const useAddExpenseMutation = (options?: UseAddExpenseMutationOptions) =>
     onError: (error, { userId, eventId }, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousExpenses) {
-        queryClient.setQueryData(['expenses', userId, eventId], context.previousExpenses);
+        queryClient.setQueryData(
+          ['expenses', userId, eventId],
+          context.previousExpenses,
+        );
       }
       if (context?.previousCategories) {
-        queryClient.setQueryData(['categories', eventId], context.previousCategories);
+        queryClient.setQueryData(
+          ['categories', eventId],
+          context.previousCategories,
+        );
       }
 
       console.error('Failed to add expense:', error);
@@ -98,7 +119,9 @@ export const useAddExpenseMutation = (options?: UseAddExpenseMutationOptions) =>
 
     onSuccess: (expenseId, { userId, eventId }) => {
       // Invalidate and refetch expenses and categories
-      queryClient.invalidateQueries({ queryKey: ['expenses', userId, eventId] });
+      queryClient.invalidateQueries({
+        queryKey: ['expenses', userId, eventId],
+      });
       queryClient.invalidateQueries({ queryKey: ['categories', eventId] });
 
       options?.onSuccess?.(expenseId);

@@ -11,7 +11,7 @@
       ]
     },
     {
-      "collectionGroup": "events", 
+      "collectionGroup": "events",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -22,7 +22,7 @@
     },
     {
       "collectionGroup": "expenses",
-      "queryScope": "COLLECTION", 
+      "queryScope": "COLLECTION",
       "fields": [
         {
           "fieldPath": "category.id",

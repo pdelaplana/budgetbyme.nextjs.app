@@ -3,20 +3,23 @@
 import {
   CalendarDaysIcon,
   CalendarIcon,
+  CheckCircleIcon,
   CurrencyDollarIcon,
   DocumentTextIcon,
   PlusIcon,
   TrashIcon,
   XMarkIcon,
-  CheckCircleIcon,
 } from '@heroicons/react/24/outline';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
-import { useCreatePaymentScheduleMutation, useUpdatePaymentScheduleMutation } from '@/hooks/payments';
-import type { PaymentMethod, Payment } from '@/types/Payment';
+import {
+  useCreatePaymentScheduleMutation,
+  useUpdatePaymentScheduleMutation,
+} from '@/hooks/payments';
 import { formatCurrency } from '@/lib/formatters';
+import type { Payment, PaymentMethod } from '@/types/Payment';
 
 interface PaymentScheduleItem {
   id: string;
@@ -80,7 +83,7 @@ export default function PaymentScheduleModal({
   // Hooks
   const { user } = useAuth();
   const { event } = useEventDetails();
-  
+
   // Initialize payments based on mode
   const getInitialPayments = (): PaymentScheduleItem[] => {
     if (mode === 'edit' && existingPayments && existingPayments.length > 0) {
@@ -94,7 +97,7 @@ export default function PaymentScheduleModal({
         notes: payment.notes || '',
       }));
     }
-    
+
     return [
       {
         id: 'payment-1',
@@ -107,7 +110,7 @@ export default function PaymentScheduleModal({
       },
       {
         id: 'payment-2',
-        name: 'Final Payment', 
+        name: 'Final Payment',
         description: 'Remaining balance payment',
         amount: (totalAmount - Math.round(totalAmount * 0.5)).toString(),
         paymentMethod: 'cash',
@@ -117,16 +120,20 @@ export default function PaymentScheduleModal({
     ];
   };
 
-  const [payments, setPayments] = useState<PaymentScheduleItem[]>(getInitialPayments());
+  const [payments, setPayments] = useState<PaymentScheduleItem[]>(
+    getInitialPayments(),
+  );
 
   const [errors, setErrors] = useState<Record<string, Record<string, string>>>(
     {},
   );
-  
+
   // Mutations
   const createPaymentScheduleMutation = useCreatePaymentScheduleMutation({
     onSuccess: () => {
-      toast.success(`Payment schedule created with ${payments.length} payments!`);
+      toast.success(
+        `Payment schedule created with ${payments.length} payments!`,
+      );
       resetForm();
       onClose();
     },
@@ -137,7 +144,9 @@ export default function PaymentScheduleModal({
 
   const updatePaymentScheduleMutation = useUpdatePaymentScheduleMutation({
     onSuccess: () => {
-      toast.success(`Payment schedule updated with ${payments.length} payments!`);
+      toast.success(
+        `Payment schedule updated with ${payments.length} payments!`,
+      );
       resetForm();
       onClose();
     },
@@ -145,9 +154,10 @@ export default function PaymentScheduleModal({
       toast.error(error.message || 'Failed to update payment schedule');
     },
   });
-  
-  const isSubmitting = createPaymentScheduleMutation.isPending || updatePaymentScheduleMutation.isPending;
 
+  const isSubmitting =
+    createPaymentScheduleMutation.isPending ||
+    updatePaymentScheduleMutation.isPending;
 
   // Reinitialize payments when modal opens or existing payments change
   React.useEffect(() => {
@@ -156,7 +166,6 @@ export default function PaymentScheduleModal({
       setErrors({});
     }
   }, [isOpen, existingPayments, mode, totalAmount]);
-
 
   const handlePaymentChange = (
     paymentId: string,
@@ -307,17 +316,19 @@ export default function PaymentScheduleModal({
           expenseId,
           payments: scheduleData,
         });
-        
+
         // Call update callback if provided
         if (onUpdateSchedule) {
-          onUpdateSchedule(scheduleData.map(payment => ({
-            name: payment.name,
-            description: payment.description,
-            amount: payment.amount,
-            paymentMethod: payment.paymentMethod,
-            dueDate: payment.dueDate.toISOString().split('T')[0],
-            notes: payment.notes,
-          })));
+          onUpdateSchedule(
+            scheduleData.map((payment) => ({
+              name: payment.name,
+              description: payment.description,
+              amount: payment.amount,
+              paymentMethod: payment.paymentMethod,
+              dueDate: payment.dueDate.toISOString().split('T')[0],
+              notes: payment.notes,
+            })),
+          );
         }
       } else {
         // Create new payment schedule
@@ -327,22 +338,27 @@ export default function PaymentScheduleModal({
           expenseId,
           payments: scheduleData,
         });
-        
+
         // Call create callback if provided
         if (onCreateSchedule) {
-          onCreateSchedule(scheduleData.map(payment => ({
-            name: payment.name,
-            description: payment.description,
-            amount: payment.amount,
-            paymentMethod: payment.paymentMethod,
-            dueDate: payment.dueDate.toISOString().split('T')[0],
-            notes: payment.notes,
-          })));
+          onCreateSchedule(
+            scheduleData.map((payment) => ({
+              name: payment.name,
+              description: payment.description,
+              amount: payment.amount,
+              paymentMethod: payment.paymentMethod,
+              dueDate: payment.dueDate.toISOString().split('T')[0],
+              notes: payment.notes,
+            })),
+          );
         }
       }
     } catch (error) {
       // Error handling is done in mutation callbacks
-      console.error(`Error ${mode === 'edit' ? 'updating' : 'creating'} payment schedule:`, error);
+      console.error(
+        `Error ${mode === 'edit' ? 'updating' : 'creating'} payment schedule:`,
+        error,
+      );
     }
   };
 
@@ -376,7 +392,9 @@ export default function PaymentScheduleModal({
               <CalendarDaysIcon className='h-6 w-6 text-primary-600 flex-shrink-0' />
               <div className='flex-1 min-w-0'>
                 <h2 className='text-lg sm:text-xl font-semibold text-gray-900'>
-                  {mode === 'edit' ? 'Edit Payment Schedule' : 'Create Payment Schedule'}
+                  {mode === 'edit'
+                    ? 'Edit Payment Schedule'
+                    : 'Create Payment Schedule'}
                 </h2>
                 <p className='text-sm text-gray-600 truncate'>{expenseName}</p>
               </div>
@@ -554,7 +572,12 @@ export default function PaymentScheduleModal({
                       </div>
 
                       <div>
-                        <label className='form-label' htmlFor={`payment-method-${payment.id}`}>Payment Method</label>
+                        <label
+                          className='form-label'
+                          htmlFor={`payment-method-${payment.id}`}
+                        >
+                          Payment Method
+                        </label>
                         <select
                           id={`payment-method-${payment.id}`}
                           value={payment.paymentMethod}
@@ -583,7 +606,12 @@ export default function PaymentScheduleModal({
                       </div>
 
                       <div>
-                        <label className='form-label' htmlFor={`due-date-${payment.id}`}>Due Date</label>
+                        <label
+                          className='form-label'
+                          htmlFor={`due-date-${payment.id}`}
+                        >
+                          Due Date
+                        </label>
                         <input
                           id={`due-date-${payment.id}`}
                           type='date'
@@ -614,11 +642,7 @@ export default function PaymentScheduleModal({
                       type='text'
                       value={payment.notes}
                       onChange={(e) =>
-                        handlePaymentChange(
-                          payment.id,
-                          'notes',
-                          e.target.value,
-                        )
+                        handlePaymentChange(payment.id, 'notes', e.target.value)
                       }
                       placeholder='e.g., 30 days before event'
                       className='form-input'
@@ -686,8 +710,12 @@ export default function PaymentScheduleModal({
                 <CheckCircleIcon className='h-4 w-4 mr-2' />
               )}
               {isSubmitting
-                ? (mode === 'edit' ? 'Updating Schedule...' : 'Creating Schedule...')
-                : (mode === 'edit' ? 'Update Payment Schedule' : 'Create Payment Schedule')}
+                ? mode === 'edit'
+                  ? 'Updating Schedule...'
+                  : 'Creating Schedule...'
+                : mode === 'edit'
+                  ? 'Update Payment Schedule'
+                  : 'Create Payment Schedule'}
             </button>
           </div>
         </div>

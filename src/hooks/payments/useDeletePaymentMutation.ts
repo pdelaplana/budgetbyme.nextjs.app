@@ -13,11 +13,18 @@ interface UseDeletePaymentMutationOptions {
   onError?: (error: Error) => void;
 }
 
-export const useDeletePaymentMutation = (options?: UseDeletePaymentMutationOptions) => {
+export const useDeletePaymentMutation = (
+  options?: UseDeletePaymentMutationOptions,
+) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ userId, eventId, expenseId, paymentId }: DeletePaymentVariables) =>
+    mutationFn: ({
+      userId,
+      eventId,
+      expenseId,
+      paymentId,
+    }: DeletePaymentVariables) =>
       deletePaymentFromExpense(userId, eventId, expenseId, paymentId),
     onSuccess: (_, variables) => {
       // Invalidate expenses query to update expense data with payment deleted

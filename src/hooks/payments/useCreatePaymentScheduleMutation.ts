@@ -22,11 +22,14 @@ interface UseCreatePaymentScheduleMutationOptions {
   onError?: (error: Error) => void;
 }
 
-export function useCreatePaymentScheduleMutation(options: UseCreatePaymentScheduleMutationOptions = {}) {
+export function useCreatePaymentScheduleMutation(
+  options: UseCreatePaymentScheduleMutationOptions = {},
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreatePaymentScheduleMutationData) => createPaymentSchedule(data),
+    mutationFn: (data: CreatePaymentScheduleMutationData) =>
+      createPaymentSchedule(data),
     onSuccess: () => {
       // Invalidate expenses query to refetch updated data
       queryClient.invalidateQueries({ queryKey: ['expenses'] });

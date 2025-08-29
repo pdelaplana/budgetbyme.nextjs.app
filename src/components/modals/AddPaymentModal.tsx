@@ -11,9 +11,12 @@ import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
-import { useAddPaymentMutation, useUpdatePaymentMutation } from '@/hooks/payments';
-import type { PaymentMethod } from '@/types/Payment';
+import {
+  useAddPaymentMutation,
+  useUpdatePaymentMutation,
+} from '@/hooks/payments';
 import { sanitizeCurrencyInput } from '@/lib/formatters';
+import type { PaymentMethod } from '@/types/Payment';
 
 interface AddPaymentFormData {
   name: string;
@@ -69,7 +72,7 @@ export default function AddPaymentModal({
   // Hooks
   const { user } = useAuth();
   const { event } = useEventDetails();
-  
+
   const [formData, setFormData] = useState<AddPaymentFormData>({
     name: '',
     description: '',
@@ -80,16 +83,22 @@ export default function AddPaymentModal({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   // Mutations
   const addPaymentMutation = useAddPaymentMutation({
     onSuccess: () => {
-      toast.success(isEditMode ? 'Payment updated successfully!' : 'Payment added successfully!');
+      toast.success(
+        isEditMode
+          ? 'Payment updated successfully!'
+          : 'Payment added successfully!',
+      );
       resetForm();
       onClose();
     },
     onError: (error) => {
-      toast.error(error.message || `Failed to ${isEditMode ? 'update' : 'add'} payment`);
+      toast.error(
+        error.message || `Failed to ${isEditMode ? 'update' : 'add'} payment`,
+      );
     },
   });
 
@@ -104,8 +113,9 @@ export default function AddPaymentModal({
     },
   });
 
-  const isSubmitting = addPaymentMutation.isPending || updatePaymentMutation.isPending;
-  
+  const isSubmitting =
+    addPaymentMutation.isPending || updatePaymentMutation.isPending;
+
   // Pre-populate form when editing
   React.useEffect(() => {
     if (editingPayment && isEditMode) {
@@ -122,7 +132,6 @@ export default function AddPaymentModal({
     }
   }, [editingPayment, isEditMode, isOpen]);
 
-
   const handleInputChange = (
     field: keyof AddPaymentFormData,
     value: string,
@@ -133,7 +142,6 @@ export default function AddPaymentModal({
       setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
-
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -306,18 +314,14 @@ export default function AddPaymentModal({
                 id='payment-name'
                 type='text'
                 value={formData.name}
-                onChange={(e) =>
-                  handleInputChange('name', e.target.value)
-                }
+                onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder='e.g., Venue deposit, Final payment'
                 className={`form-input ${errors.name ? 'border-red-300 focus:border-red-500' : ''}`}
                 disabled={isSubmitting}
                 maxLength={100}
               />
               {errors.name && (
-                <p className='mt-1 text-sm text-red-600'>
-                  {errors.name}
-                </p>
+                <p className='mt-1 text-sm text-red-600'>{errors.name}</p>
               )}
             </div>
 

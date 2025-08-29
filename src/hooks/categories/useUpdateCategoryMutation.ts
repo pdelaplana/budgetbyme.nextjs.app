@@ -1,18 +1,15 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { type UpdateCategoryDto, updateCategory } from '@/server/actions/categories';
+import {
+  type UpdateCategoryDto,
+  updateCategory,
+} from '@/server/actions/categories';
 import type { BudgetCategory } from '@/types/BudgetCategory';
 
 export interface UseUpdateCategoryMutationOptions {
-  onSuccess?: (
-    categoryId: string,
-    variables: UpdateCategoryDto,
-  ) => void;
-  onError?: (
-    error: Error,
-    variables: UpdateCategoryDto,
-  ) => void;
+  onSuccess?: (categoryId: string, variables: UpdateCategoryDto) => void;
+  onError?: (error: Error, variables: UpdateCategoryDto) => void;
 }
 
 /**
@@ -55,18 +52,23 @@ export interface UseUpdateCategoryMutationOptions {
  * - ✅ Loading states via isPending
  * - ✅ Server action integration
  */
-export function useUpdateCategoryMutation(options?: UseUpdateCategoryMutationOptions) {
+export function useUpdateCategoryMutation(
+  options?: UseUpdateCategoryMutationOptions,
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (updateCategoryDto: UpdateCategoryDto): Promise<string> => {
+    mutationFn: async (
+      updateCategoryDto: UpdateCategoryDto,
+    ): Promise<string> => {
       // Validation
       if (!updateCategoryDto.userId) throw new Error('User ID is required');
       if (!updateCategoryDto.eventId) throw new Error('Event ID is required');
-      if (!updateCategoryDto.categoryId) throw new Error('Category ID is required');
+      if (!updateCategoryDto.categoryId)
+        throw new Error('Category ID is required');
 
       // Check that at least one field is being updated
-      const hasUpdates = 
+      const hasUpdates =
         updateCategoryDto.name !== undefined ||
         updateCategoryDto.description !== undefined ||
         updateCategoryDto.budgetedAmount !== undefined ||
@@ -77,17 +79,26 @@ export function useUpdateCategoryMutation(options?: UseUpdateCategoryMutationOpt
       }
 
       // Validate budget amount if provided
-      if (updateCategoryDto.budgetedAmount !== undefined && updateCategoryDto.budgetedAmount < 0) {
+      if (
+        updateCategoryDto.budgetedAmount !== undefined &&
+        updateCategoryDto.budgetedAmount < 0
+      ) {
         throw new Error('Budget amount cannot be negative');
       }
 
       // Validate name if provided
-      if (updateCategoryDto.name !== undefined && !updateCategoryDto.name.trim()) {
+      if (
+        updateCategoryDto.name !== undefined &&
+        !updateCategoryDto.name.trim()
+      ) {
         throw new Error('Category name cannot be empty');
       }
 
       // Validate color if provided
-      if (updateCategoryDto.color !== undefined && !updateCategoryDto.color.trim()) {
+      if (
+        updateCategoryDto.color !== undefined &&
+        !updateCategoryDto.color.trim()
+      ) {
         throw new Error('Category color cannot be empty');
       }
 
@@ -96,22 +107,31 @@ export function useUpdateCategoryMutation(options?: UseUpdateCategoryMutationOpt
     },
     onSuccess: (categoryId, variables) => {
       // Optimistically update the cache with the updated category
-      queryClient.setQueryData(['categories', variables.eventId], (oldData: BudgetCategory[] = []) => {
-        return oldData.map((category) => {
-          if (category.id === variables.categoryId) {
-            return {
-              ...category,
-              ...(variables.name !== undefined && { name: variables.name }),
-              ...(variables.description !== undefined && { description: variables.description }),
-              ...(variables.budgetedAmount !== undefined && { budgetedAmount: variables.budgetedAmount }),
-              ...(variables.color !== undefined && { color: variables.color }),
-              _updatedDate: new Date(),
-              _updatedBy: variables.userId,
-            };
-          }
-          return category;
-        });
-      });
+      queryClient.setQueryData(
+        ['categories', variables.eventId],
+        (oldData: BudgetCategory[] = []) => {
+          return oldData.map((category) => {
+            if (category.id === variables.categoryId) {
+              return {
+                ...category,
+                ...(variables.name !== undefined && { name: variables.name }),
+                ...(variables.description !== undefined && {
+                  description: variables.description,
+                }),
+                ...(variables.budgetedAmount !== undefined && {
+                  budgetedAmount: variables.budgetedAmount,
+                }),
+                ...(variables.color !== undefined && {
+                  color: variables.color,
+                }),
+                _updatedDate: new Date(),
+                _updatedBy: variables.userId,
+              };
+            }
+            return category;
+          });
+        },
+      );
 
       // Invalidate and refetch categories for this event to get server truth
       queryClient.invalidateQueries({
@@ -128,7 +148,7 @@ export function useUpdateCategoryMutation(options?: UseUpdateCategoryMutationOpt
     },
     onError: (error, variables) => {
       console.error('Failed to update category:', error);
-      
+
       // Call custom error handler
       options?.onError?.(error as Error, variables);
     },

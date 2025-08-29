@@ -47,7 +47,7 @@ export default function ClientProvider({ children }: ClientProviderProps) {
       <AuthProvider>
         <EventsProvider>
           {children}
-          <Toaster position="top-right" richColors />
+          <Toaster position='top-right' richColors />
         </EventsProvider>
       </AuthProvider>
     </QueryProvider>

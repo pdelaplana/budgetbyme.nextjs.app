@@ -44,7 +44,11 @@ export const updateExpense = withSentryServerAction(
 
     // Validate that at least one field is being updated
     const hasUpdates = Object.keys(updateExpenseDto).some(
-      key => key !== 'userId' && key !== 'eventId' && key !== 'expenseId' && updateExpenseDto[key as keyof UpdateExpenseDto] !== undefined
+      (key) =>
+        key !== 'userId' &&
+        key !== 'eventId' &&
+        key !== 'expenseId' &&
+        updateExpenseDto[key as keyof UpdateExpenseDto] !== undefined,
     );
 
     if (!hasUpdates) {
@@ -125,18 +129,39 @@ export const updateExpense = withSentryServerAction(
         }
         updateData.category = {
           id: updateExpenseDto.categoryId,
-          name: updateExpenseDto.categoryName || currentExpenseData?.category?.name || '',
-          color: updateExpenseDto.categoryColor || currentExpenseData?.category?.color || '',
-          icon: updateExpenseDto.categoryIcon || currentExpenseData?.category?.icon || '🎉',
+          name:
+            updateExpenseDto.categoryName ||
+            currentExpenseData?.category?.name ||
+            '',
+          color:
+            updateExpenseDto.categoryColor ||
+            currentExpenseData?.category?.color ||
+            '',
+          icon:
+            updateExpenseDto.categoryIcon ||
+            currentExpenseData?.category?.icon ||
+            '🎉',
         };
       }
 
       if (updateExpenseDto.vendor !== undefined) {
         updateData.vendor = {
-          name: updateExpenseDto.vendor.name?.trim() || currentExpenseData?.vendor?.name || '',
-          address: updateExpenseDto.vendor.address?.trim() || currentExpenseData?.vendor?.address || '',
-          website: updateExpenseDto.vendor.website?.trim() || currentExpenseData?.vendor?.website || '',
-          email: updateExpenseDto.vendor.email?.trim() || currentExpenseData?.vendor?.email || '',
+          name:
+            updateExpenseDto.vendor.name?.trim() ||
+            currentExpenseData?.vendor?.name ||
+            '',
+          address:
+            updateExpenseDto.vendor.address?.trim() ||
+            currentExpenseData?.vendor?.address ||
+            '',
+          website:
+            updateExpenseDto.vendor.website?.trim() ||
+            currentExpenseData?.vendor?.website ||
+            '',
+          email:
+            updateExpenseDto.vendor.email?.trim() ||
+            currentExpenseData?.vendor?.email ||
+            '',
         };
       }
 
@@ -157,10 +182,20 @@ export const updateExpense = withSentryServerAction(
       }
 
       // Determine if we need to update category spent amounts
-      const newAmount = updateExpenseDto.amount !== undefined ? updateExpenseDto.amount : currentAmount;
-      const newCategoryId = updateExpenseDto.categoryId !== undefined ? updateExpenseDto.categoryId : currentCategoryId;
-      const amountChanged = updateExpenseDto.amount !== undefined && updateExpenseDto.amount !== currentAmount;
-      const categoryChanged = updateExpenseDto.categoryId !== undefined && updateExpenseDto.categoryId !== currentCategoryId;
+      const newAmount =
+        updateExpenseDto.amount !== undefined
+          ? updateExpenseDto.amount
+          : currentAmount;
+      const newCategoryId =
+        updateExpenseDto.categoryId !== undefined
+          ? updateExpenseDto.categoryId
+          : currentCategoryId;
+      const amountChanged =
+        updateExpenseDto.amount !== undefined &&
+        updateExpenseDto.amount !== currentAmount;
+      const categoryChanged =
+        updateExpenseDto.categoryId !== undefined &&
+        updateExpenseDto.categoryId !== currentCategoryId;
 
       if (amountChanged || categoryChanged) {
         // Start batch write to update expense and category spent amounts
@@ -182,8 +217,12 @@ export const updateExpense = withSentryServerAction(
           const oldCategoryDoc = await oldCategoryRef.get();
           if (oldCategoryDoc.exists) {
             const oldCategoryData = oldCategoryDoc.data();
-            const oldCategoryScheduledAmount = oldCategoryData?.scheduledAmount || 0;
-            const newOldCategoryScheduledAmount = Math.max(0, oldCategoryScheduledAmount - currentAmount);
+            const oldCategoryScheduledAmount =
+              oldCategoryData?.scheduledAmount || 0;
+            const newOldCategoryScheduledAmount = Math.max(
+              0,
+              oldCategoryScheduledAmount - currentAmount,
+            );
 
             batch.update(oldCategoryRef, {
               scheduledAmount: newOldCategoryScheduledAmount,
@@ -206,8 +245,10 @@ export const updateExpense = withSentryServerAction(
           const newCategoryDoc = await newCategoryRef.get();
           if (newCategoryDoc.exists) {
             const newCategoryData = newCategoryDoc.data();
-            const newCategoryScheduledAmount = newCategoryData?.scheduledAmount || 0;
-            const updatedNewCategoryScheduledAmount = newCategoryScheduledAmount + newAmount;
+            const newCategoryScheduledAmount =
+              newCategoryData?.scheduledAmount || 0;
+            const updatedNewCategoryScheduledAmount =
+              newCategoryScheduledAmount + newAmount;
 
             batch.update(newCategoryRef, {
               scheduledAmount: updatedNewCategoryScheduledAmount,
@@ -229,7 +270,8 @@ export const updateExpense = withSentryServerAction(
           const eventDoc = await eventRef.get();
           if (eventDoc.exists) {
             const eventData = eventDoc.data()!;
-            const newTotalScheduledAmount = (eventData.totalScheduledAmount || 0) + amountDifference;
+            const newTotalScheduledAmount =
+              (eventData.totalScheduledAmount || 0) + amountDifference;
 
             batch.update(eventRef, {
               totalScheduledAmount: Math.max(0, newTotalScheduledAmount),
@@ -255,7 +297,9 @@ export const updateExpense = withSentryServerAction(
           userId: updateExpenseDto.userId,
           eventId: updateExpenseDto.eventId,
           expenseId: updateExpenseDto.expenseId,
-          updatedFields: Object.keys(updateData).filter(key => !key.startsWith('_')),
+          updatedFields: Object.keys(updateData).filter(
+            (key) => !key.startsWith('_'),
+          ),
         },
       });
 

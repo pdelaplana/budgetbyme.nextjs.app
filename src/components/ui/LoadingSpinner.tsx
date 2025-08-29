@@ -29,13 +29,15 @@ export default function LoadingSpinner({
 
   return (
     <div className={`text-center py-12 ${className}`}>
-      <div className={`animate-spin rounded-full ${sizeClasses[size]} border-b-2 border-primary-600 mx-auto mb-4`}></div>
-      <h1 className={`${titleSizeClasses[size]} font-semibold text-gray-900 mb-2`}>
+      <div
+        className={`animate-spin rounded-full ${sizeClasses[size]} border-b-2 border-primary-600 mx-auto mb-4`}
+      ></div>
+      <h1
+        className={`${titleSizeClasses[size]} font-semibold text-gray-900 mb-2`}
+      >
         {title}
       </h1>
-      <p className='text-sm text-gray-600'>
-        {message}
-      </p>
+      <p className='text-sm text-gray-600'>{message}</p>
     </div>
   );
 }

@@ -7,15 +7,16 @@ import {
   TrashIcon,
 } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import RootLayout from '@/components/layouts/RootLayout';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import AddOrEditEventModal from '@/components/modals/AddOrEditEventModal';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
-import { useEvents } from '@/contexts/EventsContext';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEvents } from '@/contexts/EventsContext';
 import { useDeleteEventMutation } from '@/hooks/events';
 import type { Event } from '@/types/Event';
 
@@ -74,11 +75,11 @@ export default function EventsPage() {
   if (isLoading) {
     return (
       <RootLayout>
-        <div className="min-h-[60vh] flex items-center justify-center">
-          <LoadingSpinner 
-            title="Loading Events..."
-            message="Please wait while we load your events"
-            size="md"
+        <div className='min-h-[60vh] flex items-center justify-center'>
+          <LoadingSpinner
+            title='Loading Events...'
+            message='Please wait while we load your events'
+            size='md'
           />
         </div>
       </RootLayout>
@@ -98,10 +99,7 @@ export default function EventsPage() {
               <p className='text-gray-600 mb-4'>
                 {error || 'Something went wrong while loading your events.'}
               </p>
-              <button
-                onClick={() => refetch()}
-                className='btn-primary'
-              >
+              <button onClick={() => refetch()} className='btn-primary'>
                 Try Again
               </button>
             </div>
@@ -159,7 +157,7 @@ export default function EventsPage() {
                         >
                           <TrashIcon className='h-4 w-4' />
                         </button>
-                        
+
                         {/* Arrow Icon */}
                         <div className='opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 text-primary-600'>
                           <ArrowRightIcon className='h-4 w-4' />
@@ -199,11 +197,15 @@ export default function EventsPage() {
                           <div className='flex justify-between items-center text-sm'>
                             <span className='text-gray-600'>Total Budget:</span>
                             <span className='font-semibold text-gray-900'>
-                              ${event.totalBudgetedAmount?.toLocaleString() || '0'}
+                              $
+                              {event.totalBudgetedAmount?.toLocaleString() ||
+                                '0'}
                             </span>
                           </div>
                           <div className='text-xs text-gray-500'>
-                            Spent: ${event.totalSpentAmount?.toLocaleString() || '0'} ({event.spentPercentage || 0}%)
+                            Spent: $
+                            {event.totalSpentAmount?.toLocaleString() || '0'} (
+                            {event.spentPercentage || 0}%)
                           </div>
                         </div>
                       </div>

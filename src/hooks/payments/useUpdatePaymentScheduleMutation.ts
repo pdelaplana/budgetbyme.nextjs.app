@@ -31,11 +31,11 @@ export function useUpdatePaymentScheduleMutation({
   return useMutation({
     mutationFn: async (params: UpdatePaymentScheduleParams) => {
       const result = await updatePaymentSchedule(params);
-      
+
       if (!result.success) {
         throw new Error(result.error || 'Failed to update payment schedule');
       }
-      
+
       return result;
     },
     onSuccess: (data, variables) => {
@@ -43,7 +43,7 @@ export function useUpdatePaymentScheduleMutation({
       queryClient.invalidateQueries({
         queryKey: ['expenses', variables.userId, variables.eventId],
       });
-      
+
       onSuccess?.();
     },
     onError: (error: Error) => {

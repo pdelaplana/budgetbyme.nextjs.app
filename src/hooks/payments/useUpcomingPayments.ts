@@ -16,11 +16,23 @@ export interface UpcomingPayment {
   paymentType: 'schedule' | 'one-off';
 }
 
-const getPaymentStatus = (dueDate: Date): 'overdue' | 'due-soon' | 'upcoming' => {
+const getPaymentStatus = (
+  dueDate: Date,
+): 'overdue' | 'due-soon' | 'upcoming' => {
   const today = new Date();
-  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  const dueDateStart = new Date(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate());
-  const daysDifference = Math.ceil((dueDateStart.getTime() - todayStart.getTime()) / (1000 * 60 * 60 * 24));
+  const todayStart = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
+  const dueDateStart = new Date(
+    dueDate.getFullYear(),
+    dueDate.getMonth(),
+    dueDate.getDate(),
+  );
+  const daysDifference = Math.ceil(
+    (dueDateStart.getTime() - todayStart.getTime()) / (1000 * 60 * 60 * 24),
+  );
 
   if (daysDifference < 0) return 'overdue';
   if (daysDifference <= 7) return 'due-soon';
@@ -54,7 +66,11 @@ export const useUpcomingPayments = (expenses: Expense[]): UpcomingPayment[] => {
       }
 
       // Process one-off payment
-      if (!expense.hasPaymentSchedule && expense.oneOffPayment && !expense.oneOffPayment.isPaid) {
+      if (
+        !expense.hasPaymentSchedule &&
+        expense.oneOffPayment &&
+        !expense.oneOffPayment.isPaid
+      ) {
         upcomingPayments.push({
           id: expense.oneOffPayment.id,
           name: expense.oneOffPayment.name,

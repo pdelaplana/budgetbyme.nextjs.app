@@ -1,8 +1,8 @@
 'use server';
 
 import * as Sentry from '@sentry/nextjs';
-import { withSentryServerAction } from '../../lib/sentryServerAction';
 import { updateEventTotals } from '../../lib/eventAggregation';
+import { withSentryServerAction } from '../../lib/sentryServerAction';
 
 export interface RecalculateEventTotalsDto {
   userId: string;
@@ -49,12 +49,15 @@ export const recalculateEventTotals = withSentryServerAction(
           await updateEventTotals(dto.userId, dto.eventId);
           eventsProcessed = 1;
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
           errors.push(`Event ${dto.eventId}: ${errorMessage}`);
         }
       } else {
         // Recalculate all events for user - we'll implement this if needed
-        throw new Error('Recalculating all events not implemented yet. Please provide an eventId.');
+        throw new Error(
+          'Recalculating all events not implemented yet. Please provide an eventId.',
+        );
       }
 
       // Add breadcrumb for successful recalculation
@@ -87,7 +90,8 @@ export const recalculateEventTotals = withSentryServerAction(
         },
         extra: {
           userInput: dto,
-          errorMessage: error instanceof Error ? error.message : 'Unknown error',
+          errorMessage:
+            error instanceof Error ? error.message : 'Unknown error',
         },
       });
 

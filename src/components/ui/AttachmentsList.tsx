@@ -86,10 +86,7 @@ export default function AttachmentsList({
 
     try {
       // Call server action to delete from storage
-      const result = await deleteExpenseAttachment(
-        user.uid,
-        attachmentUrl,
-      );
+      const result = await deleteExpenseAttachment(user.uid, attachmentUrl);
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to delete attachment');

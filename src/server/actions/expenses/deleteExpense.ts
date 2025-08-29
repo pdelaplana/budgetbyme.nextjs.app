@@ -2,10 +2,10 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
+import { subtractFromEventTotals } from '../../lib/eventAggregation';
 import { db } from '../../lib/firebase-admin';
 import { withSentryServerAction } from '../../lib/sentryServerAction';
 import { deleteExpenseAttachment } from './deleteExpenseAttachment';
-import { subtractFromEventTotals } from '../../lib/eventAggregation';
 
 export interface DeleteExpenseDto {
   userId: string;
@@ -65,15 +65,24 @@ export const deleteExpense = withSentryServerAction(
 
       // Calculate how much was actually spent (paid) for this expense
       let totalSpentAmount = 0;
-      
-      if (expenseData?.hasPaymentSchedule && expenseData?.paymentSchedule && expenseData.paymentSchedule.length > 0) {
+
+      if (
+        expenseData?.hasPaymentSchedule &&
+        expenseData?.paymentSchedule &&
+        expenseData.paymentSchedule.length > 0
+      ) {
         // Calculate from payment schedule - sum all paid payments
         totalSpentAmount = expenseData.paymentSchedule
           .filter((payment: any) => payment.isPaid)
-          .reduce((sum: number, payment: any) => sum + (payment.amount || 0), 0);
+          .reduce(
+            (sum: number, payment: any) => sum + (payment.amount || 0),
+            0,
+          );
       } else if (expenseData?.oneOffPayment) {
         // Calculate from single payment - use amount if paid
-        totalSpentAmount = expenseData.oneOffPayment.isPaid ? (expenseData.oneOffPayment.amount || 0) : 0;
+        totalSpentAmount = expenseData.oneOffPayment.isPaid
+          ? expenseData.oneOffPayment.amount || 0
+          : 0;
       }
       // If no payment schedule and no oneOffPayment, totalSpentAmount remains 0
 
@@ -89,14 +98,22 @@ export const deleteExpense = withSentryServerAction(
         });
 
         // Delete attachments in parallel for better performance
-        const attachmentDeletions = attachments.map(async (attachmentUrl: string) => {
-          try {
-            await deleteExpenseAttachment(deleteExpenseDto.userId, attachmentUrl);
-          } catch (error) {
-            console.warn(`Failed to delete attachment ${attachmentUrl}:`, error);
-            // Don't throw here - we want to continue with expense deletion even if some attachments fail
-          }
-        });
+        const attachmentDeletions = attachments.map(
+          async (attachmentUrl: string) => {
+            try {
+              await deleteExpenseAttachment(
+                deleteExpenseDto.userId,
+                attachmentUrl,
+              );
+            } catch (error) {
+              console.warn(
+                `Failed to delete attachment ${attachmentUrl}:`,
+                error,
+              );
+              // Don't throw here - we want to continue with expense deletion even if some attachments fail
+            }
+          },
+        );
 
         // Wait for all attachment deletions to complete
         await Promise.allSettled(attachmentDeletions);
@@ -123,9 +140,15 @@ export const deleteExpense = withSentryServerAction(
           const categoryData = categoryDoc.data();
           const currentScheduledAmount = categoryData?.scheduledAmount || 0;
           const currentSpentAmount = categoryData?.spentAmount || 0;
-          
-          const newScheduledAmount = Math.max(0, currentScheduledAmount - expenseAmount);
-          const newSpentAmount = Math.max(0, currentSpentAmount - totalSpentAmount);
+
+          const newScheduledAmount = Math.max(
+            0,
+            currentScheduledAmount - expenseAmount,
+          );
+          const newSpentAmount = Math.max(
+            0,
+            currentSpentAmount - totalSpentAmount,
+          );
 
           batch.update(categoryRef, {
             scheduledAmount: newScheduledAmount,
@@ -147,9 +170,15 @@ export const deleteExpense = withSentryServerAction(
         const eventDoc = await eventRef.get();
         if (eventDoc.exists) {
           const eventData = eventDoc.data()!;
-          
-          const newEventScheduledAmount = Math.max(0, (eventData.totalScheduledAmount || 0) - expenseAmount);
-          const newEventSpentAmount = Math.max(0, (eventData.totalSpentAmount || 0) - totalSpentAmount);
+
+          const newEventScheduledAmount = Math.max(
+            0,
+            (eventData.totalScheduledAmount || 0) - expenseAmount,
+          );
+          const newEventSpentAmount = Math.max(
+            0,
+            (eventData.totalSpentAmount || 0) - totalSpentAmount,
+          );
 
           batch.update(eventRef, {
             totalScheduledAmount: newEventScheduledAmount,

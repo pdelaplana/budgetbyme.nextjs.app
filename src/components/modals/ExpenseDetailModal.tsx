@@ -15,7 +15,11 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import React from 'react';
-import { formatCurrency, formatDateLong, formatDateTime } from '@/lib/formatters';
+import {
+  formatCurrency,
+  formatDateLong,
+  formatDateTime,
+} from '@/lib/formatters';
 
 interface ExpenseDetail {
   id: string;
@@ -50,8 +54,6 @@ export default function ExpenseDetailModal({
   onEdit,
   onDelete,
 }: ExpenseDetailModalProps) {
-
-
   const getCategoryIcon = (category: string) => {
     const icons: Record<string, string> = {
       'Venue & Reception': '🏛️',

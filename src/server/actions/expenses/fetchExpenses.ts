@@ -1,9 +1,9 @@
 'use server';
 
 import * as Sentry from '@sentry/nextjs';
+import type { Expense } from '../../../types/Expense';
 import { db } from '../../lib/firebase-admin';
 import { withSentryServerAction } from '../../lib/sentryServerAction';
-import type { Expense } from '../../../types/Expense';
 import type { ExpenseDocument } from '../../types/ExpenseDocument';
 
 /**
@@ -90,7 +90,7 @@ export const fetchExpenses = withSentryServerAction(
           tags: data.tags || [],
           attachments: data.attachments || [],
           hasPaymentSchedule: data.hasPaymentSchedule || false,
-          paymentSchedule: data.paymentSchedule?.map(payment => ({
+          paymentSchedule: data.paymentSchedule?.map((payment) => ({
             id: payment._createdDate.toMillis().toString(), // Generate ID from timestamp
             name: payment.name,
             description: payment.description,
@@ -105,21 +105,23 @@ export const fetchExpenses = withSentryServerAction(
             _updatedDate: payment._updatedDate.toDate(),
             _updatedBy: payment._updatedBy,
           })),
-          oneOffPayment: data.oneOffPayment ? {
-            id: data.oneOffPayment._createdDate.toMillis().toString(), // Generate ID from timestamp
-            name: data.oneOffPayment.name,
-            description: data.oneOffPayment.description,
-            amount: data.oneOffPayment.amount,
-            dueDate: data.oneOffPayment.dueDate.toDate(),
-            isPaid: data.oneOffPayment.isPaid,
-            paidDate: data.oneOffPayment.paidDate?.toDate(),
-            paymentMethod: data.oneOffPayment.paymentMethod as any,
-            notes: data.oneOffPayment.notes,
-            _createdDate: data.oneOffPayment._createdDate.toDate(),
-            _createdBy: data.oneOffPayment._createdBy,
-            _updatedDate: data.oneOffPayment._updatedDate.toDate(),
-            _updatedBy: data.oneOffPayment._updatedBy,
-          } : undefined,
+          oneOffPayment: data.oneOffPayment
+            ? {
+                id: data.oneOffPayment._createdDate.toMillis().toString(), // Generate ID from timestamp
+                name: data.oneOffPayment.name,
+                description: data.oneOffPayment.description,
+                amount: data.oneOffPayment.amount,
+                dueDate: data.oneOffPayment.dueDate.toDate(),
+                isPaid: data.oneOffPayment.isPaid,
+                paidDate: data.oneOffPayment.paidDate?.toDate(),
+                paymentMethod: data.oneOffPayment.paymentMethod as any,
+                notes: data.oneOffPayment.notes,
+                _createdDate: data.oneOffPayment._createdDate.toDate(),
+                _createdBy: data.oneOffPayment._createdBy,
+                _updatedDate: data.oneOffPayment._updatedDate.toDate(),
+                _updatedBy: data.oneOffPayment._updatedBy,
+              }
+            : undefined,
           _createdDate: data._createdDate.toDate(),
           _createdBy: data._createdBy,
           _updatedDate: data._updatedDate.toDate(),

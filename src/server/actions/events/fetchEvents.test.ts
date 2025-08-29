@@ -158,7 +158,7 @@ describe('fetchEvents', () => {
     });
     expect(result[1]).toMatchObject({
       id: 'event789',
-      name: 'Second Event', 
+      name: 'Second Event',
       type: 'birthday',
       spentPercentage: 50,
       currency: 'AUD',

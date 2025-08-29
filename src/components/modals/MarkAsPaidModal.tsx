@@ -13,10 +13,7 @@ import { toast } from 'sonner';
 import FileUpload from '@/components/ui/FileUpload';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
-import {
-  useUpdateExpenseMutation,
-  useFetchExpenses,
-} from '@/hooks/expenses';
+import { useFetchExpenses, useUpdateExpenseMutation } from '@/hooks/expenses';
 import {
   useCreateSinglePaymentMutation,
   useMarkPaymentAsPaidMutation,
@@ -70,7 +67,7 @@ export default function MarkAsPaidModal({
   // Hooks
   const { user } = useAuth();
   const { event } = useEventDetails();
-  
+
   // Fetch expenses data to get current attachments
   const { data: expenses } = useFetchExpenses(user?.uid || '', event?.id || '');
 
@@ -290,9 +287,11 @@ export default function MarkAsPaidModal({
       if (receiptUrl) {
         try {
           // Get current expense from the expenses data
-          const currentExpense = expenses?.find((exp: any) => exp.id === expenseId);
+          const currentExpense = expenses?.find(
+            (exp: any) => exp.id === expenseId,
+          );
           const existingAttachments = currentExpense?.attachments || [];
-          
+
           // Append receipt to existing attachments (avoid duplicates)
           const updatedAttachments = [...existingAttachments];
           if (!updatedAttachments.includes(receiptUrl)) {

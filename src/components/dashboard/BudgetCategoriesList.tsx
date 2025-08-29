@@ -2,8 +2,8 @@
 
 import { ChevronRightIcon, PlusIcon } from '@heroicons/react/24/outline';
 import React from 'react';
-import type { BudgetCategory } from '@/types/BudgetCategory';
 import { formatCurrency } from '@/lib/formatters';
+import type { BudgetCategory } from '@/types/BudgetCategory';
 
 interface BudgetCategoriesListProps {
   categories: BudgetCategory[];
@@ -16,7 +16,6 @@ export default function BudgetCategoriesList({
   onCategoryClick,
   onCreateCategory,
 }: BudgetCategoriesListProps) {
-
   const getCategoryIcon = (name: string) => {
     const icons: Record<string, string> = {
       'Venue & Reception': '🏛️',
@@ -55,9 +54,10 @@ export default function BudgetCategoriesList({
         // Calculate values from BudgetCategory properties with safety checks
         const budgeted = category.budgetedAmount ?? 0;
         const spent = category.spentAmount ?? 0;
-        const percentage = budgeted > 0 ? Math.round((spent / budgeted) * 100) : 0;
+        const percentage =
+          budgeted > 0 ? Math.round((spent / budgeted) * 100) : 0;
         const remaining = budgeted - spent;
-        
+
         const progressColor = getProgressColor(percentage);
         const progressBgColor = getProgressBgColor(percentage);
 
@@ -163,20 +163,33 @@ export default function BudgetCategoriesList({
           <div className='text-right'>
             <div className='text-body font-semibold text-gray-900'>
               {formatCurrency(
-                categories.reduce((sum, cat) => sum + (cat.spentAmount ?? 0), 0),
+                categories.reduce(
+                  (sum, cat) => sum + (cat.spentAmount ?? 0),
+                  0,
+                ),
               )}
               {' of '}
               {formatCurrency(
-                categories.reduce((sum, cat) => sum + (cat.budgetedAmount ?? 0), 0),
+                categories.reduce(
+                  (sum, cat) => sum + (cat.budgetedAmount ?? 0),
+                  0,
+                ),
               )}
             </div>
             <div className='text-body-sm text-gray-600'>
               {(() => {
-                const totalSpent = categories.reduce((sum, cat) => sum + (cat.spentAmount ?? 0), 0);
-                const totalBudgeted = categories.reduce((sum, cat) => sum + (cat.budgetedAmount ?? 0), 0);
-                return totalBudgeted > 0 ? Math.round((totalSpent / totalBudgeted) * 100) : 0;
-              })()}
-              % of total budget used
+                const totalSpent = categories.reduce(
+                  (sum, cat) => sum + (cat.spentAmount ?? 0),
+                  0,
+                );
+                const totalBudgeted = categories.reduce(
+                  (sum, cat) => sum + (cat.budgetedAmount ?? 0),
+                  0,
+                );
+                return totalBudgeted > 0
+                  ? Math.round((totalSpent / totalBudgeted) * 100)
+                  : 0;
+              })()}% of total budget used
             </div>
           </div>
         </div>

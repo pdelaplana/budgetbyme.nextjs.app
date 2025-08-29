@@ -15,11 +15,19 @@ interface UseUpdatePaymentMutationOptions {
   onError?: (error: Error) => void;
 }
 
-export const useUpdatePaymentMutation = (options?: UseUpdatePaymentMutationOptions) => {
+export const useUpdatePaymentMutation = (
+  options?: UseUpdatePaymentMutationOptions,
+) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ userId, eventId, expenseId, paymentId, updateData }: UpdatePaymentVariables) =>
+    mutationFn: ({
+      userId,
+      eventId,
+      expenseId,
+      paymentId,
+      updateData,
+    }: UpdatePaymentVariables) =>
       updatePaymentInExpense(userId, eventId, expenseId, paymentId, updateData),
     onSuccess: (_, variables) => {
       // Invalidate expenses query to update expense data with updated payment

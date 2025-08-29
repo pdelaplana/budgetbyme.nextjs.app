@@ -31,4 +31,4 @@ export interface UpdateBudgetCategoryData {
   icon?: string;
 }
 
-export { type BudgetCategory };
+export type { BudgetCategory };

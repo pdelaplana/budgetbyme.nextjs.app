@@ -43,6 +43,10 @@ import {
 } from '@/hooks/expenses';
 import { useClearAllPaymentsMutation } from '@/hooks/payments';
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/formatters';
+import {
+  calculatePaymentStatus,
+  type ExpenseWithPayments,
+} from '@/lib/paymentCalculations';
 import { truncateForBreadcrumb } from '@/lib/textUtils';
 import { uploadExpenseAttachment } from '@/server/actions/expenses/uploadExpenseAttachment';
 import type { Expense } from '@/types/Expense';
@@ -367,42 +371,15 @@ export default function ExpenseDetailPage() {
     }
   };
 
-  // Calculate payment totals based on embedded payment structure
-  const hasPayments =
-    (expense.hasPaymentSchedule && expense.paymentSchedule) ||
-    expense.oneOffPayment;
-
-  let totalScheduled = 0;
-  let totalPaid = 0;
-  let allPayments: Payment[] = [];
-
-  if (
-    expense.hasPaymentSchedule &&
-    expense.paymentSchedule &&
-    expense.paymentSchedule.length > 0
-  ) {
-    // Multiple payments in schedule
-    allPayments = expense.paymentSchedule;
-    totalScheduled = expense.paymentSchedule.reduce(
-      (sum: number, payment: { amount: number }) => sum + payment.amount,
-      0,
-    );
-    totalPaid = expense.paymentSchedule
-      .filter((payment: Payment) => payment.isPaid)
-      .reduce((sum: number, payment: Payment) => sum + payment.amount, 0);
-  } else if (expense.oneOffPayment) {
-    // Single payment (hasPaymentSchedule can be true or false)
-    allPayments = [expense.oneOffPayment];
-    totalScheduled = expense.oneOffPayment.amount;
-    totalPaid = expense.oneOffPayment.isPaid ? expense.oneOffPayment.amount : 0;
-  } else {
-    // No payments at all
-    totalScheduled = expense.amount;
-    totalPaid = 0;
-    allPayments = [];
-  }
-
-  const remainingBalance = totalScheduled - totalPaid;
+  // Calculate payment totals using centralized utility
+  const paymentStatus = calculatePaymentStatus(expense as ExpenseWithPayments);
+  const {
+    hasPayments,
+    totalScheduled,
+    totalPaid,
+    remainingBalance,
+    allPayments,
+  } = paymentStatus;
 
   // File upload handlers for FileUpload component
   const handleFileChange = async (file: File | null) => {

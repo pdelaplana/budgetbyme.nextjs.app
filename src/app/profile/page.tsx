@@ -21,9 +21,9 @@ import DisplayNameEditor from '@/components/profile/DisplayNameEditor';
 import ProfilePhotoEditor from '@/components/profile/ProfilePhotoEditor';
 import { useAuth } from '@/contexts/AuthContext';
 import { useFetchUserWorkspace } from '@/hooks/queries/useFetchUserWorkspace';
+import { formatDateLong, formatDateTime } from '@/lib/formatters';
 import { setupUserWorkspace } from '@/server/actions/setupUserWorkspace';
 import { Currency } from '@/types/currencies';
-import { formatDateLong, formatDateTime } from '@/lib/formatters';
 
 // Mock user data
 const mockUser = {
@@ -90,7 +90,6 @@ export default function ProfilePage() {
     console.log('Sign out user');
     // In real app, this would call Firebase Auth signOut
   };
-
 
   return (
     <AccountLayout>
@@ -205,7 +204,9 @@ export default function ProfilePage() {
             <div className='pt-4 border-t'>
               <div className='flex items-center space-x-2 text-xs text-gray-500'>
                 <ShieldCheckIcon className='h-4 w-4 text-green-500' />
-                <span>Last sign in: {formatDateTime(new Date(mockUser.lastSignIn))}</span>
+                <span>
+                  Last sign in: {formatDateTime(new Date(mockUser.lastSignIn))}
+                </span>
               </div>
             </div>
           </div>

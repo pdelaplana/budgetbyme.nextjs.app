@@ -55,7 +55,6 @@ export default function BudgetGaugeChart({
     }
   };
 
-
   const remaining = totalBudget - totalSpent;
 
   return (
@@ -138,9 +137,7 @@ export default function BudgetGaugeChart({
         </div>
 
         <div className='flex justify-between items-center'>
-          <span className='text-xs sm:text-sm text-gray-600'>
-            Total Spent:
-          </span>
+          <span className='text-xs sm:text-sm text-gray-600'>Total Spent:</span>
           <span className='font-semibold text-gray-900 text-sm sm:text-base'>
             {formatCurrency(totalSpent)}
           </span>

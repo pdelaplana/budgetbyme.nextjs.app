@@ -13,27 +13,41 @@ interface BudgetOverviewProps {
 const generateTimelineData = (event: Event) => {
   const eventDate = new Date(event.eventDate);
   const currentDate = new Date();
-  const monthsUntilEvent = Math.max(1, Math.ceil((eventDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24 * 30)));
-  
+  const monthsUntilEvent = Math.max(
+    1,
+    Math.ceil(
+      (eventDate.getTime() - currentDate.getTime()) /
+        (1000 * 60 * 60 * 24 * 30),
+    ),
+  );
+
   // Create timeline showing gradual budget allocation leading up to event
   const timeline = [];
-  const monthlyBudget = event.totalBudgetedAmount / Math.max(monthsUntilEvent, 6); // Spread over 6 months or time until event
-  
+  const monthlyBudget =
+    event.totalBudgetedAmount / Math.max(monthsUntilEvent, 6); // Spread over 6 months or time until event
+
   for (let i = 0; i < Math.min(monthsUntilEvent + 2, 12); i++) {
-    const month = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
+    const month = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + i,
+      1,
+    );
     const monthStr = month.toISOString().slice(0, 7); // YYYY-MM format
-    
+
     timeline.push({
       date: monthStr,
       budgeted: Math.round(monthlyBudget * (i + 1)),
       actual: i === 0 ? event.totalSpentAmount : 0, // Only show actual spending for current month
     });
   }
-  
+
   return timeline;
 };
 
-export default function BudgetOverview({ event, categories }: BudgetOverviewProps) {
+export default function BudgetOverview({
+  event,
+  categories,
+}: BudgetOverviewProps) {
   // Transform BudgetCategory data to CategoryData format expected by charts
   const transformedCategories = categories.map((category) => ({
     id: category.id,

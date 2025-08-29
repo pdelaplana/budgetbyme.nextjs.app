@@ -18,8 +18,8 @@ import {
   useAddExpenseMutation,
   useUpdateExpenseMutation,
 } from '@/hooks/expenses';
-import type { BudgetCategory } from '@/types/BudgetCategory';
 import { sanitizeCurrencyInput } from '@/lib/formatters';
+import type { BudgetCategory } from '@/types/BudgetCategory';
 
 interface ExpenseFormData {
   name: string;
@@ -180,7 +180,6 @@ export default function AddOrEditExpenseModal({
     }
   };
 
-
   const addTag = () => {
     if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
       setFormData((prev) => ({
@@ -340,7 +339,6 @@ export default function AddOrEditExpenseModal({
       onClose();
     }
   };
-
 
   if (!isOpen) return null;
 
@@ -673,7 +671,6 @@ export default function AddOrEditExpenseModal({
                 <span>{formData.notes.length}/500</span>
               </div>
             </div>
-
           </form>
         </div>
       </div>

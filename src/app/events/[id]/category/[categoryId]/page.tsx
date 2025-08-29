@@ -1,16 +1,13 @@
 'use client';
 
 import {
-  CheckCircleIcon,
-  ClockIcon,
-  ExclamationTriangleIcon,
   HomeIcon,
   PencilIcon,
   PlusIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import AddOrEditCategoryModal from '@/components/modals/AddOrEditCategoryModal';
@@ -18,13 +15,17 @@ import AddOrEditExpenseModal from '@/components/modals/AddOrEditExpenseModal';
 import ConfirmDialog from '@/components/modals/ConfirmDialog';
 import ActionDropdown from '@/components/ui/ActionDropdown';
 import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
+import BudgetOverviewCard, {
+  createBudgetData,
+} from '@/components/ui/BudgetOverviewCard';
+import ExpenseListItem from '@/components/ui/ExpenseListItem';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import NotFoundState from '@/components/ui/NotFoundState';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
 import { useDeleteCategoryMutation } from '@/hooks/categories';
-import { formatCurrency, formatDate } from '@/lib/formatters';
+import { useCategoryPageState } from '@/hooks/category/useCategoryPageState';
 import { truncateForBreadcrumb } from '@/lib/textUtils';
 
 export default function CategoryPage() {
@@ -50,23 +51,19 @@ export default function CategoryPage() {
     }
   }, [eventId, events.length, isLoading, selectEventById]);
 
-  const [showAddExpense, setShowAddExpense] = useState(false);
-  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
-  const [isEditCategoryMode, setIsEditCategoryMode] = useState(false);
-  const [showDeleteCategoryConfirm, setShowDeleteCategoryConfirm] =
-    useState(false);
-  const [isDeletingCategory, setIsDeletingCategory] = useState(false);
+  // Consolidated state management
+  const { state, actions } = useCategoryPageState();
 
   // Delete category mutation
   const deleteCategoryMutation = useDeleteCategoryMutation({
     onSuccess: () => {
-      setIsDeletingCategory(false);
-      setShowDeleteCategoryConfirm(false);
+      actions.setDeletingCategory(false);
+      actions.hideDeleteCategoryConfirm();
       toast.success('Category deleted successfully!');
       router.push(`/events/${eventId}/dashboard`);
     },
     onError: (error) => {
-      setIsDeletingCategory(false);
+      actions.setDeletingCategory(false);
       console.error('Failed to delete category:', error);
       toast.error(
         error.message || 'Failed to delete category. Please try again.',
@@ -75,12 +72,16 @@ export default function CategoryPage() {
     },
   });
 
-  // Find the current category from EventDetailsContext
-  const category = categories.find((cat) => cat.id === categoryId);
+  // Find the current category from EventDetailsContext (memoized for performance)
+  const category = useMemo(
+    () => categories.find((cat) => cat.id === categoryId),
+    [categories, categoryId],
+  );
 
-  // Filter expenses by current category
-  const categoryExpenses = expenses.filter(
-    (expense) => expense.category.id === categoryId,
+  // Filter expenses by current category (memoized for performance)
+  const categoryExpenses = useMemo(
+    () => expenses.filter((expense) => expense.category.id === categoryId),
+    [expenses, categoryId],
   );
 
   // Loading state - show while event, categories, or expenses are being fetched
@@ -116,18 +117,16 @@ export default function CategoryPage() {
     );
   }
 
-
   const handleExpenseClick = (expense: any) => {
     router.push(`/events/${eventId}/expense/${expense.id}`);
   };
 
   const handleEditCategory = () => {
-    setIsEditCategoryMode(true);
-    setShowAddCategoryModal(true);
+    actions.setEditCategoryMode(true);
   };
 
   const handleDeleteCategory = () => {
-    setShowDeleteCategoryConfirm(true);
+    actions.showDeleteCategoryConfirm();
   };
 
   const confirmDeleteCategory = async () => {
@@ -136,7 +135,7 @@ export default function CategoryPage() {
       return;
     }
 
-    setIsDeletingCategory(true);
+    actions.setDeletingCategory(true);
 
     try {
       await deleteCategoryMutation.mutateAsync({
@@ -151,28 +150,33 @@ export default function CategoryPage() {
     }
   };
 
-  const remaining = category
-    ? (category.budgetedAmount ?? 0) - (category.spentAmount ?? 0)
-    : 0;
-  const percentage =
-    category && (category.budgetedAmount ?? 0) > 0
-      ? Math.round(
-          ((category.spentAmount ?? 0) / (category.budgetedAmount ?? 0)) * 100,
-        )
-      : 0;
+  // Create budget data for the overview card (memoized for performance)
+  const budgetData = useMemo(
+    () =>
+      createBudgetData({
+        budgetedAmount: category?.budgetedAmount ?? 0,
+        scheduledAmount: category?.scheduledAmount ?? 0,
+        spentAmount: category?.spentAmount ?? 0,
+        color: category?.color,
+      }),
+    [category],
+  );
 
-  // Breadcrumb items
-  const breadcrumbItems: BreadcrumbItem[] = [
-    {
-      label: truncateForBreadcrumb(currentEvent.name, 15),
-      href: `/events/${eventId}/dashboard`,
-      icon: HomeIcon,
-    },
-    {
-      label: truncateForBreadcrumb(category.name, 18),
-      current: true,
-    },
-  ];
+  // Breadcrumb items (memoized for performance)
+  const breadcrumbItems: BreadcrumbItem[] = useMemo(
+    () => [
+      {
+        label: truncateForBreadcrumb(currentEvent.name, 15),
+        href: `/events/${eventId}/dashboard`,
+        icon: HomeIcon,
+      },
+      {
+        label: truncateForBreadcrumb(category?.name || '', 18),
+        current: true,
+      },
+    ],
+    [currentEvent.name, eventId, category?.name],
+  );
 
   return (
     <DashboardLayout>
@@ -206,7 +210,7 @@ export default function CategoryPage() {
               primaryAction={{
                 label: 'Add Expense',
                 icon: PlusIcon,
-                onClick: () => setShowAddExpense(true),
+                onClick: actions.showAddExpense,
               }}
               options={[
                 {
@@ -232,7 +236,7 @@ export default function CategoryPage() {
                 primaryAction={{
                   label: 'Add Expense',
                   icon: PlusIcon,
-                  onClick: () => setShowAddExpense(true),
+                  onClick: actions.showAddExpense,
                 }}
                 options={[
                   {
@@ -256,72 +260,11 @@ export default function CategoryPage() {
       </div>
 
       {/* Budget Overview Card */}
-      <div className='card mb-4 sm:mb-6'>
-        <div className='grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6'>
-          <div className='lg:col-span-2'>
-            <h3 className='text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4'>
-              Budget Overview
-            </h3>
-            <div className='space-y-2 sm:space-y-3'>
-              <div className='flex justify-between items-center'>
-                <span className='text-sm sm:text-base text-gray-600'>
-                  Budgeted:
-                </span>
-                <span className='font-semibold text-sm sm:text-base'>
-                  {formatCurrency(category.budgetedAmount ?? 0)}
-                </span>
-              </div>
-              <div className='flex justify-between items-center'>
-                <span className='text-sm sm:text-base text-gray-600'>
-                  Scheduled:
-                </span>
-                <span className='font-semibold text-sm sm:text-base text-primary-600'>
-                  {formatCurrency(category.scheduledAmount ?? 0)}
-                </span>
-              </div>
-              <div className='flex justify-between items-center'>
-                <span className='text-sm sm:text-base text-gray-600'>
-                  Spent:
-                </span>
-                <span className='font-semibold text-sm sm:text-base text-success-600'>
-                  {formatCurrency(category.spentAmount ?? 0)}
-                </span>
-              </div>
-              <div className='flex justify-between items-center border-t pt-2 sm:pt-3'>
-                <span className='text-sm sm:text-base text-gray-600'>
-                  {remaining >= 0 ? 'Remaining:' : 'Over budget:'}
-                </span>
-                <span
-                  className={`font-semibold text-sm sm:text-base ${remaining >= 0 ? 'text-success-600' : 'text-red-600'}`}
-                >
-                  {formatCurrency(Math.abs(remaining))}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className='lg:col-span-2 mt-4 lg:mt-0'>
-            <h4 className='text-sm font-medium text-gray-500 mb-2'>Progress</h4>
-            <div className='flex items-center justify-center lg:justify-center h-16 sm:h-20'>
-              <div className='text-center'>
-                <div className='text-2xl sm:text-3xl font-bold text-gray-900 mb-1'>
-                  {percentage}%
-                </div>
-                <div className='w-24 sm:w-32 bg-gray-200 rounded-full h-2 sm:h-3'>
-                  <div
-                    className='h-2 sm:h-3 rounded-full transition-all duration-500'
-                    style={{
-                      width: `${Math.min(percentage, 100)}%`,
-                      backgroundColor: category.color,
-                    }}
-                  />
-                </div>
-                <div className='text-xs text-gray-500 mt-1'>of budget used</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <BudgetOverviewCard
+        data={budgetData}
+        title='Budget Overview'
+        className='mb-4 sm:mb-6'
+      />
 
       {/* Expenses List */}
       <div className='card'>
@@ -345,7 +288,7 @@ export default function CategoryPage() {
             <div className='flex justify-center'>
               <button
                 type='button'
-                onClick={() => setShowAddExpense(true)}
+                onClick={actions.showAddExpense}
                 className='btn-primary w-full sm:w-auto sm:min-w-[180px] flex items-center justify-center'
               >
                 <PlusIcon className='h-4 w-4 mr-2 flex-shrink-0' />
@@ -355,165 +298,21 @@ export default function CategoryPage() {
           </div>
         ) : (
           <div className='space-y-2 sm:space-y-3'>
-            {categoryExpenses.map((expense) => {
-              // Calculate payment status and progress (matching expense detail page logic)
-              const hasPayments =
-                (expense.hasPaymentSchedule && expense.paymentSchedule) ||
-                expense.oneOffPayment;
-
-              let totalScheduled = 0;
-              let totalPaid = 0;
-
-              if (
-                expense.hasPaymentSchedule &&
-                expense.paymentSchedule &&
-                expense.paymentSchedule.length > 0
-              ) {
-                // Multiple payments in schedule
-                totalScheduled = expense.paymentSchedule.reduce(
-                  (sum: number, payment: any) => sum + payment.amount,
-                  0,
-                );
-                totalPaid = expense.paymentSchedule
-                  .filter((payment: any) => payment.isPaid)
-                  .reduce(
-                    (sum: number, payment: any) => sum + payment.amount,
-                    0,
-                  );
-              } else if (expense.oneOffPayment) {
-                // Single payment (hasPaymentSchedule can be true or false)
-                totalScheduled = expense.oneOffPayment.amount;
-                totalPaid = expense.oneOffPayment.isPaid
-                  ? expense.oneOffPayment.amount
-                  : 0;
-              } else {
-                // No payments at all
-                totalScheduled = expense.amount;
-                totalPaid = 0;
-              }
-              const remainingBalance = totalScheduled - totalPaid;
-              const progressPercentage =
-                totalScheduled > 0 ? (totalPaid / totalScheduled) * 100 : 0;
-              const isFullyPaid = remainingBalance === 0;
-
-              // Find next due payment
-              const nextDuePayment =
-                expense.hasPaymentSchedule && expense.paymentSchedule
-                  ? expense.paymentSchedule
-                      .filter((p: any) => !p.isPaid)
-                      .sort(
-                        (a: any, b: any) =>
-                          new Date(a.dueDate).getTime() -
-                          new Date(b.dueDate).getTime(),
-                      )[0]
-                  : null;
-
-              return (
-                <button
-                  type='button'
-                  key={expense.id}
-                  onClick={() => handleExpenseClick(expense)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleExpenseClick(expense);
-                    }
-                  }}
-                  className='group p-3 sm:p-4 rounded-lg border border-gray-200 hover:border-primary-300 hover:shadow-md hover:bg-gray-50/50 transition-all duration-200 cursor-pointer w-full text-left'
-                >
-                  <div className='flex flex-col space-y-3'>
-                    {/* Header with name and amount */}
-                    <div className='flex items-start justify-between'>
-                      <h3 className='text-sm sm:text-base font-semibold text-gray-900 leading-tight flex-1 min-w-0 pr-3 group-hover:text-primary-700 transition-colors duration-200'>
-                        {expense.name}
-                      </h3>
-                      <span className='text-base sm:text-lg font-bold text-gray-900 flex-shrink-0'>
-                        {formatCurrency(expense.amount)}
-                      </span>
-                    </div>
-
-                    {/* Description and date */}
-                    <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-1 sm:space-y-0'>
-                      <p className='text-xs sm:text-sm text-gray-600 line-clamp-2 sm:line-clamp-1 flex-1 min-w-0 sm:pr-4'>
-                        {expense.description}
-                      </p>
-                      <span className='text-xs sm:text-sm text-gray-500 flex-shrink-0'>
-                        {formatDate(expense.date)}
-                      </span>
-                    </div>
-
-                    {/* Payment Status and Progress */}
-                    <div className='space-y-2'>
-                      {/* Payment Status */}
-                      <div className='flex items-center justify-between'>
-                        <div className='flex items-center space-x-2'>
-                          {isFullyPaid ? (
-                            <>
-                              <CheckCircleIcon className='h-4 w-4 text-success-600' />
-                              <span className='text-xs font-medium text-success-700'>
-                                Fully Paid
-                              </span>
-                            </>
-                          ) : nextDuePayment ? (
-                            <>
-                              <ClockIcon className='h-4 w-4 text-warning-600' />
-                              <span className='text-xs font-medium text-warning-700'>
-                                Next due: {formatDate(nextDuePayment.dueDate)}
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <ExclamationTriangleIcon className='h-4 w-4 text-gray-500' />
-                              <span className='text-xs font-medium text-gray-600'>
-                                Payment Pending
-                              </span>
-                            </>
-                          )}
-                        </div>
-
-                        {!isFullyPaid && (
-                          <span className='text-xs font-medium text-gray-700'>
-                            {formatCurrency(remainingBalance)} remaining
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Progress Bar (only show if has payments) */}
-                      {hasPayments && (
-                        <div className='space-y-1'>
-                          <div className='flex justify-between items-center'>
-                            <span className='text-xs text-gray-500'>
-                              Payment Progress
-                            </span>
-                            <span className='text-xs font-medium text-gray-700'>
-                              {Math.round(progressPercentage)}%
-                            </span>
-                          </div>
-                          <div className='w-full bg-gray-200 rounded-full h-1.5'>
-                            <div
-                              className='bg-primary-600 h-1.5 rounded-full transition-all duration-300'
-                              style={{ width: `${progressPercentage}%` }}
-                            />
-                          </div>
-                          <div className='text-xs text-gray-500'>
-                            {formatCurrency(totalPaid)} of{' '}
-                            {formatCurrency(totalScheduled)} paid
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
+            {categoryExpenses.map((expense) => (
+              <ExpenseListItem
+                key={expense.id}
+                expense={expense}
+                onClick={handleExpenseClick}
+              />
+            ))}
           </div>
         )}
       </div>
 
       {/* Add Expense Modal */}
       <AddOrEditExpenseModal
-        isOpen={showAddExpense}
-        onClose={() => setShowAddExpense(false)}
+        isOpen={state.modals.showAddExpense}
+        onClose={actions.hideAddExpense}
         categories={[
           {
             id: category.id,
@@ -534,13 +333,10 @@ export default function CategoryPage() {
 
       {/* Add/Edit Category Modal */}
       <AddOrEditCategoryModal
-        isOpen={showAddCategoryModal}
-        onClose={() => {
-          setShowAddCategoryModal(false);
-          setIsEditCategoryMode(false);
-        }}
+        isOpen={state.modals.showAddCategoryModal}
+        onClose={actions.hideAddCategoryModal}
         editingCategory={
-          isEditCategoryMode && category
+          state.modals.isEditCategoryMode && category
             ? {
                 id: category.id || '',
                 name: category.name || '',
@@ -551,13 +347,13 @@ export default function CategoryPage() {
               }
             : null
         }
-        isEditMode={isEditCategoryMode}
+        isEditMode={state.modals.isEditCategoryMode}
       />
 
       {/* Delete Category Confirmation */}
       <ConfirmDialog
-        isOpen={showDeleteCategoryConfirm}
-        onClose={() => setShowDeleteCategoryConfirm(false)}
+        isOpen={state.modals.showDeleteCategoryConfirm}
+        onClose={actions.hideDeleteCategoryConfirm}
         onConfirm={
           categoryExpenses.length > 0 ? undefined : confirmDeleteCategory
         }
@@ -569,7 +365,7 @@ export default function CategoryPage() {
         }
         confirmText={categoryExpenses.length > 0 ? undefined : 'Delete'}
         type='danger'
-        isLoading={isDeletingCategory}
+        isLoading={state.operations.isDeletingCategory}
       />
     </DashboardLayout>
   );

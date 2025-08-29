@@ -4,9 +4,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { deleteCategory } from '@/server/actions/categories';
 
 export interface UseDeleteCategoryMutationOptions {
-  onSuccess?: (
-    variables: { userId: string; eventId: string; categoryId: string },
-  ) => void;
+  onSuccess?: (variables: {
+    userId: string;
+    eventId: string;
+    categoryId: string;
+  }) => void;
   onError?: (
     error: Error,
     variables: { userId: string; eventId: string; categoryId: string },
@@ -33,7 +35,7 @@ export interface UseDeleteCategoryMutationOptions {
  *
  * const handleDelete = () => {
  *   if (!categoryToDelete) return;
- *   
+ *
  *   deleteCategoryMutation.mutate({
  *     userId: user.id,
  *     eventId: currentEvent.id,
@@ -49,7 +51,9 @@ export interface UseDeleteCategoryMutationOptions {
  * - ✅ Server action integration
  * - ❌ No optimistic updates (hard delete requires confirmation)
  */
-export function useDeleteCategoryMutation(options?: UseDeleteCategoryMutationOptions) {
+export function useDeleteCategoryMutation(
+  options?: UseDeleteCategoryMutationOptions,
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -86,7 +90,7 @@ export function useDeleteCategoryMutation(options?: UseDeleteCategoryMutationOpt
     },
     onError: (error, variables) => {
       console.error('Failed to delete category:', error);
-      
+
       // Call custom error handler
       options?.onError?.(error as Error, variables);
     },

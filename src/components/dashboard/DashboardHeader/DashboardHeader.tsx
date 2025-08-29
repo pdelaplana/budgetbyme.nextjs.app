@@ -30,14 +30,14 @@ export default function DashboardHeader({
   isRecalculatingTotals = false,
 }: DashboardHeaderProps) {
   return (
-    <div className="bg-slate-100 border-b border-gray-200 mb-4">
-      <div className="py-4">
-        <div className="flex items-start justify-between">
-          <div className="text-left">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-1 sm:mb-2">
+    <div className='bg-slate-100 border-b border-gray-200 mb-4'>
+      <div className='py-4'>
+        <div className='flex items-start justify-between'>
+          <div className='text-left'>
+            <h1 className='text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-1 sm:mb-2'>
               {title}
             </h1>
-            <p className="text-sm sm:text-base text-gray-600">{subtitle}</p>
+            <p className='text-sm sm:text-base text-gray-600'>{subtitle}</p>
           </div>
 
           <ActionDropdown

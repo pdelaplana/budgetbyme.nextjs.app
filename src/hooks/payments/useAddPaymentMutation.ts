@@ -7,11 +7,14 @@ interface UseAddPaymentMutationOptions {
   onError?: (error: Error) => void;
 }
 
-export const useAddPaymentMutation = (options?: UseAddPaymentMutationOptions) => {
+export const useAddPaymentMutation = (
+  options?: UseAddPaymentMutationOptions,
+) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (addPaymentDto: AddPaymentDto) => addPaymentToExpense(addPaymentDto),
+    mutationFn: (addPaymentDto: AddPaymentDto) =>
+      addPaymentToExpense(addPaymentDto),
     onSuccess: (paymentId, variables) => {
       // Invalidate expenses query to update expense data with new payment
       queryClient.invalidateQueries({

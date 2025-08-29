@@ -65,7 +65,6 @@ export default function QuickStatsChart({ data }: QuickStatsChartProps) {
     },
   ];
 
-
   return (
     <div className='py-4'>
       {/* Stats Grid */}

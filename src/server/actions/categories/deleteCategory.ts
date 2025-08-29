@@ -8,13 +8,17 @@ import { withSentryServerAction } from '../../lib/sentryServerAction';
  * Server action to delete a budget category from Firestore
  * Categories are deleted from: /workspaces/{userId}/events/{eventId}/categories/{categoryId}
  * Wrapped with Sentry monitoring
- * 
+ *
  * Note: This performs a hard delete. Consider implementing soft delete in the future
  * if category recovery or audit trail is needed.
  */
 export const deleteCategory = withSentryServerAction(
   'deleteCategory',
-  async (userId: string, eventId: string, categoryId: string): Promise<void> => {
+  async (
+    userId: string,
+    eventId: string,
+    categoryId: string,
+  ): Promise<void> => {
     if (!userId) throw new Error('User ID is required');
     if (!eventId) throw new Error('Event ID is required');
     if (!categoryId) throw new Error('Category ID is required');
@@ -47,7 +51,9 @@ export const deleteCategory = withSentryServerAction(
       // Verify category exists
       const categoryDoc = await categoryRef.get();
       if (!categoryDoc.exists) {
-        throw new Error('Category not found. It may have already been deleted.');
+        throw new Error(
+          'Category not found. It may have already been deleted.',
+        );
       }
 
       // Get category data for logging
@@ -67,7 +73,9 @@ export const deleteCategory = withSentryServerAction(
         .get();
 
       if (!expensesWithCategory.empty) {
-        throw new Error('Cannot delete category because it is used by existing expenses. Please reassign or delete the expenses first.');
+        throw new Error(
+          'Cannot delete category because it is used by existing expenses. Please reassign or delete the expenses first.',
+        );
       }
 
       // Delete the category
@@ -85,7 +93,6 @@ export const deleteCategory = withSentryServerAction(
           categoryName: categoryData?.name || 'Unknown',
         },
       });
-
     } catch (error) {
       console.error('Error deleting category:', error);
 

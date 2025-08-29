@@ -6,7 +6,11 @@ export interface DashboardActionsProps extends ModalControlsProps {
   eventId: string;
 }
 
-export function useDashboardActions({ state, dispatch, eventId }: DashboardActionsProps) {
+export function useDashboardActions({
+  state,
+  dispatch,
+  eventId,
+}: DashboardActionsProps) {
   const router = useRouter();
 
   const toggleDropdown = () => {

@@ -18,13 +18,15 @@ BudgetByMe is a budgeting and expense tracking web application for life's major 
 - **Database**: Firebase Firestore
 - **Storage**: Firebase Storage
 - **Backend Jobs**: Firebase Cloud Functions
+- **Logging and Monitoring**: Sentry
 - **Deployment**: (TBD - likely Vercel for Next.js)
 
 ## Architecture
 
 ### Core Data Models
 - **Users**: Firebase Auth users with profile data in Firestore
-- **Events**: Top-level containers (name, description, dates)
+- **Worskpacaes**: Top-level containers for our events 
+- **Events**: Events (name, description, dates)
 - **Expenses**: Budgeted items with categories, vendor info, documents
 - **Payment Schedules**: Optional payment plans for expenses
 - **Payments**: Actual payments made against expenses or schedules
@@ -82,8 +84,8 @@ All routes except auth pages should redirect unauthenticated users to sign in.
 
 ### Data Structure
 ```
-/users/{userId}/events/{eventId}/expenses/{expenseId}
-/users/{userId}/events/{eventId}/categories/{paymentId}
+/workspaces/{userId}/events/{eventId}/expenses/{expenseId}
+/workspaces/{userId}/events/{eventId}/categories/{paymentId}
 
 ```
 
@@ -176,6 +178,13 @@ Centralized text manipulation utilities for consistent text handling across the 
 - Clear visual hierarchy in dashboard charts
 - Accessible color palette suitable for financial data
 - Intuitive navigation between events and expense management
+
+### Modal Progress Indicators
+For consistent progress indicator implementation in confirmation modals, follow the standardized pattern documented in `docs/PROGRESS_INDICATOR_PATTERN.md`. This pattern ensures:
+- Visual feedback during async operations (delete, create, update)
+- Proper button layout with spinners that don't cause text wrapping
+- Consistent disabled states and error handling
+- Standardized navigation handling after operations complete
 
 ## Development Best Practices
 

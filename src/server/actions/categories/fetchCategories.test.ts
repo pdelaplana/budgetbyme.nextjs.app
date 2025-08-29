@@ -79,20 +79,24 @@ describe('fetchCategories', () => {
 
   describe('validation', () => {
     it('should throw error if userId is missing', async () => {
-      await expect(fetchCategories('', mockEventId)).rejects.toThrow('User ID is required');
+      await expect(fetchCategories('', mockEventId)).rejects.toThrow(
+        'User ID is required',
+      );
     });
 
     it('should throw error if eventId is missing', async () => {
-      await expect(fetchCategories(mockUserId, '')).rejects.toThrow('Event ID is required');
+      await expect(fetchCategories(mockUserId, '')).rejects.toThrow(
+        'Event ID is required',
+      );
     });
   });
 
   describe('event verification', () => {
     it('should throw error if event does not exist', async () => {
       mockGet.mockResolvedValueOnce({ exists: false }); // First call for event existence check
-      
+
       await expect(fetchCategories(mockUserId, mockEventId)).rejects.toThrow(
-        'Event not found. Please ensure the event exists.'
+        'Event not found. Please ensure the event exists.',
       );
     });
   });
@@ -109,9 +113,9 @@ describe('fetchCategories', () => {
 
     it('should return categories when they exist', async () => {
       mockGet.mockResolvedValueOnce({ exists: true }); // Event exists
-      mockGet.mockResolvedValueOnce({ 
-        empty: false, 
-        docs: [mockCategoryDoc] 
+      mockGet.mockResolvedValueOnce({
+        empty: false,
+        docs: [mockCategoryDoc],
       }); // Categories exist
 
       const result = await fetchCategories(mockUserId, mockEventId);
@@ -149,9 +153,9 @@ describe('fetchCategories', () => {
       };
 
       mockGet.mockResolvedValueOnce({ exists: true }); // Event exists
-      mockGet.mockResolvedValueOnce({ 
-        empty: false, 
-        docs: [mockCategoryDoc, mockCategory2Doc] 
+      mockGet.mockResolvedValueOnce({
+        empty: false,
+        docs: [mockCategoryDoc, mockCategory2Doc],
       }); // Multiple categories
 
       const result = await fetchCategories(mockUserId, mockEventId);
@@ -173,9 +177,9 @@ describe('fetchCategories', () => {
       };
 
       mockGet.mockResolvedValueOnce({ exists: true }); // Event exists
-      mockGet.mockResolvedValueOnce({ 
-        empty: false, 
-        docs: [mockDocWithoutDesc] 
+      mockGet.mockResolvedValueOnce({
+        empty: false,
+        docs: [mockDocWithoutDesc],
       });
 
       const result = await fetchCategories(mockUserId, mockEventId);
@@ -191,7 +195,7 @@ describe('fetchCategories', () => {
       mockGet.mockRejectedValue(firestoreError);
 
       await expect(fetchCategories(mockUserId, mockEventId)).rejects.toThrow(
-        'Failed to fetch categories: Firestore connection failed'
+        'Failed to fetch categories: Firestore connection failed',
       );
     });
 
@@ -199,7 +203,7 @@ describe('fetchCategories', () => {
       mockGet.mockRejectedValue('Unknown error');
 
       await expect(fetchCategories(mockUserId, mockEventId)).rejects.toThrow(
-        'Failed to fetch categories: Unknown error'
+        'Failed to fetch categories: Unknown error',
       );
     });
   });

@@ -1,5 +1,9 @@
-import { describe, it, expect } from 'vitest';
-import { truncateText, truncateForMobile, truncateForBreadcrumb } from './textUtils';
+import { describe, expect, it } from 'vitest';
+import {
+  truncateForBreadcrumb,
+  truncateForMobile,
+  truncateText,
+} from './textUtils';
 
 describe('textUtils', () => {
   describe('truncateText', () => {
@@ -19,12 +23,18 @@ describe('textUtils', () => {
     });
 
     it('should preserve words when enabled', () => {
-      const result = truncateText('Hello World Test', { maxLength: 15, preserveWords: true });
+      const result = truncateText('Hello World Test', {
+        maxLength: 15,
+        preserveWords: true,
+      });
       expect(result).toBe('Hello World...');
     });
 
     it('should fallback to character truncation if word preservation fails', () => {
-      const result = truncateText('Supercalifragilisticexpialidocious', { maxLength: 10, preserveWords: true });
+      const result = truncateText('Supercalifragilisticexpialidocious', {
+        maxLength: 10,
+        preserveWords: true,
+      });
       expect(result).toBe('Superca...');
     });
 

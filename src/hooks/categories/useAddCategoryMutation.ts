@@ -7,11 +7,19 @@ import type { BudgetCategory } from '@/types/BudgetCategory';
 export interface UseAddCategoryMutationOptions {
   onSuccess?: (
     id: string,
-    variables: { userId: string; eventId: string; addCategoryDto: AddCategoryDto },
+    variables: {
+      userId: string;
+      eventId: string;
+      addCategoryDto: AddCategoryDto;
+    },
   ) => void;
   onError?: (
     error: Error,
-    variables: { userId: string; eventId: string; addCategoryDto: AddCategoryDto },
+    variables: {
+      userId: string;
+      eventId: string;
+      addCategoryDto: AddCategoryDto;
+    },
   ) => void;
 }
 
@@ -43,10 +51,10 @@ export interface UseAddCategoryMutationOptions {
  *     color: formData.color,
  *   };
  *
- *   addCategoryMutation.mutate({ 
- *     userId: user.id, 
- *     eventId: currentEvent.id, 
- *     addCategoryDto: categoryDto 
+ *   addCategoryMutation.mutate({
+ *     userId: user.id,
+ *     eventId: currentEvent.id,
+ *     addCategoryDto: categoryDto
  *   });
  * };
  * ```
@@ -58,7 +66,9 @@ export interface UseAddCategoryMutationOptions {
  * - ✅ Loading states via isPending
  * - ✅ Server action integration
  */
-export function useAddCategoryMutation(options?: UseAddCategoryMutationOptions) {
+export function useAddCategoryMutation(
+  options?: UseAddCategoryMutationOptions,
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -74,32 +84,38 @@ export function useAddCategoryMutation(options?: UseAddCategoryMutationOptions) 
       // Validation
       if (!userId) throw new Error('User ID is required');
       if (!eventId) throw new Error('Event ID is required');
-      if (!addCategoryDto.name?.trim()) throw new Error('Category name is required');
-      if (addCategoryDto.budgetedAmount < 0) throw new Error('Budget amount cannot be negative');
-      if (!addCategoryDto.color?.trim()) throw new Error('Category color is required');
+      if (!addCategoryDto.name?.trim())
+        throw new Error('Category name is required');
+      if (addCategoryDto.budgetedAmount < 0)
+        throw new Error('Budget amount cannot be negative');
+      if (!addCategoryDto.color?.trim())
+        throw new Error('Category color is required');
 
       // Call server action
       return addCategory(addCategoryDto);
     },
     onSuccess: (id, variables) => {
       // Optimistically update the cache with the new category
-      queryClient.setQueryData(['categories', variables.eventId], (oldData: BudgetCategory[] = []) => {
-        const newCategory: BudgetCategory = {
-          id,
-          name: variables.addCategoryDto.name,
-          description: variables.addCategoryDto.description || '',
-          budgetedAmount: variables.addCategoryDto.budgetedAmount,
-          scheduledAmount: 0,
-          spentAmount: 0,
-          color: variables.addCategoryDto.color,
-          icon: variables.addCategoryDto.icon || '🎉',
-          _createdDate: new Date(),
-          _createdBy: variables.userId,
-          _updatedDate: new Date(),
-          _updatedBy: variables.userId,
-        };
-        return [...oldData, newCategory];
-      });
+      queryClient.setQueryData(
+        ['categories', variables.eventId],
+        (oldData: BudgetCategory[] = []) => {
+          const newCategory: BudgetCategory = {
+            id,
+            name: variables.addCategoryDto.name,
+            description: variables.addCategoryDto.description || '',
+            budgetedAmount: variables.addCategoryDto.budgetedAmount,
+            scheduledAmount: 0,
+            spentAmount: 0,
+            color: variables.addCategoryDto.color,
+            icon: variables.addCategoryDto.icon || '🎉',
+            _createdDate: new Date(),
+            _createdBy: variables.userId,
+            _updatedDate: new Date(),
+            _updatedBy: variables.userId,
+          };
+          return [...oldData, newCategory];
+        },
+      );
 
       // Invalidate and refetch categories for this event to get server truth
       queryClient.invalidateQueries({
@@ -116,7 +132,7 @@ export function useAddCategoryMutation(options?: UseAddCategoryMutationOptions) 
     },
     onError: (error, variables) => {
       console.error('Failed to add category:', error);
-      
+
       // Call custom error handler
       options?.onError?.(error as Error, variables);
     },

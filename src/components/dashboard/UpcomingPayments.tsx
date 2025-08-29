@@ -9,7 +9,8 @@ import React from 'react';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import type { Payment } from '@/types/Payment';
 
-interface UpcomingPayment extends Pick<Payment, 'id' | 'name' | 'amount' | 'dueDate'> {
+interface UpcomingPayment
+  extends Pick<Payment, 'id' | 'name' | 'amount' | 'dueDate'> {
   daysUntilDue: number;
   category: string;
   priority: 'low' | 'medium' | 'high';
@@ -20,8 +21,6 @@ interface UpcomingPaymentsProps {
 }
 
 export default function UpcomingPayments({ payments }: UpcomingPaymentsProps) {
-
-
   const getPriorityIcon = (priority: string, daysUntilDue: number) => {
     if (daysUntilDue < 0) {
       return <ExclamationTriangleIcon className='h-5 w-5 text-danger-600' />;

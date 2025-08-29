@@ -46,7 +46,7 @@ describe('formatters', () => {
     });
 
     it('should format negative numbers correctly', () => {
-      expect(formatCurrencyWithCents(-100.50)).toBe('-$100.50');
+      expect(formatCurrencyWithCents(-100.5)).toBe('-$100.50');
       expect(formatCurrencyWithCents(-1234.56)).toBe('-$1,234.56');
     });
 
@@ -94,13 +94,21 @@ describe('formatters', () => {
     });
 
     it('should handle different days of week', () => {
-      expect(formatDateLong(new Date('2024-01-01'))).toBe('Monday, January 1, 2024');
-      expect(formatDateLong(new Date('2024-12-25'))).toBe('Wednesday, December 25, 2024');
+      expect(formatDateLong(new Date('2024-01-01'))).toBe(
+        'Monday, January 1, 2024',
+      );
+      expect(formatDateLong(new Date('2024-12-25'))).toBe(
+        'Wednesday, December 25, 2024',
+      );
     });
 
     it('should handle all months in long format', () => {
-      expect(formatDateLong(new Date('2024-02-14'))).toBe('Wednesday, February 14, 2024');
-      expect(formatDateLong(new Date('2024-11-28'))).toBe('Thursday, November 28, 2024');
+      expect(formatDateLong(new Date('2024-02-14'))).toBe(
+        'Wednesday, February 14, 2024',
+      );
+      expect(formatDateLong(new Date('2024-11-28'))).toBe(
+        'Thursday, November 28, 2024',
+      );
     });
   });
 
@@ -115,10 +123,10 @@ describe('formatters', () => {
     it('should handle different times', () => {
       const morningDate = new Date('2024-03-15T09:00:00');
       const eveningDate = new Date('2024-03-15T21:45:00');
-      
+
       const morningResult = formatDateTime(morningDate);
       const eveningResult = formatDateTime(eveningDate);
-      
+
       expect(morningResult).toMatch(/9:00/);
       expect(eveningResult).toMatch(/9:45/);
     });
@@ -126,7 +134,7 @@ describe('formatters', () => {
     it('should include year, month, day and time', () => {
       const date = new Date('2023-12-31T23:59:00');
       const result = formatDateTime(date);
-      
+
       expect(result).toContain('2023');
       expect(result).toMatch(/Dec 31/);
       expect(result).toMatch(/11:59/);
@@ -179,7 +187,7 @@ describe('formatters', () => {
       const userInput = '$1,234.56';
       const sanitized = sanitizeCurrencyInput(userInput);
       const formatted = formatCurrency(sanitized);
-      
+
       expect(sanitized).toBe(1234.56);
       expect(formatted).toBe('$1,235');
     });
@@ -188,7 +196,7 @@ describe('formatters', () => {
       const userInput = 'invalid input';
       const sanitized = sanitizeCurrencyInput(userInput);
       const formatted = formatCurrency(sanitized);
-      
+
       expect(sanitized).toBe(0);
       expect(formatted).toBe('$0');
     });

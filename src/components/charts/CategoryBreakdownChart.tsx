@@ -29,7 +29,6 @@ export default function CategoryBreakdownChart({
 }: CategoryBreakdownChartProps) {
   const [activeIndex, setActiveIndex] = useState<number>(-1);
 
-
   const getCategoryIcon = (name: string) => {
     const icons: Record<string, string> = {
       'Venue & Reception': '🏛️',
@@ -104,7 +103,8 @@ export default function CategoryBreakdownChart({
           No Budget Categories Yet
         </h3>
         <p className='text-gray-600 max-w-md'>
-          Create budget categories and allocate amounts to see your spending breakdown here.
+          Create budget categories and allocate amounts to see your spending
+          breakdown here.
         </p>
       </div>
     );
@@ -224,7 +224,12 @@ export default function CategoryBreakdownChart({
               <td>{item.name}</td>
               <td>{formatCurrency(item.budgeted)}</td>
               <td>{formatCurrency(item.spent)}</td>
-              <td>{isNaN(pieData[index].percentage) ? '0.0' : pieData[index].percentage.toFixed(1)}%</td>
+              <td>
+                {isNaN(pieData[index].percentage)
+                  ? '0.0'
+                  : pieData[index].percentage.toFixed(1)}
+                %
+              </td>
             </tr>
           ))}
         </tbody>

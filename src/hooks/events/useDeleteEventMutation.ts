@@ -1,18 +1,15 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type {
+  DeleteEventDto,
+  DeleteEventResult,
+} from '@/server/actions/events';
 import { deleteEvent } from '@/server/actions/events';
-import type { DeleteEventDto, DeleteEventResult } from '@/server/actions/events';
 
 export interface UseDeleteEventMutationOptions {
-  onSuccess?: (
-    result: DeleteEventResult,
-    variables: DeleteEventDto,
-  ) => void;
-  onError?: (
-    error: Error,
-    variables: DeleteEventDto,
-  ) => void;
+  onSuccess?: (result: DeleteEventResult, variables: DeleteEventDto) => void;
+  onError?: (error: Error, variables: DeleteEventDto) => void;
 }
 
 /**
@@ -35,7 +32,7 @@ export interface UseDeleteEventMutationOptions {
  *
  * const handleDelete = () => {
  *   if (!eventToDelete) return;
- *   
+ *
  *   deleteEventMutation.mutate({
  *     userId: user.uid,
  *     eventId: eventToDelete.id,
@@ -51,11 +48,15 @@ export interface UseDeleteEventMutationOptions {
  * - ✅ Cleans up related data (expenses, categories, payments)
  * - ❌ No optimistic updates (hard delete requires confirmation)
  */
-export function useDeleteEventMutation(options?: UseDeleteEventMutationOptions) {
+export function useDeleteEventMutation(
+  options?: UseDeleteEventMutationOptions,
+) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (deleteEventDto: DeleteEventDto): Promise<DeleteEventResult> => {
+    mutationFn: async (
+      deleteEventDto: DeleteEventDto,
+    ): Promise<DeleteEventResult> => {
       // Validation
       if (!deleteEventDto.userId) throw new Error('User ID is required');
       if (!deleteEventDto.eventId) throw new Error('Event ID is required');
@@ -94,7 +95,7 @@ export function useDeleteEventMutation(options?: UseDeleteEventMutationOptions) 
     },
     onError: (error, variables) => {
       console.error('Failed to delete event:', error);
-      
+
       // Call custom error handler
       options?.onError?.(error as Error, variables);
     },

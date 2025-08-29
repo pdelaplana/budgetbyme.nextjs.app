@@ -1,10 +1,10 @@
 'use server';
 
-import { db } from '@/server/lib/firebase-admin';
-import { getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
-import type { PaymentMethod } from '@/types/Payment';
-import type { PaymentDocument } from '@/server/types/PaymentDocument';
 import { Timestamp } from 'firebase-admin/firestore';
+import { getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
+import { db } from '@/server/lib/firebase-admin';
+import type { PaymentDocument } from '@/server/types/PaymentDocument';
+import type { PaymentMethod } from '@/types/Payment';
 
 interface CreateSinglePaymentDto {
   userId: string;
@@ -18,7 +18,9 @@ interface CreateSinglePaymentDto {
   notes?: string;
 }
 
-export async function createSinglePayment(dto: CreateSinglePaymentDto): Promise<string> {
+export async function createSinglePayment(
+  dto: CreateSinglePaymentDto,
+): Promise<string> {
   try {
     const { userId, eventId, expenseId, paidDate, ...paymentData } = dto;
 
@@ -27,8 +29,15 @@ export async function createSinglePayment(dto: CreateSinglePaymentDto): Promise<
       throw new Error('Missing required fields: userId, eventId, or expenseId');
     }
 
-    if (!paymentData.name || !paymentData.description || !paymentData.amount || paymentData.amount <= 0) {
-      throw new Error('Payment name, description and valid amount are required');
+    if (
+      !paymentData.name ||
+      !paymentData.description ||
+      !paymentData.amount ||
+      paymentData.amount <= 0
+    ) {
+      throw new Error(
+        'Payment name, description and valid amount are required',
+      );
     }
 
     if (!paidDate) {
@@ -63,7 +72,11 @@ export async function createSinglePayment(dto: CreateSinglePaymentDto): Promise<
       .doc(expenseId);
 
     // Update category spentAmount and event totals since this payment is already marked as paid
-    const categoryId = await getCategoryIdFromExpense(userId, eventId, expenseId);
+    const categoryId = await getCategoryIdFromExpense(
+      userId,
+      eventId,
+      expenseId,
+    );
     if (categoryId && paymentData.amount > 0) {
       // Start batch transaction for all updates
       const batch = db.batch();
@@ -89,7 +102,8 @@ export async function createSinglePayment(dto: CreateSinglePaymentDto): Promise<
       const categoryDoc = await categoryRef.get();
       if (categoryDoc.exists) {
         const categoryData = categoryDoc.data()!;
-        const newSpentAmount = (categoryData.spentAmount || 0) + paymentData.amount;
+        const newSpentAmount =
+          (categoryData.spentAmount || 0) + paymentData.amount;
 
         batch.update(categoryRef, {
           spentAmount: newSpentAmount,
@@ -108,7 +122,8 @@ export async function createSinglePayment(dto: CreateSinglePaymentDto): Promise<
       const eventDoc = await eventRef.get();
       if (eventDoc.exists) {
         const eventData = eventDoc.data()!;
-        const newTotalSpentAmount = (eventData.totalSpentAmount || 0) + paymentData.amount;
+        const newTotalSpentAmount =
+          (eventData.totalSpentAmount || 0) + paymentData.amount;
 
         batch.update(eventRef, {
           totalSpentAmount: newTotalSpentAmount,
@@ -135,6 +150,10 @@ export async function createSinglePayment(dto: CreateSinglePaymentDto): Promise<
     return paymentId;
   } catch (error) {
     console.error('Error creating single payment:', error);
-    throw new Error(error instanceof Error ? error.message : 'Failed to create single payment');
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : 'Failed to create single payment',
+    );
   }
 }

@@ -2,7 +2,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { db } from '../../lib/firebase-admin';
 import type { BudgetCategoryDocument } from '../../types/BudgetCategoryDocument';
-import { addCategory, type AddCategoryDto } from './addCategory';
+import { type AddCategoryDto, addCategory } from './addCategory';
 
 // Mock Firebase Admin
 vi.mock('../../lib/firebase-admin', () => ({
@@ -73,49 +73,59 @@ describe('addCategory', () => {
   describe('validation', () => {
     it('should throw error if userId is missing', async () => {
       const dto = { ...validAddCategoryDto, userId: '' };
-      
+
       await expect(addCategory(dto)).rejects.toThrow('User ID is required');
     });
 
     it('should throw error if eventId is missing', async () => {
       const dto = { ...validAddCategoryDto, eventId: '' };
-      
+
       await expect(addCategory(dto)).rejects.toThrow('Event ID is required');
     });
 
     it('should throw error if name is missing', async () => {
       const dto = { ...validAddCategoryDto, name: '' };
-      
-      await expect(addCategory(dto)).rejects.toThrow('Category name is required');
+
+      await expect(addCategory(dto)).rejects.toThrow(
+        'Category name is required',
+      );
     });
 
     it('should throw error if name is only whitespace', async () => {
       const dto = { ...validAddCategoryDto, name: '   ' };
-      
-      await expect(addCategory(dto)).rejects.toThrow('Category name is required');
+
+      await expect(addCategory(dto)).rejects.toThrow(
+        'Category name is required',
+      );
     });
 
     it('should throw error if budgettedAmount is negative', async () => {
       const dto = { ...validAddCategoryDto, budgettedAmount: -100 };
-      
-      await expect(addCategory(dto)).rejects.toThrow('Budget amount cannot be negative');
+
+      await expect(addCategory(dto)).rejects.toThrow(
+        'Budget amount cannot be negative',
+      );
     });
 
     it('should throw error if color is missing', async () => {
       const dto = { ...validAddCategoryDto, color: '' };
-      
-      await expect(addCategory(dto)).rejects.toThrow('Category color is required');
+
+      await expect(addCategory(dto)).rejects.toThrow(
+        'Category color is required',
+      );
     });
 
     it('should throw error if color is only whitespace', async () => {
       const dto = { ...validAddCategoryDto, color: '   ' };
-      
-      await expect(addCategory(dto)).rejects.toThrow('Category color is required');
+
+      await expect(addCategory(dto)).rejects.toThrow(
+        'Category color is required',
+      );
     });
 
     it('should allow budgettedAmount of zero', async () => {
       const dto = { ...validAddCategoryDto, budgettedAmount: 0 };
-      
+
       const result = await addCategory(dto);
       expect(result).toBe(mockCategoryId);
     });
@@ -124,9 +134,9 @@ describe('addCategory', () => {
   describe('event verification', () => {
     it('should throw error if event does not exist', async () => {
       mockGet.mockResolvedValue({ exists: false });
-      
+
       await expect(addCategory(validAddCategoryDto)).rejects.toThrow(
-        'Event not found. Please ensure the event exists.'
+        'Event not found. Please ensure the event exists.',
       );
     });
   });
@@ -145,7 +155,7 @@ describe('addCategory', () => {
           color: validAddCategoryDto.color,
           _createdBy: mockUserId,
           _updatedBy: mockUserId,
-        })
+        }),
       );
 
       // Verify timestamps are Timestamp objects
@@ -167,7 +177,7 @@ describe('addCategory', () => {
         expect.objectContaining({
           name: 'Venue & Reception',
           description: 'Wedding venue costs',
-        })
+        }),
       );
     });
 
@@ -179,7 +189,7 @@ describe('addCategory', () => {
       expect(mockSet).toHaveBeenCalledWith(
         expect.objectContaining({
           description: '',
-        })
+        }),
       );
     });
 
@@ -191,7 +201,7 @@ describe('addCategory', () => {
       expect(mockSet).toHaveBeenCalledWith(
         expect.objectContaining({
           color: '#059669',
-        })
+        }),
       );
     });
 
@@ -201,7 +211,7 @@ describe('addCategory', () => {
       expect(mockSet).toHaveBeenCalledWith(
         expect.objectContaining({
           spentAmount: 0,
-        })
+        }),
       );
     });
   });
@@ -212,7 +222,7 @@ describe('addCategory', () => {
       mockSet.mockRejectedValue(firestoreError);
 
       await expect(addCategory(validAddCategoryDto)).rejects.toThrow(
-        'Failed to create category: Firestore connection failed'
+        'Failed to create category: Firestore connection failed',
       );
     });
 
@@ -220,7 +230,7 @@ describe('addCategory', () => {
       mockSet.mockRejectedValue('Unknown error');
 
       await expect(addCategory(validAddCategoryDto)).rejects.toThrow(
-        'Failed to create category: Unknown error'
+        'Failed to create category: Unknown error',
       );
     });
   });

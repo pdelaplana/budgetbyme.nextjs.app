@@ -1,13 +1,16 @@
 'use server';
 
-import { db } from '@/server/lib/firebase-admin';
-import { subtractFromCategorySpentAmount, getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
 import { Timestamp } from 'firebase-admin/firestore';
+import {
+  getCategoryIdFromExpense,
+  subtractFromCategorySpentAmount,
+} from '@/server/lib/categoryUtils';
+import { db } from '@/server/lib/firebase-admin';
 
 export async function clearAllPayments(
   userId: string,
   eventId: string,
-  expenseId: string
+  expenseId: string,
 ): Promise<void> {
   try {
     if (!userId || !eventId || !expenseId) {
@@ -54,15 +57,26 @@ export async function clearAllPayments(
 
     // Update category spentAmount to subtract the paid amounts that were cleared
     if (totalPaidAmount > 0) {
-      const categoryId = await getCategoryIdFromExpense(userId, eventId, expenseId);
+      const categoryId = await getCategoryIdFromExpense(
+        userId,
+        eventId,
+        expenseId,
+      );
       if (categoryId) {
-        await subtractFromCategorySpentAmount(userId, eventId, categoryId, totalPaidAmount);
+        await subtractFromCategorySpentAmount(
+          userId,
+          eventId,
+          categoryId,
+          totalPaidAmount,
+        );
       }
     }
 
     console.log('All payments cleared for expense:', expenseId);
   } catch (error) {
     console.error('Error clearing payments:', error);
-    throw new Error(error instanceof Error ? error.message : 'Failed to clear payments');
+    throw new Error(
+      error instanceof Error ? error.message : 'Failed to clear payments',
+    );
   }
 }

@@ -3,13 +3,13 @@ import {
   type QueryDocumentSnapshot,
   Timestamp,
 } from 'firebase-admin/firestore';
-import { UserWorkspace } from '@/types/UserWorkspace';
+import type { UserWorkspace } from '@/types/UserWorkspace';
 import type {
   BudgetCategory,
   BudgetCategoryDocument,
 } from '../../types/firestore/BudgetCategory';
 import type { Event, EventDocument } from '../../types/firestore/Event';
-import { UserWorkspaceDocument } from './UserWorkspaceDocument';
+import type { UserWorkspaceDocument } from './UserWorkspaceDocument';
 
 // Utility functions for converting between Firestore and client types
 export const convertTimestamp = (timestamp: Timestamp): Date =>

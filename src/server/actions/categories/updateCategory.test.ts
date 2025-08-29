@@ -1,7 +1,7 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { db } from '../../lib/firebase-admin';
-import { updateCategory, type UpdateCategoryDto } from './updateCategory';
+import { type UpdateCategoryDto, updateCategory } from './updateCategory';
 
 // Mock Firebase Admin
 vi.mock('../../lib/firebase-admin', () => ({
@@ -70,20 +70,22 @@ describe('updateCategory', () => {
   describe('validation', () => {
     it('should throw error if userId is missing', async () => {
       const dto = { ...validUpdateDto, userId: '' };
-      
+
       await expect(updateCategory(dto)).rejects.toThrow('User ID is required');
     });
 
     it('should throw error if eventId is missing', async () => {
       const dto = { ...validUpdateDto, eventId: '' };
-      
+
       await expect(updateCategory(dto)).rejects.toThrow('Event ID is required');
     });
 
     it('should throw error if categoryId is missing', async () => {
       const dto = { ...validUpdateDto, categoryId: '' };
-      
-      await expect(updateCategory(dto)).rejects.toThrow('Category ID is required');
+
+      await expect(updateCategory(dto)).rejects.toThrow(
+        'Category ID is required',
+      );
     });
 
     it('should throw error if no fields are provided for update', async () => {
@@ -92,50 +94,62 @@ describe('updateCategory', () => {
         eventId: mockEventId,
         categoryId: mockCategoryId,
       };
-      
-      await expect(updateCategory(dto)).rejects.toThrow('At least one field must be provided for update');
+
+      await expect(updateCategory(dto)).rejects.toThrow(
+        'At least one field must be provided for update',
+      );
     });
 
     it('should throw error if budgettedAmount is negative', async () => {
       const dto = { ...validUpdateDto, budgettedAmount: -100 };
-      
-      await expect(updateCategory(dto)).rejects.toThrow('Budget amount cannot be negative');
+
+      await expect(updateCategory(dto)).rejects.toThrow(
+        'Budget amount cannot be negative',
+      );
     });
 
     it('should throw error if name is empty string', async () => {
       const dto = { ...validUpdateDto, name: '' };
-      
-      await expect(updateCategory(dto)).rejects.toThrow('Category name cannot be empty');
+
+      await expect(updateCategory(dto)).rejects.toThrow(
+        'Category name cannot be empty',
+      );
     });
 
     it('should throw error if name is only whitespace', async () => {
       const dto = { ...validUpdateDto, name: '   ' };
-      
-      await expect(updateCategory(dto)).rejects.toThrow('Category name cannot be empty');
+
+      await expect(updateCategory(dto)).rejects.toThrow(
+        'Category name cannot be empty',
+      );
     });
 
     it('should throw error if color is empty string', async () => {
       const dto = { ...validUpdateDto, color: '' };
-      
-      await expect(updateCategory(dto)).rejects.toThrow('Category color cannot be empty');
+
+      await expect(updateCategory(dto)).rejects.toThrow(
+        'Category color cannot be empty',
+      );
     });
 
     it('should throw error if color is only whitespace', async () => {
       const dto = { ...validUpdateDto, color: '   ' };
-      
-      await expect(updateCategory(dto)).rejects.toThrow('Category color cannot be empty');
+
+      await expect(updateCategory(dto)).rejects.toThrow(
+        'Category color cannot be empty',
+      );
     });
 
     it('should allow budgettedAmount of zero', async () => {
       const dto = { ...validUpdateDto, budgettedAmount: 0 };
-      
+
       const result = await updateCategory(dto);
       expect(result).toBe(mockCategoryId);
     });
 
     it('should allow empty description', async () => {
       const dto = { ...validUpdateDto, description: '' };
-      
+
       const result = await updateCategory(dto);
       expect(result).toBe(mockCategoryId);
     });
@@ -144,9 +158,9 @@ describe('updateCategory', () => {
   describe('category existence check', () => {
     it('should throw error if category does not exist', async () => {
       mockGet.mockResolvedValue({ exists: false });
-      
+
       await expect(updateCategory(validUpdateDto)).rejects.toThrow(
-        'Category not found. Please ensure the category exists.'
+        'Category not found. Please ensure the category exists.',
       );
     });
   });
@@ -290,7 +304,7 @@ describe('updateCategory', () => {
       mockUpdate.mockRejectedValue(firestoreError);
 
       await expect(updateCategory(validUpdateDto)).rejects.toThrow(
-        'Failed to update category: Firestore connection failed'
+        'Failed to update category: Firestore connection failed',
       );
     });
 
@@ -298,7 +312,7 @@ describe('updateCategory', () => {
       mockUpdate.mockRejectedValue('Unknown error');
 
       await expect(updateCategory(validUpdateDto)).rejects.toThrow(
-        'Failed to update category: Unknown error'
+        'Failed to update category: Unknown error',
       );
     });
   });

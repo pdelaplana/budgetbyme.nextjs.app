@@ -1,9 +1,9 @@
 'use server';
 
-import { db } from '@/server/lib/firebase-admin';
-import type { PaymentMethod } from '@/types/Payment';
-import type { PaymentDocument } from '@/server/types/PaymentDocument';
 import { Timestamp } from 'firebase-admin/firestore';
+import { db } from '@/server/lib/firebase-admin';
+import type { PaymentDocument } from '@/server/types/PaymentDocument';
+import type { PaymentMethod } from '@/types/Payment';
 
 interface CreatePaymentScheduleDto {
   userId: string;
@@ -19,7 +19,9 @@ interface CreatePaymentScheduleDto {
   }>;
 }
 
-export async function createPaymentSchedule(dto: CreatePaymentScheduleDto): Promise<void> {
+export async function createPaymentSchedule(
+  dto: CreatePaymentScheduleDto,
+): Promise<void> {
   try {
     const { userId, eventId, expenseId, payments } = dto;
 
@@ -29,25 +31,29 @@ export async function createPaymentSchedule(dto: CreatePaymentScheduleDto): Prom
     }
 
     if (!payments || payments.length === 0) {
-      throw new Error('At least one payment is required for a payment schedule');
+      throw new Error(
+        'At least one payment is required for a payment schedule',
+      );
     }
 
     const now = Timestamp.now();
 
     // Convert all payments to PaymentDocument format
-    const paymentSchedule: PaymentDocument[] = payments.map((payment, index) => ({
-      name: payment.name,
-      description: payment.description,
-      amount: payment.amount,
-      paymentMethod: payment.paymentMethod,
-      dueDate: Timestamp.fromDate(payment.dueDate),
-      isPaid: false,
-      notes: payment.notes || '',
-      _createdDate: Timestamp.fromMillis(now.toMillis() + index), // Ensure unique timestamps
-      _createdBy: userId,
-      _updatedDate: Timestamp.fromMillis(now.toMillis() + index),
-      _updatedBy: userId,
-    }));
+    const paymentSchedule: PaymentDocument[] = payments.map(
+      (payment, index) => ({
+        name: payment.name,
+        description: payment.description,
+        amount: payment.amount,
+        paymentMethod: payment.paymentMethod,
+        dueDate: Timestamp.fromDate(payment.dueDate),
+        isPaid: false,
+        notes: payment.notes || '',
+        _createdDate: Timestamp.fromMillis(now.toMillis() + index), // Ensure unique timestamps
+        _createdBy: userId,
+        _updatedDate: Timestamp.fromMillis(now.toMillis() + index),
+        _updatedBy: userId,
+      }),
+    );
 
     // Get expense reference
     const expenseRef = db
@@ -67,9 +73,16 @@ export async function createPaymentSchedule(dto: CreatePaymentScheduleDto): Prom
       _updatedBy: userId,
     });
 
-    console.log(`Payment schedule created successfully with ${payments.length} payments for expense:`, expenseId);
+    console.log(
+      `Payment schedule created successfully with ${payments.length} payments for expense:`,
+      expenseId,
+    );
   } catch (error) {
     console.error('Error creating payment schedule:', error);
-    throw new Error(error instanceof Error ? error.message : 'Failed to create payment schedule');
+    throw new Error(
+      error instanceof Error
+        ? error.message
+        : 'Failed to create payment schedule',
+    );
   }
 }

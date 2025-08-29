@@ -1,8 +1,9 @@
 'use server';
+
 // Server action to update payment schedule
 
-import { revalidateTag } from 'next/cache';
 import { Timestamp } from 'firebase-admin/firestore';
+import { revalidateTag } from 'next/cache';
 import { db } from '@/server/lib/firebase-admin';
 import type { Payment, PaymentMethod } from '@/types/Payment';
 
@@ -66,7 +67,9 @@ export async function updatePaymentSchedule({
       _updatedBy: userId,
     });
 
-    console.log(`Payment schedule updated successfully with ${paymentSchedule.length} payments for expense: ${expenseId}`);
+    console.log(
+      `Payment schedule updated successfully with ${paymentSchedule.length} payments for expense: ${expenseId}`,
+    );
 
     // Revalidate cache
     revalidateTag(`expenses-${userId}-${eventId}`);

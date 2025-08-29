@@ -26,10 +26,11 @@ export const updateCategory = withSentryServerAction(
   async (updateCategoryDto: UpdateCategoryDto): Promise<string> => {
     if (!updateCategoryDto.userId) throw new Error('User ID is required');
     if (!updateCategoryDto.eventId) throw new Error('Event ID is required');
-    if (!updateCategoryDto.categoryId) throw new Error('Category ID is required');
+    if (!updateCategoryDto.categoryId)
+      throw new Error('Category ID is required');
 
     // Validate that at least one field is being updated
-    const hasUpdates = 
+    const hasUpdates =
       updateCategoryDto.name !== undefined ||
       updateCategoryDto.description !== undefined ||
       updateCategoryDto.budgetedAmount !== undefined ||
@@ -41,7 +42,10 @@ export const updateCategory = withSentryServerAction(
     }
 
     // Validate budget amount if provided
-    if (updateCategoryDto.budgetedAmount !== undefined && updateCategoryDto.budgetedAmount < 0) {
+    if (
+      updateCategoryDto.budgetedAmount !== undefined &&
+      updateCategoryDto.budgetedAmount < 0
+    ) {
       throw new Error('Budget amount cannot be negative');
     }
 
@@ -73,7 +77,9 @@ export const updateCategory = withSentryServerAction(
       // Verify category exists
       const categoryDoc = await categoryRef.get();
       if (!categoryDoc.exists) {
-        throw new Error('Category not found. Please ensure the category exists.');
+        throw new Error(
+          'Category not found. Please ensure the category exists.',
+        );
       }
 
       // Prepare update data
@@ -123,7 +129,9 @@ export const updateCategory = withSentryServerAction(
           userId: updateCategoryDto.userId,
           eventId: updateCategoryDto.eventId,
           categoryId: updateCategoryDto.categoryId,
-          updatedFields: Object.keys(updateData).filter(key => !key.startsWith('_')),
+          updatedFields: Object.keys(updateData).filter(
+            (key) => !key.startsWith('_'),
+          ),
         },
       });
 

@@ -1,11 +1,11 @@
 'use server';
 
 import * as Sentry from '@sentry/nextjs';
+import type { Currency } from '@/types/currencies';
+import type { Event, EventStatus, EventType } from '@/types/Event';
 import { db } from '../../lib/firebase-admin';
 import { withSentryServerAction } from '../../lib/sentryServerAction';
 import type { EventDocument } from '../../types/EventDocument';
-import type { Event, EventStatus, EventType } from '@/types/Event';
-import type { Currency } from '@/types/currencies';
 
 /**
  * Server action to fetch all events for a user workspace from Firestore
@@ -54,11 +54,14 @@ export const fetchEvents = withSentryServerAction(
       // Convert all documents to Event objects with full conversion
       const events: Event[] = snapshot.docs.map((doc) => {
         const data = doc.data() as EventDocument;
-        
+
         // Calculate spent percentage
-        const spentPercentage = data.totalBudgetedAmount > 0
-          ? Math.round((data.totalSpentAmount / data.totalBudgetedAmount) * 100)
-          : 0;
+        const spentPercentage =
+          data.totalBudgetedAmount > 0
+            ? Math.round(
+                (data.totalSpentAmount / data.totalBudgetedAmount) * 100,
+              )
+            : 0;
 
         return {
           id: doc.id,

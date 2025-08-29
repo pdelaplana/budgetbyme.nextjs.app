@@ -1,15 +1,15 @@
 'use server';
 
+import { Timestamp } from 'firebase-admin/firestore';
 import { db } from '@/server/lib/firebase-admin';
 import type { UpdatePaymentDto } from '@/types/Payment';
-import { Timestamp } from 'firebase-admin/firestore';
 
 export async function updatePaymentInExpense(
   userId: string,
   eventId: string,
   expenseId: string,
   paymentId: string,
-  updateData: UpdatePaymentDto
+  updateData: UpdatePaymentDto,
 ): Promise<void> {
   try {
     if (!userId || !eventId || !expenseId || !paymentId) {
@@ -38,15 +38,23 @@ export async function updatePaymentInExpense(
 
     // Build update fields for payment
     const paymentUpdateFields: any = {};
-    if (updateData.name !== undefined) paymentUpdateFields.name = updateData.name;
-    if (updateData.description !== undefined) paymentUpdateFields.description = updateData.description;
-    if (updateData.amount !== undefined) paymentUpdateFields.amount = updateData.amount;
-    if (updateData.paymentMethod !== undefined) paymentUpdateFields.paymentMethod = updateData.paymentMethod;
-    if (updateData.isPaid !== undefined) paymentUpdateFields.isPaid = updateData.isPaid;
-    if (updateData.dueDate !== undefined) paymentUpdateFields.dueDate = Timestamp.fromDate(updateData.dueDate);
-    if (updateData.paidDate !== undefined) paymentUpdateFields.paidDate = Timestamp.fromDate(updateData.paidDate);
-    if (updateData.notes !== undefined) paymentUpdateFields.notes = updateData.notes;
-    
+    if (updateData.name !== undefined)
+      paymentUpdateFields.name = updateData.name;
+    if (updateData.description !== undefined)
+      paymentUpdateFields.description = updateData.description;
+    if (updateData.amount !== undefined)
+      paymentUpdateFields.amount = updateData.amount;
+    if (updateData.paymentMethod !== undefined)
+      paymentUpdateFields.paymentMethod = updateData.paymentMethod;
+    if (updateData.isPaid !== undefined)
+      paymentUpdateFields.isPaid = updateData.isPaid;
+    if (updateData.dueDate !== undefined)
+      paymentUpdateFields.dueDate = Timestamp.fromDate(updateData.dueDate);
+    if (updateData.paidDate !== undefined)
+      paymentUpdateFields.paidDate = Timestamp.fromDate(updateData.paidDate);
+    if (updateData.notes !== undefined)
+      paymentUpdateFields.notes = updateData.notes;
+
     paymentUpdateFields._updatedDate = now;
     paymentUpdateFields._updatedBy = userId;
 
@@ -54,9 +62,9 @@ export async function updatePaymentInExpense(
       // Update payment in schedule array
       const paymentSchedule = [...expenseData.paymentSchedule];
       const paymentIndex = paymentSchedule.findIndex(
-        payment => payment._createdDate.toMillis().toString() === paymentId
+        (payment) => payment._createdDate.toMillis().toString() === paymentId,
       );
-      
+
       if (paymentIndex === -1) {
         throw new Error('Payment not found in schedule');
       }
@@ -91,6 +99,8 @@ export async function updatePaymentInExpense(
     console.log('Payment updated successfully:', paymentId);
   } catch (error) {
     console.error('Error updating payment:', error);
-    throw new Error(error instanceof Error ? error.message : 'Failed to update payment');
+    throw new Error(
+      error instanceof Error ? error.message : 'Failed to update payment',
+    );
   }
 }

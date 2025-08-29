@@ -1,2 +1,2 @@
-export { EventsProvider, useEvents } from './EventsContext';
 export { EventDetailsProvider, useEventDetails } from './EventDetailsContext';
+export { EventsProvider, useEvents } from './EventsContext';

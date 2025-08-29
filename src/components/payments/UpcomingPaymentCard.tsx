@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
 import { CalendarIcon, CreditCardIcon } from '@heroicons/react/24/outline';
-import { formatCurrency, formatDate } from '@/lib/formatters';
+import React from 'react';
 import type { UpcomingPayment } from '@/hooks/payments';
+import { formatCurrency, formatDate } from '@/lib/formatters';
 
 interface UpcomingPaymentCardProps {
   payment: UpcomingPayment;
@@ -58,63 +58,67 @@ export default function UpcomingPaymentCard({
       onClick={() => onPaymentClick(payment)}
     >
       {/* Status Indicator */}
-      <div className={`absolute left-0 top-0 bottom-0 w-1 ${colors.indicator} rounded-l-lg`} />
+      <div
+        className={`absolute left-0 top-0 bottom-0 w-1 ${colors.indicator} rounded-l-lg`}
+      />
 
       {/* Payment Info */}
-      <div className="flex-1 min-w-0 ml-2">
+      <div className='flex-1 min-w-0 ml-2'>
         {/* Top Row - Payment Name & Amount */}
-        <div className="flex items-start justify-between mb-1">
-          <div className="flex items-center min-w-0 flex-1">
-            <span className="text-lg mr-2 flex-shrink-0">
+        <div className='flex items-start justify-between mb-1'>
+          <div className='flex items-center min-w-0 flex-1'>
+            <span className='text-lg mr-2 flex-shrink-0'>
               {payment.categoryIcon}
             </span>
-            <div className="min-w-0 flex-1">
-              <h3 className="text-sm font-medium text-gray-900 truncate">
+            <div className='min-w-0 flex-1'>
+              <h3 className='text-sm font-medium text-gray-900 truncate'>
                 {payment.expenseName}
               </h3>
-              <p className="text-xs text-gray-500 truncate">
-                {payment.name}
-              </p>
+              <p className='text-xs text-gray-500 truncate'>{payment.name}</p>
             </div>
           </div>
-          <div className="text-right ml-3">
-            <div className="text-sm font-semibold text-gray-900">
+          <div className='text-right ml-3'>
+            <div className='text-sm font-semibold text-gray-900'>
               {formatCurrency(payment.amount)}
             </div>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${colors.badge}`}>
+            <span
+              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${colors.badge}`}
+            >
               {getStatusText(payment.status)}
             </span>
           </div>
         </div>
 
         {/* Bottom Row - Due Date & Category */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center text-xs text-gray-500">
-            <CalendarIcon className="h-3 w-3 mr-1" />
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center text-xs text-gray-500'>
+            <CalendarIcon className='h-3 w-3 mr-1' />
             <span>Due {formatDate(payment.dueDate)}</span>
           </div>
-          <div className="flex items-center text-xs text-gray-500">
+          <div className='flex items-center text-xs text-gray-500'>
             <div
-              className="w-2 h-2 rounded-full mr-1.5"
+              className='w-2 h-2 rounded-full mr-1.5'
               style={{ backgroundColor: payment.categoryColor }}
             />
-            <span className="truncate max-w-[80px]">{payment.categoryName}</span>
+            <span className='truncate max-w-[80px]'>
+              {payment.categoryName}
+            </span>
           </div>
         </div>
       </div>
 
       {/* Quick Action Button */}
       {onMarkAsPaid && (
-        <div className="ml-3">
+        <div className='ml-3'>
           <button
             onClick={(e) => {
               e.stopPropagation();
               onMarkAsPaid(payment);
             }}
-            className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-full"
-            title="Mark as paid"
+            className='opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-full'
+            title='Mark as paid'
           >
-            <CreditCardIcon className="h-4 w-4" />
+            <CreditCardIcon className='h-4 w-4' />
           </button>
         </div>
       )}

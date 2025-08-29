@@ -7,10 +7,8 @@ interface EventDetailLayoutProps {
   children: React.ReactNode;
 }
 
-export default function EventDetailLayout({ children }: EventDetailLayoutProps) {
-  return (
-    <EventDetailsProvider>
-      {children}
-    </EventDetailsProvider>
-  );
+export default function EventDetailLayout({
+  children,
+}: EventDetailLayoutProps) {
+  return <EventDetailsProvider>{children}</EventDetailsProvider>;
 }

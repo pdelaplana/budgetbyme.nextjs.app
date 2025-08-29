@@ -2,10 +2,10 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
+import { addToEventTotals } from '../../lib/eventAggregation';
 import { db } from '../../lib/firebase-admin';
 import { withSentryServerAction } from '../../lib/sentryServerAction';
 import type { ExpenseDocument } from '../../types/ExpenseDocument';
-import { addToEventTotals } from '../../lib/eventAggregation';
 
 export interface AddExpenseDto {
   userId: string;
@@ -42,10 +42,14 @@ export const addExpense = withSentryServerAction(
   async (addExpenseDto: AddExpenseDto): Promise<string> => {
     if (!addExpenseDto.userId) throw new Error('User ID is required');
     if (!addExpenseDto.eventId) throw new Error('Event ID is required');
-    if (!addExpenseDto.name?.trim()) throw new Error('Expense name is required');
-    if (addExpenseDto.amount <= 0) throw new Error('Amount must be greater than 0');
-    if (!addExpenseDto.categoryId?.trim()) throw new Error('Category is required');
-    if (!addExpenseDto.currency?.trim()) throw new Error('Currency is required');
+    if (!addExpenseDto.name?.trim())
+      throw new Error('Expense name is required');
+    if (addExpenseDto.amount <= 0)
+      throw new Error('Amount must be greater than 0');
+    if (!addExpenseDto.categoryId?.trim())
+      throw new Error('Category is required');
+    if (!addExpenseDto.currency?.trim())
+      throw new Error('Currency is required');
 
     try {
       // Set user context for debugging
@@ -84,7 +88,9 @@ export const addExpense = withSentryServerAction(
 
       const categoryDoc = await categoryRef.get();
       if (!categoryDoc.exists) {
-        throw new Error('Category not found. Please ensure the category exists.');
+        throw new Error(
+          'Category not found. Please ensure the category exists.',
+        );
       }
 
       // Create new expense document reference
@@ -152,8 +158,9 @@ export const addExpense = withSentryServerAction(
       });
 
       // Update event totals (scheduled amount increases)
-      const newEventScheduledAmount = (eventData.totalScheduledAmount || 0) + addExpenseDto.amount;
-      
+      const newEventScheduledAmount =
+        (eventData.totalScheduledAmount || 0) + addExpenseDto.amount;
+
       batch.update(currentEventRef, {
         totalScheduledAmount: newEventScheduledAmount,
         _updatedDate: now,

@@ -1,14 +1,14 @@
 'use server';
 
-import { db } from '@/server/lib/firebase-admin';
-import { getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
 import { Timestamp } from 'firebase-admin/firestore';
+import { getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
+import { db } from '@/server/lib/firebase-admin';
 
 export async function deletePaymentFromExpense(
   userId: string,
   eventId: string,
   expenseId: string,
-  paymentId: string
+  paymentId: string,
 ): Promise<void> {
   try {
     if (!userId || !eventId || !expenseId || !paymentId) {
@@ -41,7 +41,8 @@ export async function deletePaymentFromExpense(
     if (hasPaymentSchedule && expenseData.paymentSchedule) {
       // Find payment in schedule array
       const paymentToDelete = expenseData.paymentSchedule.find(
-        (payment: any) => payment._createdDate.toMillis().toString() === paymentId
+        (payment: any) =>
+          payment._createdDate.toMillis().toString() === paymentId,
       );
 
       if (!paymentToDelete) {
@@ -56,11 +57,16 @@ export async function deletePaymentFromExpense(
 
       // Remove payment from schedule array
       const paymentSchedule = expenseData.paymentSchedule.filter(
-        (payment: any) => payment._createdDate.toMillis().toString() !== paymentId
+        (payment: any) =>
+          payment._createdDate.toMillis().toString() !== paymentId,
       );
-      
+
       // Update category and event totals if payment was paid
-      const categoryId = await getCategoryIdFromExpense(userId, eventId, expenseId);
+      const categoryId = await getCategoryIdFromExpense(
+        userId,
+        eventId,
+        expenseId,
+      );
       if (paymentWasPaid && categoryId && deletedPaymentAmount > 0) {
         // Start batch transaction for all updates
         const batch = db.batch();
@@ -94,7 +100,10 @@ export async function deletePaymentFromExpense(
         const categoryDoc = await categoryRef.get();
         if (categoryDoc.exists) {
           const categoryData = categoryDoc.data()!;
-          const newSpentAmount = Math.max(0, (categoryData.spentAmount || 0) - deletedPaymentAmount);
+          const newSpentAmount = Math.max(
+            0,
+            (categoryData.spentAmount || 0) - deletedPaymentAmount,
+          );
 
           batch.update(categoryRef, {
             spentAmount: newSpentAmount,
@@ -113,7 +122,10 @@ export async function deletePaymentFromExpense(
         const eventDoc = await eventRef.get();
         if (eventDoc.exists) {
           const eventData = eventDoc.data()!;
-          const newTotalSpentAmount = Math.max(0, (eventData.totalSpentAmount || 0) - deletedPaymentAmount);
+          const newTotalSpentAmount = Math.max(
+            0,
+            (eventData.totalSpentAmount || 0) - deletedPaymentAmount,
+          );
 
           batch.update(eventRef, {
             totalSpentAmount: newTotalSpentAmount,
@@ -144,7 +156,9 @@ export async function deletePaymentFromExpense(
       }
     } else if (expenseData.oneOffPayment) {
       // Remove one-off payment
-      const oneOffPaymentId = expenseData.oneOffPayment._createdDate.toMillis().toString();
+      const oneOffPaymentId = expenseData.oneOffPayment._createdDate
+        .toMillis()
+        .toString();
       if (oneOffPaymentId !== paymentId) {
         throw new Error('Payment not found');
       }
@@ -156,7 +170,11 @@ export async function deletePaymentFromExpense(
       }
 
       // Update category and event totals if payment was paid
-      const categoryId = await getCategoryIdFromExpense(userId, eventId, expenseId);
+      const categoryId = await getCategoryIdFromExpense(
+        userId,
+        eventId,
+        expenseId,
+      );
       if (paymentWasPaid && categoryId && deletedPaymentAmount > 0) {
         // Start batch transaction for all updates
         const batch = db.batch();
@@ -181,7 +199,10 @@ export async function deletePaymentFromExpense(
         const categoryDoc = await categoryRef.get();
         if (categoryDoc.exists) {
           const categoryData = categoryDoc.data()!;
-          const newSpentAmount = Math.max(0, (categoryData.spentAmount || 0) - deletedPaymentAmount);
+          const newSpentAmount = Math.max(
+            0,
+            (categoryData.spentAmount || 0) - deletedPaymentAmount,
+          );
 
           batch.update(categoryRef, {
             spentAmount: newSpentAmount,
@@ -200,7 +221,10 @@ export async function deletePaymentFromExpense(
         const eventDoc = await eventRef.get();
         if (eventDoc.exists) {
           const eventData = eventDoc.data()!;
-          const newTotalSpentAmount = Math.max(0, (eventData.totalSpentAmount || 0) - deletedPaymentAmount);
+          const newTotalSpentAmount = Math.max(
+            0,
+            (eventData.totalSpentAmount || 0) - deletedPaymentAmount,
+          );
 
           batch.update(eventRef, {
             totalSpentAmount: newTotalSpentAmount,
@@ -227,6 +251,8 @@ export async function deletePaymentFromExpense(
     console.log('Payment deleted successfully:', paymentId);
   } catch (error) {
     console.error('Error deleting payment:', error);
-    throw new Error(error instanceof Error ? error.message : 'Failed to delete payment');
+    throw new Error(
+      error instanceof Error ? error.message : 'Failed to delete payment',
+    );
   }
 }

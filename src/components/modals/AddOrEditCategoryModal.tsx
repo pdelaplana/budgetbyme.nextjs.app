@@ -7,13 +7,16 @@ import {
   TagIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import { useRouter } from 'next/navigation';
-import { useAddCategoryMutation, useUpdateCategoryMutation } from '@/hooks/categories';
-import { useEventDetails } from '@/contexts/EventDetailsContext';
-import { useAuth } from '@/contexts/AuthContext';
 import IconSelector from '@/components/ui/IconSelector';
+import { useAuth } from '@/contexts/AuthContext';
+import { useEventDetails } from '@/contexts/EventDetailsContext';
+import {
+  useAddCategoryMutation,
+  useUpdateCategoryMutation,
+} from '@/hooks/categories';
 import { sanitizeCurrencyInput } from '@/lib/formatters';
 
 interface CategoryFormData {
@@ -67,10 +70,10 @@ export default function AddOrEditCategoryModal({
     onSuccess: (categoryId) => {
       // Close modal immediately for better UX
       handleClose();
-      
+
       // Show success toast
       toast.success('Category created successfully!');
-      
+
       // Navigate after a brief delay to allow query invalidation to start
       if (event?.id && categoryId) {
         setTimeout(() => {
@@ -80,25 +83,32 @@ export default function AddOrEditCategoryModal({
     },
     onError: (error) => {
       console.error('Failed to add category:', error);
-      toast.error(error.message || 'Failed to create category. Please try again.');
+      toast.error(
+        error.message || 'Failed to create category. Please try again.',
+      );
     },
   });
   const updateCategoryMutation = useUpdateCategoryMutation({
     onSuccess: () => {
-      console.log('✅ Update category success handler called - isSubmitting:', updateCategoryMutation.isPending);
-      
+      console.log(
+        '✅ Update category success handler called - isSubmitting:',
+        updateCategoryMutation.isPending,
+      );
+
       // Show success toast first
       toast.success('Category updated successfully!');
-      
+
       // Force close the modal immediately without checking isSubmitting
       console.log('🚪 Force closing modal from success handler');
       handleClose(true);
-      
+
       // No need to navigate - stay on the same category page
     },
     onError: (error) => {
       console.error('❌ Failed to update category:', error);
-      toast.error(error.message || 'Failed to update category. Please try again.');
+      toast.error(
+        error.message || 'Failed to update category. Please try again.',
+      );
     },
   });
 
@@ -111,9 +121,10 @@ export default function AddOrEditCategoryModal({
     icon: '🎉',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   // Loading state from mutations
-  const isSubmitting = addCategoryMutation.isPending || updateCategoryMutation.isPending;
+  const isSubmitting =
+    addCategoryMutation.isPending || updateCategoryMutation.isPending;
 
   // Pre-populate form when editing
   React.useEffect(() => {
@@ -138,7 +149,6 @@ export default function AddOrEditCategoryModal({
     }
   }, [editingCategory, isEditMode, isOpen]);
 
-
   const handleInputChange = (field: keyof CategoryFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
@@ -146,7 +156,6 @@ export default function AddOrEditCategoryModal({
       setErrors((prev) => ({ ...prev, [field]: '' }));
     }
   };
-
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
@@ -158,7 +167,8 @@ export default function AddOrEditCategoryModal({
     if (!formData.budget.trim()) {
       newErrors.budget = 'Budget amount is required';
     } else if (isNaN(Number(formData.budget)) || Number(formData.budget) < 0) {
-      newErrors.budget = 'Please enter a valid budget amount (zero or positive)';
+      newErrors.budget =
+        'Please enter a valid budget amount (zero or positive)';
     }
 
     if (!formData.color) {
@@ -175,7 +185,12 @@ export default function AddOrEditCategoryModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('🚀 Form submitted - isEditMode:', isEditMode, 'editingCategory:', editingCategory?.id);
+    console.log(
+      '🚀 Form submitted - isEditMode:',
+      isEditMode,
+      'editingCategory:',
+      editingCategory?.id,
+    );
 
     if (!validateForm()) {
       console.log('❌ Form validation failed');
@@ -239,7 +254,12 @@ export default function AddOrEditCategoryModal({
 
   const handleClose = (forceOrEvent?: boolean | React.MouseEvent) => {
     const force = typeof forceOrEvent === 'boolean' ? forceOrEvent : false;
-    console.log('🚪 handleClose called - isSubmitting:', isSubmitting, 'force:', force);
+    console.log(
+      '🚪 handleClose called - isSubmitting:',
+      isSubmitting,
+      'force:',
+      force,
+    );
     if (!isSubmitting || force) {
       console.log('✅ Closing modal - clearing form and calling onClose');
       setFormData({
@@ -342,7 +362,10 @@ export default function AddOrEditCategoryModal({
                   type='text'
                   value={formData.budget}
                   onChange={(e) =>
-                    handleInputChange('budget', sanitizeCurrencyInput(e.target.value).toString())
+                    handleInputChange(
+                      'budget',
+                      sanitizeCurrencyInput(e.target.value).toString(),
+                    )
                   }
                   placeholder='0.00'
                   className={`form-input pl-7 ${errors.budget ? 'border-red-300 focus:border-red-500' : ''}`}
@@ -470,9 +493,7 @@ export default function AddOrEditCategoryModal({
               <span className='hidden sm:inline'>
                 {isEditMode ? 'Update Category' : 'Add Category'}
               </span>
-              <span className='sm:hidden'>
-                {isEditMode ? 'Update' : 'Add'}
-              </span>
+              <span className='sm:hidden'>{isEditMode ? 'Update' : 'Add'}</span>
             </button>
           </div>
         </div>

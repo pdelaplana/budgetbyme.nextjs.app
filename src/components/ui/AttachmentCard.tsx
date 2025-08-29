@@ -34,7 +34,6 @@ export default function AttachmentCard({
   disabled = false,
   isDeleting = false,
 }: AttachmentCardProps) {
-
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -213,7 +212,6 @@ export default function AttachmentCard({
           </button>
         )}
       </div>
-
     </div>
   );
 }

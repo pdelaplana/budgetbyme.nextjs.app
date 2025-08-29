@@ -1,12 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  addToEventTotals,
   calculateEventStatus,
   calculateSpentPercentage,
-  updateEventTotals,
-  addToEventTotals,
-  subtractFromEventTotals,
-  updateEventTotalsComplex,
   type EventAggregationAmounts,
+  subtractFromEventTotals,
+  updateEventTotals,
+  updateEventTotalsComplex,
 } from './eventAggregation';
 
 // Mock Firebase Admin
@@ -102,11 +102,15 @@ describe('eventAggregation', () => {
 
   describe('updateEventTotals', () => {
     it('should throw error when userId is missing', async () => {
-      await expect(updateEventTotals('', 'event123')).rejects.toThrow('User ID is required');
+      await expect(updateEventTotals('', 'event123')).rejects.toThrow(
+        'User ID is required',
+      );
     });
 
     it('should throw error when eventId is missing', async () => {
-      await expect(updateEventTotals('user123', '')).rejects.toThrow('Event ID is required');
+      await expect(updateEventTotals('user123', '')).rejects.toThrow(
+        'Event ID is required',
+      );
     });
 
     // Integration tests would require more complex Firebase mocking
@@ -116,19 +120,23 @@ describe('eventAggregation', () => {
   describe('addToEventTotals', () => {
     it('should throw error when userId is missing', async () => {
       const amounts: EventAggregationAmounts = { budgeted: 100 };
-      await expect(addToEventTotals('', 'event123', amounts)).rejects.toThrow('User ID is required');
+      await expect(addToEventTotals('', 'event123', amounts)).rejects.toThrow(
+        'User ID is required',
+      );
     });
 
     it('should throw error when eventId is missing', async () => {
       const amounts: EventAggregationAmounts = { budgeted: 100 };
-      await expect(addToEventTotals('user123', '', amounts)).rejects.toThrow('Event ID is required');
+      await expect(addToEventTotals('user123', '', amounts)).rejects.toThrow(
+        'Event ID is required',
+      );
     });
 
     it('should throw error when no amounts are provided', async () => {
       const amounts: EventAggregationAmounts = {};
-      await expect(addToEventTotals('user123', 'event123', amounts)).rejects.toThrow(
-        'At least one amount must be provided'
-      );
+      await expect(
+        addToEventTotals('user123', 'event123', amounts),
+      ).rejects.toThrow('At least one amount must be provided');
     });
 
     it('should accept single amount types', async () => {
@@ -137,79 +145,93 @@ describe('eventAggregation', () => {
       const spentOnly: EventAggregationAmounts = { spent: 50 };
 
       // These should not throw validation errors (though they'll fail on Firebase mocking)
-      await expect(addToEventTotals('user123', 'event123', budgetedOnly)).rejects.not.toThrow(
-        'At least one amount must be provided'
-      );
-      await expect(addToEventTotals('user123', 'event123', scheduledOnly)).rejects.not.toThrow(
-        'At least one amount must be provided'
-      );
-      await expect(addToEventTotals('user123', 'event123', spentOnly)).rejects.not.toThrow(
-        'At least one amount must be provided'
-      );
+      await expect(
+        addToEventTotals('user123', 'event123', budgetedOnly),
+      ).rejects.not.toThrow('At least one amount must be provided');
+      await expect(
+        addToEventTotals('user123', 'event123', scheduledOnly),
+      ).rejects.not.toThrow('At least one amount must be provided');
+      await expect(
+        addToEventTotals('user123', 'event123', spentOnly),
+      ).rejects.not.toThrow('At least one amount must be provided');
     });
   });
 
   describe('subtractFromEventTotals', () => {
     it('should throw error when userId is missing', async () => {
       const amounts: EventAggregationAmounts = { budgeted: 100 };
-      await expect(subtractFromEventTotals('', 'event123', amounts)).rejects.toThrow('User ID is required');
+      await expect(
+        subtractFromEventTotals('', 'event123', amounts),
+      ).rejects.toThrow('User ID is required');
     });
 
     it('should throw error when eventId is missing', async () => {
       const amounts: EventAggregationAmounts = { budgeted: 100 };
-      await expect(subtractFromEventTotals('user123', '', amounts)).rejects.toThrow('Event ID is required');
+      await expect(
+        subtractFromEventTotals('user123', '', amounts),
+      ).rejects.toThrow('Event ID is required');
     });
 
     it('should throw error when no amounts are provided', async () => {
       const amounts: EventAggregationAmounts = {};
-      await expect(subtractFromEventTotals('user123', 'event123', amounts)).rejects.toThrow(
-        'At least one amount must be provided'
-      );
+      await expect(
+        subtractFromEventTotals('user123', 'event123', amounts),
+      ).rejects.toThrow('At least one amount must be provided');
     });
   });
 
   describe('updateEventTotalsComplex', () => {
     it('should throw error when userId is missing', async () => {
       const changes = { budgeted: { add: 100 } };
-      await expect(updateEventTotalsComplex('', 'event123', changes)).rejects.toThrow('User ID is required');
+      await expect(
+        updateEventTotalsComplex('', 'event123', changes),
+      ).rejects.toThrow('User ID is required');
     });
 
     it('should throw error when eventId is missing', async () => {
       const changes = { budgeted: { add: 100 } };
-      await expect(updateEventTotalsComplex('user123', '', changes)).rejects.toThrow('Event ID is required');
+      await expect(
+        updateEventTotalsComplex('user123', '', changes),
+      ).rejects.toThrow('Event ID is required');
     });
 
     it('should handle empty changes object', async () => {
       const changes = {};
       // Should not throw validation errors for empty changes (though will fail on Firebase mocking)
-      await expect(updateEventTotalsComplex('user123', 'event123', changes)).rejects.not.toThrow(
-        'At least one change must be provided'
-      );
+      await expect(
+        updateEventTotalsComplex('user123', 'event123', changes),
+      ).rejects.not.toThrow('At least one change must be provided');
     });
   });
 
   describe('validation edge cases', () => {
     it('should handle zero amounts in addToEventTotals', async () => {
-      const amounts: EventAggregationAmounts = { budgeted: 0, scheduled: 0, spent: 0 };
+      const amounts: EventAggregationAmounts = {
+        budgeted: 0,
+        scheduled: 0,
+        spent: 0,
+      };
       // Zero amounts should be treated as valid (not throw validation error)
-      await expect(addToEventTotals('user123', 'event123', amounts)).rejects.not.toThrow(
-        'At least one amount must be provided'
-      );
+      await expect(
+        addToEventTotals('user123', 'event123', amounts),
+      ).rejects.not.toThrow('At least one amount must be provided');
     });
 
     it('should handle undefined vs 0 amounts', async () => {
       const amountsWithZero: EventAggregationAmounts = { budgeted: 0 };
-      const amountsWithUndefined: EventAggregationAmounts = { budgeted: undefined };
+      const amountsWithUndefined: EventAggregationAmounts = {
+        budgeted: undefined,
+      };
 
       // Zero should be treated as a valid amount
-      await expect(addToEventTotals('user123', 'event123', amountsWithZero)).rejects.not.toThrow(
-        'At least one amount must be provided'
-      );
+      await expect(
+        addToEventTotals('user123', 'event123', amountsWithZero),
+      ).rejects.not.toThrow('At least one amount must be provided');
 
       // Undefined should be treated as no amount provided
-      await expect(addToEventTotals('user123', 'event123', amountsWithUndefined)).rejects.toThrow(
-        'At least one amount must be provided'
-      );
+      await expect(
+        addToEventTotals('user123', 'event123', amountsWithUndefined),
+      ).rejects.toThrow('At least one amount must be provided');
     });
   });
 });
