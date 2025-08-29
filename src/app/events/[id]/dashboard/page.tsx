@@ -15,10 +15,12 @@ import AddOrEditEventModal from '@/components/modals/AddOrEditEventModal';
 import AddOrEditExpenseModal from '@/components/modals/AddOrEditExpenseModal';
 import ExpenseDetailModal from '@/components/modals/ExpenseDetailModal';
 import ConfirmRecalculateModal from '@/components/modals/ConfirmRecalculateModal';
+import ConfirmDialog from '@/components/modals/ConfirmDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
 import { useRecalculateEventTotalsMutation } from '@/hooks/events/useRecalculateEventTotalsMutation';
+import { useDeleteEventMutation } from '@/hooks/events';
 
 
 
@@ -46,6 +48,21 @@ export default function EventDashboardPage() {
     },
   });
 
+  // Delete event mutation
+  const deleteEventMutation = useDeleteEventMutation({
+    onSuccess: (result) => {
+      setIsDeletingEvent(false);
+      setShowDeleteEventConfirm(false);
+      toast.success(result.message);
+      router.push('/events'); // Navigate back to events list
+    },
+    onError: (error) => {
+      setIsDeletingEvent(false);
+      console.error('Delete event failed:', error);
+      toast.error('Failed to delete event. Please try again.');
+    },
+  });
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showAddExpenseModal, setShowAddExpenseModal] = useState(false);
   const [showExpenseDetailModal, setShowExpenseDetailModal] = useState(false);
@@ -55,6 +72,8 @@ export default function EventDashboardPage() {
   const [isEditCategoryMode, setIsEditCategoryMode] = useState(false);
   const [showEditEventModal, setShowEditEventModal] = useState(false);
   const [showRecalculateModal, setShowRecalculateModal] = useState(false);
+  const [showDeleteEventConfirm, setShowDeleteEventConfirm] = useState(false);
+  const [isDeletingEvent, setIsDeletingEvent] = useState(false);
 
   // Set the selected event when events are loaded and we have an eventId
   useEffect(() => {
@@ -82,6 +101,7 @@ export default function EventDashboardPage() {
     { id: 'add-category', label: 'New Category', icon: '📊' },
     { id: 'recalculate-totals', label: 'Recalculate Totals', icon: '🔄' },
     { id: 'import-data', label: 'Import Data', icon: '📤' },
+    { id: 'delete-event', label: 'Delete Event', icon: '🗑️' },
   ];
 
   const handleDropdownAction = (actionId: string) => {
@@ -106,6 +126,9 @@ export default function EventDashboardPage() {
       case 'import-data':
         console.log('Import Data clicked');
         break;
+      case 'delete-event':
+        setShowDeleteEventConfirm(true);
+        break;
       default:
         console.log(`Unknown action: ${actionId}`);
     }
@@ -126,6 +149,20 @@ export default function EventDashboardPage() {
     } catch (error) {
       // Error is already handled by the mutation's onError callback
       console.error('Recalculate totals error:', error);
+    }
+  };
+
+  const confirmDeleteEvent = async () => {
+    if (!user?.uid || !eventId) return;
+
+    setIsDeletingEvent(true);
+    try {
+      await deleteEventMutation.mutateAsync({
+        userId: user.uid,
+        eventId: eventId,
+      });
+    } catch (error) {
+      // Error handling is managed in the mutation callbacks
     }
   };
 
@@ -358,6 +395,19 @@ export default function EventDashboardPage() {
         onClose={() => setShowRecalculateModal(false)}
         onConfirm={handleRecalculateTotals}
         isLoading={recalculateEventTotalsMutation.isPending}
+      />
+
+      {/* Delete Event Confirmation Modal */}
+      <ConfirmDialog
+        isOpen={showDeleteEventConfirm}
+        onClose={() => setShowDeleteEventConfirm(false)}
+        onConfirm={confirmDeleteEvent}
+        title='Delete Event'
+        message={`Are you sure you want to delete "${currentEvent?.name}"? This action cannot be undone. All expenses, categories, payments, and associated data will be permanently removed.`}
+        confirmText='Delete Event'
+        cancelText='Keep Event'
+        type='danger'
+        isLoading={isDeletingEvent}
       />
     </DashboardLayout>
   );

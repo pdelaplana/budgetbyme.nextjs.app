@@ -4,19 +4,46 @@ import {
   ArrowRightIcon,
   CalendarIcon,
   PlusIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import RootLayout from '@/components/layouts/RootLayout';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import AddOrEditEventModal from '@/components/modals/AddOrEditEventModal';
+import ConfirmDialog from '@/components/modals/ConfirmDialog';
 import { useEvents } from '@/contexts/EventsContext';
+import { useAuth } from '@/contexts/AuthContext';
+import { useDeleteEventMutation } from '@/hooks/events';
+import type { Event } from '@/types/Event';
 
 export default function EventsPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const { events, isLoading, error, refetch, setSelectedEvent } = useEvents();
   const [showAddEvent, setShowAddEvent] = useState(false);
+
+  // Delete event state management
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<Event | null>(null);
+  const [isDeletingEvent, setIsDeletingEvent] = useState(false);
+
+  // Delete event mutation
+  const deleteEventMutation = useDeleteEventMutation({
+    onSuccess: (result) => {
+      setIsDeletingEvent(false);
+      setShowDeleteConfirm(false);
+      setEventToDelete(null);
+      toast.success(result.message);
+    },
+    onError: (error) => {
+      setIsDeletingEvent(false);
+      console.error('Delete event failed:', error);
+      toast.error('Failed to delete event. Please try again.');
+    },
+  });
 
   const handleEventClick = (event: any) => {
     // Set the selected event in context before navigating
@@ -24,15 +51,36 @@ export default function EventsPage() {
     router.push(`/events/${event.id}/dashboard`);
   };
 
+  const handleDeleteEvent = (e: React.MouseEvent, event: Event) => {
+    e.stopPropagation(); // Prevent event click navigation
+    setEventToDelete(event);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteEvent = async () => {
+    if (!user?.uid || !eventToDelete) return;
+
+    setIsDeletingEvent(true);
+    try {
+      await deleteEventMutation.mutateAsync({
+        userId: user.uid,
+        eventId: eventToDelete.id,
+      });
+    } catch (error) {
+      // Error handling is managed in the mutation callbacks
+    }
+  };
+
   if (isLoading) {
     return (
       <RootLayout>
-        <LoadingSpinner 
-          title="Loading Events..."
-          message="Please wait while we load your events"
-          size="sm"
-          className="min-h-[60vh] flex items-center justify-center"
-        />
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <LoadingSpinner 
+            title="Loading Events..."
+            message="Please wait while we load your events"
+            size="md"
+          />
+        </div>
       </RootLayout>
     );
   }
@@ -100,6 +148,24 @@ export default function EventsPage() {
                       onClick={() => handleEventClick(event)}
                       className='group relative bg-white border border-gray-200 rounded-lg p-6 hover:border-primary-300 hover:shadow-md transition-all duration-200 cursor-pointer'
                     >
+                      {/* Action Buttons */}
+                      <div className='absolute top-2 right-2 flex space-x-1 z-10'>
+                        {/* Delete Button */}
+                        <button
+                          type='button'
+                          onClick={(e) => handleDeleteEvent(e, event)}
+                          className='opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md shadow-sm'
+                          aria-label={`Delete ${event.name}`}
+                        >
+                          <TrashIcon className='h-4 w-4' />
+                        </button>
+                        
+                        {/* Arrow Icon */}
+                        <div className='opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 text-primary-600'>
+                          <ArrowRightIcon className='h-4 w-4' />
+                        </div>
+                      </div>
+
                       <div className='space-y-3'>
                         {/* Event Info */}
                         <div>
@@ -115,7 +181,7 @@ export default function EventsPage() {
 
                         {/* Event Date */}
                         {event.eventDate && (
-                          <div className='flex items-center text-sm text-gray-500'>
+                          <div className='flex items-center justify-center text-sm text-gray-500'>
                             <CalendarIcon className='h-4 w-4 mr-1.5' />
                             {new Date(event.eventDate).toLocaleDateString(
                               'en-US',
@@ -139,11 +205,6 @@ export default function EventsPage() {
                           <div className='text-xs text-gray-500'>
                             Spent: ${event.totalSpentAmount?.toLocaleString() || '0'} ({event.spentPercentage || 0}%)
                           </div>
-                        </div>
-
-                        {/* Arrow Icon */}
-                        <div className='absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200'>
-                          <ArrowRightIcon className='h-5 w-5 text-primary-600' />
                         </div>
                       </div>
                     </div>
@@ -270,6 +331,19 @@ export default function EventsPage() {
         <AddOrEditEventModal
           isOpen={showAddEvent}
           onClose={() => setShowAddEvent(false)}
+        />
+
+        {/* Delete Event Confirmation Modal */}
+        <ConfirmDialog
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={confirmDeleteEvent}
+          title='Delete Event'
+          message={`Are you sure you want to delete "${eventToDelete?.name}"? This action cannot be undone. All expenses, categories, payments, and associated data will be permanently removed.`}
+          confirmText='Delete Event'
+          cancelText='Keep Event'
+          type='danger'
+          isLoading={isDeletingEvent}
         />
       </RootLayout>
     </ProtectedRoute>

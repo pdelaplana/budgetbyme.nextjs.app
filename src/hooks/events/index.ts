@@ -15,5 +15,9 @@ export {
   useUpdateEventMutation,
   useUpdateEvent,
 } from './useUpdateEventMutation';
+export {
+  type UseDeleteEventMutationOptions,
+  useDeleteEventMutation,
+} from './useDeleteEventMutation';
 export { useFetchEvent } from './useFetchEvent';
 export { useFetchEvents } from './useFetchEvents';
