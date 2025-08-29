@@ -484,9 +484,12 @@ export default function AddOrEditEventModal({
             <button
               type='submit'
               form='event-form'
-              className='btn-primary flex-1 order-1 sm:order-2'
+              className='btn-primary flex-1 order-1 sm:order-2 flex items-center justify-center'
               disabled={isSubmitting || isPending}
             >
+              {(isSubmitting || isPending) && (
+                <div className='animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2'></div>
+              )}
               <span className='hidden sm:inline'>
                 {isSubmitting || isPending
                   ? (isEditMode ? 'Updating Event...' : 'Creating Event...')

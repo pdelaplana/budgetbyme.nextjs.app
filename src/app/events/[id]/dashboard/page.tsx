@@ -4,13 +4,8 @@ import BudgetCategoriesSection from '@/components/dashboard/BudgetCategoriesSect
 import BudgetOverview from '@/components/dashboard/BudgetOverview';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import ModalManager from '@/components/dashboard/ModalManager';
 import PaymentsSection from '@/components/dashboard/PaymentsSection';
-import AddOrEditCategoryModal from '@/components/modals/AddOrEditCategoryModal';
-import AddOrEditEventModal from '@/components/modals/AddOrEditEventModal';
-import AddOrEditExpenseModal from '@/components/modals/AddOrEditExpenseModal';
-import ConfirmDialog from '@/components/modals/ConfirmDialog';
-import ConfirmRecalculateModal from '@/components/modals/ConfirmRecalculateModal';
-import ExpenseDetailModal from '@/components/modals/ExpenseDetailModal';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import NotFoundState from '@/components/ui/NotFoundState';
 import { DASHBOARD_ACTIONS } from '@/constants/dashboardActions';
@@ -132,57 +127,15 @@ export default function EventDashboardPage() {
         onCreateFirstCategory={modals.openAddCategoryModal}
       />
 
-      {/* Add Expense Modal */}
-      <AddOrEditExpenseModal
-        isOpen={modals.isModalOpen('addExpense')}
-        onClose={modals.closeAddExpenseModal}
+      {/* All Modals */}
+      <ModalManager
+        currentEvent={currentEvent}
         categories={categories}
-      />
-
-      {/* Expense Detail Modal */}
-      <ExpenseDetailModal
-        isOpen={modals.isModalOpen('expenseDetail')}
-        onClose={modals.closeExpenseDetailModal}
-        expense={modals.selectedExpense}
-        onEdit={actions.handleExpenseEdit}
-        onDelete={actions.handleExpenseDelete}
-      />
-
-      {/* Add/Edit Category Modal */}
-      <AddOrEditCategoryModal
-        isOpen={modals.isModalOpen('addCategory')}
-        onClose={modals.closeAddCategoryModal}
-        editingCategory={modals.editingCategory}
-        isEditMode={modals.isEditCategoryMode}
-      />
-
-      {/* Edit Event Modal */}
-      <AddOrEditEventModal
-        isOpen={modals.isModalOpen('editEvent')}
-        onClose={modals.closeEditEventModal}
-        editingEvent={currentEvent}
-        isEditMode={true}
-      />
-
-      {/* Confirm Recalculate Modal */}
-      <ConfirmRecalculateModal
-        isOpen={modals.isModalOpen('recalculate')}
-        onClose={modals.closeRecalculateModal}
-        onConfirm={handleRecalculateTotals}
-        isLoading={isRecalculatingTotals}
-      />
-
-      {/* Delete Event Confirmation Modal */}
-      <ConfirmDialog
-        isOpen={modals.isModalOpen('deleteEventConfirm')}
-        onClose={modals.closeDeleteEventModal}
-        onConfirm={confirmDeleteEvent}
-        title='Delete Event'
-        message={`Are you sure you want to delete "${currentEvent?.name}"? This action cannot be undone. All expenses, categories, payments, and associated data will be permanently removed.`}
-        confirmText='Delete Event'
-        cancelText='Keep Event'
-        type='danger'
-        isLoading={modals.isDeletingEvent}
+        modals={modals}
+        actions={actions}
+        isRecalculatingTotals={isRecalculatingTotals}
+        handleRecalculateTotals={handleRecalculateTotals}
+        confirmDeleteEvent={confirmDeleteEvent}
       />
     </DashboardLayout>
   );
