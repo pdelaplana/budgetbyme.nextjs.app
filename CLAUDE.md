@@ -213,3 +213,27 @@ For consistent progress indicator implementation in confirmation modals, follow 
 - TanStack Query for efficient data fetching and caching
 - Optimistic updates for better UX
 - Lazy loading for charts and modals
+
+## Task Management
+
+### Task Documentation
+- **All refactoring and development tasks** should be documented in the `docs/tasks/` directory
+- Each major project or refactoring effort gets its own markdown file (e.g., `expense-detail-page-refactoring.md`)
+- Task files should include detailed specifications, implementation phases, success criteria, and progress tracking
+
+### Task Progress Tracking
+- **When completing any task**, always update the corresponding task document in `docs/tasks/`
+- Mark completed tasks with checkboxes: `- [x] Task completed`
+- Add completion dates and any relevant notes about the implementation
+- Update success criteria and progress indicators as work is completed
+
+### Task File Structure
+Task documents should follow this structure:
+- **Overview** - Problem statement and goals
+- **Implementation Phases** - Organized by priority and dependencies  
+- **Detailed Task Breakdown** - Specific, actionable items with acceptance criteria
+- **Success Criteria** - Measurable goals and completion metrics
+- **Dependencies** - Task relationships and implementation order
+- **Progress Tracking** - Real-time status updates as work is completed
+
+This ensures task continuity across different development sessions and provides clear documentation of all refactoring and development work.
