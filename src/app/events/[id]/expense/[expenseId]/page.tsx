@@ -1,24 +1,22 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import React, { useEffect, useReducer } from 'react';
+import React, { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { toast } from 'sonner';
 
 // Layout and UI components
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import NotFoundState from '@/components/ui/NotFoundState';
+import AttachmentsSection from '@/components/expense/AttachmentsSection';
+import ExpenseBasicInfo from '@/components/expense/ExpenseBasicInfo';
 
 // Refactored components
 import ExpenseHeader from '@/components/expense/ExpenseHeader';
-import PaymentSummaryCard from '@/components/expense/PaymentSummaryCard';
-import ExpenseBasicInfo from '@/components/expense/ExpenseBasicInfo';
-import VendorInformation from '@/components/expense/VendorInformation';
-import PaymentScheduleSection from '@/components/expense/PaymentScheduleSection';
-import AttachmentsSection from '@/components/expense/AttachmentsSection';
-
 // Lazy-loaded modals
 import { LazyModalComponents } from '@/components/expense/LazyModalComponents';
+import PaymentScheduleSection from '@/components/expense/PaymentScheduleSection';
+import VendorInformation from '@/components/expense/VendorInformation';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import NotFoundState from '@/components/ui/NotFoundState';
 
 // Hooks and utilities
 import { useAuth } from '@/contexts/AuthContext';
@@ -26,12 +24,11 @@ import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
 import { useDeleteExpenseMutation } from '@/hooks/expenses';
 import { useClearAllPaymentsMutation } from '@/hooks/payments';
-import { useModalState } from '@/hooks/useModalState';
 import { useAttachmentManager } from '@/hooks/useAttachmentManager';
-import { useExpensePageOptimizations } from '@/hooks/useExpensePageOptimizations';
-import { tagReducer, initialTagState } from '@/lib/tagUtils';
+import { useModalState } from '@/hooks/useModalState';
 import { formatCurrency, formatDateTime } from '@/lib/formatters';
-import { calculatePaymentStatus, type ExpenseWithPayments } from '@/lib/paymentCalculations';
+import type { ExpenseWithPayments } from '@/lib/paymentCalculations';
+import { initialTagState, tagReducer } from '@/lib/tagUtils';
 
 // Types
 import type { Expense } from '@/types/Expense';
@@ -42,27 +39,30 @@ export default function ExpenseDetailPage() {
   const params = useParams();
   const eventId = params?.id as string;
   const expenseId = params?.expenseId as string;
-  
+
   // Core context hooks
   const { events, isLoading, selectEventById } = useEvents();
-  const { event: currentEvent, expenses, isExpensesLoading, categories } = useEventDetails();
+  const {
+    event: currentEvent,
+    expenses,
+    isExpensesLoading,
+    categories,
+  } = useEventDetails();
   const { user } = useAuth();
 
   // Current expense state
   const [expense, setExpense] = React.useState<Expense | null>(null);
+
+  // Capture category ID early and keep it stable through deletion
+  const [categoryIdForNavigation, setCategoryIdForNavigation] = React.useState<
+    string | null
+  >(null);
 
   // Tag management with reducer
   const [tagState, tagDispatch] = useReducer(tagReducer, initialTagState);
 
   // Modal state management
   const modalState = useModalState();
-
-  // Performance optimizations
-  const optimizations = useExpensePageOptimizations({
-    expense,
-    currentEvent,
-    eventId,
-  });
 
   // Attachment management
   const attachmentManager = useAttachmentManager({
@@ -81,7 +81,9 @@ export default function ExpenseDetailPage() {
     onError: (error) => {
       modalState.actions.setDeletePaymentsLoading(false);
       console.error('Error clearing payments:', error);
-      toast.error(error.message || 'Failed to remove payments. Please try again.');
+      toast.error(
+        error.message || 'Failed to remove payments. Please try again.',
+      );
     },
   });
 
@@ -90,14 +92,20 @@ export default function ExpenseDetailPage() {
       modalState.actions.setDeleteExpenseLoading(false);
       modalState.actions.closeDeleteExpenseConfirm();
       toast.success('Expense deleted successfully!');
-      if (optimizations.categoryId) {
-        router.push(`/events/${eventId}/category/${optimizations.categoryId}`);
+
+      // Navigate back to category page using captured category ID
+      if (categoryIdForNavigation) {
+        router.push(`/events/${eventId}/category/${categoryIdForNavigation}`);
+      } else {
+        router.push(`/events/${eventId}/dashboard`);
       }
     },
     onError: (error) => {
       modalState.actions.setDeleteExpenseLoading(false);
       console.error('Error deleting expense:', error);
-      toast.error(error.message || 'Failed to delete expense. Please try again.');
+      toast.error(
+        error.message || 'Failed to delete expense. Please try again.',
+      );
     },
   });
 
@@ -113,8 +121,13 @@ export default function ExpenseDetailPage() {
     if (expenseId && expenses.length > 0) {
       const foundExpense = expenses.find((exp) => exp.id === expenseId);
       setExpense(foundExpense || null);
+
+      // Capture category ID when expense is first loaded
+      if (foundExpense?.category?.id && !categoryIdForNavigation) {
+        setCategoryIdForNavigation(foundExpense.category.id);
+      }
     }
-  }, [expenseId, expenses]);
+  }, [expenseId, expenses, categoryIdForNavigation]);
 
   // Initialize tags when expense is loaded
   useEffect(() => {
@@ -124,35 +137,38 @@ export default function ExpenseDetailPage() {
   }, [expense]);
 
   // Event handlers
-  const handleEdit = React.useCallback(() => {
+  const handleEdit = useCallback(() => {
     modalState.actions.openEditExpense();
   }, [modalState.actions]);
 
-  const handleDelete = React.useCallback(() => {
+  const handleDelete = useCallback(() => {
     modalState.actions.openDeleteExpenseConfirm();
   }, [modalState.actions]);
 
-  const handleCreatePaymentSchedule = React.useCallback(() => {
+  const handleCreatePaymentSchedule = useCallback(() => {
     modalState.actions.openPaymentSchedule('create');
   }, [modalState.actions]);
 
-  const handleEditSchedule = React.useCallback(() => {
+  const handleEditSchedule = useCallback(() => {
     modalState.actions.openPaymentSchedule('edit');
   }, [modalState.actions]);
 
-  const handleMarkAsPaid = React.useCallback(() => {
+  const handleMarkAsPaid = useCallback(() => {
     modalState.actions.openMarkAsPaid();
   }, [modalState.actions]);
 
-  const handleMarkPaymentAsPaid = React.useCallback((payment: Payment) => {
-    modalState.actions.openMarkPaymentAsPaid(payment);
-  }, [modalState.actions]);
+  const handleMarkPaymentAsPaid = useCallback(
+    (payment: Payment) => {
+      modalState.actions.openMarkPaymentAsPaid(payment);
+    },
+    [modalState.actions],
+  );
 
-  const handleDeleteAllPayments = React.useCallback(() => {
+  const handleDeleteAllPayments = useCallback(() => {
     modalState.actions.openDeletePaymentsConfirm();
   }, [modalState.actions]);
 
-  const handleConfirmDeleteAllPayments = React.useCallback(async () => {
+  const handleConfirmDeleteAllPayments = useCallback(async () => {
     if (!user?.uid || !currentEvent?.id || !expense) return;
 
     modalState.actions.setDeletePaymentsLoading(true);
@@ -165,9 +181,15 @@ export default function ExpenseDetailPage() {
     } catch (error) {
       console.error('Error clearing payments:', error);
     }
-  }, [user?.uid, currentEvent?.id, expense, clearAllPaymentsMutation, modalState.actions]);
+  }, [
+    user?.uid,
+    currentEvent?.id,
+    expense,
+    clearAllPaymentsMutation,
+    modalState.actions,
+  ]);
 
-  const handleConfirmDeleteExpense = React.useCallback(async () => {
+  const handleConfirmDeleteExpense = useCallback(async () => {
     if (!user?.uid || !currentEvent?.id || !expense) return;
 
     modalState.actions.setDeleteExpenseLoading(true);
@@ -180,35 +202,44 @@ export default function ExpenseDetailPage() {
     } catch (error) {
       console.error('Error deleting expense:', error);
     }
-  }, [user?.uid, currentEvent?.id, expense, deleteExpenseMutation, modalState.actions]);
+  }, [
+    user?.uid,
+    currentEvent?.id,
+    expense,
+    deleteExpenseMutation,
+    modalState.actions,
+  ]);
 
   // Tag management handlers
-  const tagHandlers = React.useMemo(() => ({
-    addTag: () => {
-      if (tagState.newTag.trim()) {
-        tagDispatch({ type: 'ADD_TAG', tag: tagState.newTag });
-      }
-    },
-    deleteTag: (tag: string) => {
-      tagDispatch({ type: 'REMOVE_TAG', tag });
-    },
-    setNewTag: (tag: string) => {
-      tagDispatch({ type: 'SET_NEW_TAG', tag });
-    },
-    toggleEditing: () => {
-      tagDispatch({ type: 'TOGGLE_EDITING' });
-    },
-    handleKeyPress: (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
+  const tagHandlers = useMemo(
+    () => ({
+      addTag: () => {
         if (tagState.newTag.trim()) {
           tagDispatch({ type: 'ADD_TAG', tag: tagState.newTag });
         }
-      }
-      if (e.key === 'Escape') {
-        tagDispatch({ type: 'STOP_EDITING' });
-      }
-    },
-  }), [tagState.newTag]);
+      },
+      deleteTag: (tag: string) => {
+        tagDispatch({ type: 'REMOVE_TAG', tag });
+      },
+      setNewTag: (tag: string) => {
+        tagDispatch({ type: 'SET_NEW_TAG', tag });
+      },
+      toggleEditing: () => {
+        tagDispatch({ type: 'TOGGLE_EDITING' });
+      },
+      handleKeyPress: (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+          if (tagState.newTag.trim()) {
+            tagDispatch({ type: 'ADD_TAG', tag: tagState.newTag });
+          }
+        }
+        if (e.key === 'Escape') {
+          tagDispatch({ type: 'STOP_EDITING' });
+        }
+      },
+    }),
+    [tagState.newTag],
+  );
 
   // Show loading state while data is being fetched
   if (
@@ -350,7 +381,9 @@ export default function ExpenseDetailPage() {
           modalState.state.markPaymentAsPaid.selectedPayment?.description ||
           'Payment'
         }
-        expenseAmount={modalState.state.markPaymentAsPaid.selectedPayment?.amount || 0}
+        expenseAmount={
+          modalState.state.markPaymentAsPaid.selectedPayment?.amount || 0
+        }
         paymentId={modalState.state.markPaymentAsPaid.paymentId || undefined}
       />
 
