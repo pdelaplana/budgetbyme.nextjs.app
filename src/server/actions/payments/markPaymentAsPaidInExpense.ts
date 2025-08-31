@@ -1,19 +1,39 @@
 'use server';
 
+import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
 import { getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
 import { addToEventTotals } from '@/server/lib/eventAggregation';
 import { db } from '@/server/lib/firebase-admin';
+import { withSentryServerAction } from '@/server/lib/sentryServerAction';
 import type { MarkPaymentAsPaidDto } from '@/types/Payment';
 
-export async function markPaymentAsPaidInExpense(
-  userId: string,
-  eventId: string,
-  expenseId: string,
-  paymentId: string,
-  markAsPaidData: MarkPaymentAsPaidDto,
-): Promise<void> {
-  try {
+export const markPaymentAsPaidInExpense = withSentryServerAction(
+  'markPaymentAsPaidInExpense',
+  async (
+    userId: string,
+    eventId: string,
+    expenseId: string,
+    paymentId: string,
+    markAsPaidData: MarkPaymentAsPaidDto,
+  ): Promise<void> => {
+    // Set user context for debugging
+    Sentry.setUser({ id: userId });
+
+    // Add breadcrumb for tracking action flow
+    Sentry.addBreadcrumb({
+      category: 'payment.mark.paid',
+      message: 'Marking payment as paid in expense',
+      level: 'info',
+      data: {
+        userId,
+        eventId,
+        expenseId,
+        paymentId,
+        paymentMethod: markAsPaidData.paymentMethod,
+      },
+    });
+
     if (!userId || !eventId || !expenseId || !paymentId) {
       throw new Error('Missing required parameters');
     }
@@ -172,11 +192,19 @@ export async function markPaymentAsPaidInExpense(
       }
     }
 
-    console.log('Payment marked as paid successfully:', paymentId);
-  } catch (error) {
-    console.error('Error marking payment as paid:', error);
-    throw new Error(
-      error instanceof Error ? error.message : 'Failed to mark payment as paid',
-    );
-  }
-}
+    // Add success breadcrumb
+    Sentry.addBreadcrumb({
+      category: 'payment.mark.paid',
+      message: 'Payment marked as paid successfully',
+      level: 'info',
+      data: {
+        userId,
+        eventId,
+        expenseId,
+        paymentId,
+        paymentAmount,
+        paymentMethod: markAsPaidData.paymentMethod,
+      },
+    });
+  },
+);

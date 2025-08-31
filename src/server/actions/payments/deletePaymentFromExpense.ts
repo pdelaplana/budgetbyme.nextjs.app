@@ -1,16 +1,35 @@
 'use server';
 
+import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
 import { getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
 import { db } from '@/server/lib/firebase-admin';
+import { withSentryServerAction } from '@/server/lib/sentryServerAction';
 
-export async function deletePaymentFromExpense(
-  userId: string,
-  eventId: string,
-  expenseId: string,
-  paymentId: string,
-): Promise<void> {
-  try {
+export const deletePaymentFromExpense = withSentryServerAction(
+  'deletePaymentFromExpense',
+  async (
+    userId: string,
+    eventId: string,
+    expenseId: string,
+    paymentId: string,
+  ): Promise<void> => {
+    // Set user context for debugging
+    Sentry.setUser({ id: userId });
+
+    // Add breadcrumb for tracking action flow
+    Sentry.addBreadcrumb({
+      category: 'payment.delete',
+      message: 'Deleting payment from expense',
+      level: 'info',
+      data: {
+        userId,
+        eventId,
+        expenseId,
+        paymentId,
+      },
+    });
+
     if (!userId || !eventId || !expenseId || !paymentId) {
       throw new Error('Missing required parameters');
     }
@@ -248,11 +267,19 @@ export async function deletePaymentFromExpense(
       throw new Error('Payment not found');
     }
 
-    console.log('Payment deleted successfully:', paymentId);
-  } catch (error) {
-    console.error('Error deleting payment:', error);
-    throw new Error(
-      error instanceof Error ? error.message : 'Failed to delete payment',
-    );
-  }
-}
+    // Add success breadcrumb
+    Sentry.addBreadcrumb({
+      category: 'payment.delete',
+      message: 'Payment deleted successfully',
+      level: 'info',
+      data: {
+        userId,
+        eventId,
+        expenseId,
+        paymentId,
+        deletedAmount: deletedPaymentAmount,
+        wasPaid: paymentWasPaid,
+      },
+    });
+  },
+);

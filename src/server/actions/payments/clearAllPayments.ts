@@ -1,18 +1,36 @@
 'use server';
 
+import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
 import {
   getCategoryIdFromExpense,
   subtractFromCategorySpentAmount,
 } from '@/server/lib/categoryUtils';
 import { db } from '@/server/lib/firebase-admin';
+import { withSentryServerAction } from '@/server/lib/sentryServerAction';
 
-export async function clearAllPayments(
-  userId: string,
-  eventId: string,
-  expenseId: string,
-): Promise<void> {
-  try {
+export const clearAllPayments = withSentryServerAction(
+  'clearAllPayments',
+  async (
+    userId: string,
+    eventId: string,
+    expenseId: string,
+  ): Promise<void> => {
+    // Set user context for debugging
+    Sentry.setUser({ id: userId });
+
+    // Add breadcrumb for tracking action flow
+    Sentry.addBreadcrumb({
+      category: 'payment.clear',
+      message: 'Clearing all payments from expense',
+      level: 'info',
+      data: {
+        userId,
+        eventId,
+        expenseId,
+      },
+    });
+
     if (!userId || !eventId || !expenseId) {
       throw new Error('Missing required parameters');
     }
@@ -72,11 +90,17 @@ export async function clearAllPayments(
       }
     }
 
-    console.log('All payments cleared for expense:', expenseId);
-  } catch (error) {
-    console.error('Error clearing payments:', error);
-    throw new Error(
-      error instanceof Error ? error.message : 'Failed to clear payments',
-    );
-  }
-}
+    // Add success breadcrumb
+    Sentry.addBreadcrumb({
+      category: 'payment.clear',
+      message: 'All payments cleared successfully',
+      level: 'info',
+      data: {
+        userId,
+        eventId,
+        expenseId,
+        totalPaidAmountCleared: totalPaidAmount,
+      },
+    });
+  },
+);

@@ -1,8 +1,10 @@
 'use server';
 
+import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
 import { getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
 import { db } from '@/server/lib/firebase-admin';
+import { withSentryServerAction } from '@/server/lib/sentryServerAction';
 import type { PaymentDocument } from '@/server/types/PaymentDocument';
 import type { PaymentMethod } from '@/types/Payment';
 
@@ -18,11 +20,27 @@ interface CreateSinglePaymentDto {
   notes?: string;
 }
 
-export async function createSinglePayment(
-  dto: CreateSinglePaymentDto,
-): Promise<string> {
-  try {
+export const createSinglePayment = withSentryServerAction(
+  'createSinglePayment',
+  async (dto: CreateSinglePaymentDto): Promise<string> => {
     const { userId, eventId, expenseId, paidDate, ...paymentData } = dto;
+
+    // Set user context for debugging
+    Sentry.setUser({ id: userId });
+
+    // Add breadcrumb for tracking action flow
+    Sentry.addBreadcrumb({
+      category: 'payment.single.create',
+      message: 'Creating single payment for expense',
+      level: 'info',
+      data: {
+        userId,
+        eventId,
+        expenseId,
+        amount: paymentData.amount,
+        paymentMethod: paymentData.paymentMethod,
+      },
+    });
 
     // Validate required fields
     if (!userId || !eventId || !expenseId) {
@@ -146,14 +164,22 @@ export async function createSinglePayment(
     }
 
     const paymentId = now.toMillis().toString();
-    console.log('Single payment created successfully:', paymentId);
+    
+    // Add success breadcrumb
+    Sentry.addBreadcrumb({
+      category: 'payment.single.create',
+      message: 'Single payment created successfully',
+      level: 'info',
+      data: {
+        userId,
+        eventId,
+        expenseId,
+        paymentId,
+        amount: paymentData.amount,
+        isPaid: true,
+      },
+    });
+
     return paymentId;
-  } catch (error) {
-    console.error('Error creating single payment:', error);
-    throw new Error(
-      error instanceof Error
-        ? error.message
-        : 'Failed to create single payment',
-    );
-  }
-}
+  },
+);

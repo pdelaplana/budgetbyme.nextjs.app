@@ -1,15 +1,32 @@
 'use server';
 
+import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
 import { db } from '@/server/lib/firebase-admin';
+import { withSentryServerAction } from '@/server/lib/sentryServerAction';
 import type { PaymentDocument } from '@/server/types/PaymentDocument';
 import type { AddPaymentDto } from '@/types/Payment';
 
-export async function addPaymentToExpense(
-  addPaymentDto: AddPaymentDto,
-): Promise<string> {
-  try {
+export const addPaymentToExpense = withSentryServerAction(
+  'addPaymentToExpense',
+  async (addPaymentDto: AddPaymentDto): Promise<string> => {
     const { userId, eventId, expenseId, ...paymentData } = addPaymentDto;
+
+    // Set user context for debugging
+    Sentry.setUser({ id: userId });
+
+    // Add breadcrumb for tracking action flow
+    Sentry.addBreadcrumb({
+      category: 'payment.add',
+      message: 'Adding payment to expense',
+      level: 'info',
+      data: {
+        userId,
+        eventId,
+        expenseId,
+        amount: paymentData.amount,
+      },
+    });
 
     // Validate required fields
     if (!userId || !eventId || !expenseId) {
@@ -106,14 +123,21 @@ export async function addPaymentToExpense(
     }
 
     const paymentId = now.toMillis().toString(); // Use timestamp as ID
-    console.log('Payment added to expense successfully:', paymentId);
+    
+    // Add success breadcrumb
+    Sentry.addBreadcrumb({
+      category: 'payment.add',
+      message: 'Payment added to expense successfully',
+      level: 'info',
+      data: {
+        userId,
+        eventId,
+        expenseId,
+        paymentId,
+        amount: paymentData.amount,
+      },
+    });
+
     return paymentId;
-  } catch (error) {
-    console.error('Error adding payment to expense:', error);
-    throw new Error(
-      error instanceof Error
-        ? error.message
-        : 'Failed to add payment to expense',
-    );
-  }
-}
+  },
+);

@@ -1,7 +1,9 @@
 'use server';
 
+import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
 import { db } from '@/server/lib/firebase-admin';
+import { withSentryServerAction } from '@/server/lib/sentryServerAction';
 import type { PaymentDocument } from '@/server/types/PaymentDocument';
 import type { PaymentMethod } from '@/types/Payment';
 
@@ -19,11 +21,26 @@ interface CreatePaymentScheduleDto {
   }>;
 }
 
-export async function createPaymentSchedule(
-  dto: CreatePaymentScheduleDto,
-): Promise<void> {
-  try {
+export const createPaymentSchedule = withSentryServerAction(
+  'createPaymentSchedule',
+  async (dto: CreatePaymentScheduleDto): Promise<void> => {
     const { userId, eventId, expenseId, payments } = dto;
+
+    // Set user context for debugging
+    Sentry.setUser({ id: userId });
+
+    // Add breadcrumb for tracking action flow
+    Sentry.addBreadcrumb({
+      category: 'payment.schedule.create',
+      message: 'Creating payment schedule for expense',
+      level: 'info',
+      data: {
+        userId,
+        eventId,
+        expenseId,
+        paymentCount: payments?.length || 0,
+      },
+    });
 
     // Validate required fields
     if (!userId || !eventId || !expenseId) {
@@ -73,16 +90,18 @@ export async function createPaymentSchedule(
       _updatedBy: userId,
     });
 
-    console.log(
-      `Payment schedule created successfully with ${payments.length} payments for expense:`,
-      expenseId,
-    );
-  } catch (error) {
-    console.error('Error creating payment schedule:', error);
-    throw new Error(
-      error instanceof Error
-        ? error.message
-        : 'Failed to create payment schedule',
-    );
-  }
-}
+    // Add success breadcrumb
+    Sentry.addBreadcrumb({
+      category: 'payment.schedule.create',
+      message: 'Payment schedule created successfully',
+      level: 'info',
+      data: {
+        userId,
+        eventId,
+        expenseId,
+        paymentCount: payments.length,
+        totalAmount: paymentSchedule.reduce((sum, p) => sum + p.amount, 0),
+      },
+    });
+  },
+);

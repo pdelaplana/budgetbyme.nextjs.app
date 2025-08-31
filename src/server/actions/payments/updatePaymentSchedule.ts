@@ -2,9 +2,11 @@
 
 // Server action to update payment schedule
 
+import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
 import { revalidateTag } from 'next/cache';
 import { db } from '@/server/lib/firebase-admin';
+import { withSentryServerAction } from '@/server/lib/sentryServerAction';
 import type { Payment, PaymentMethod } from '@/types/Payment';
 
 interface UpdatePaymentScheduleParams {
@@ -21,13 +23,30 @@ interface UpdatePaymentScheduleParams {
   }>;
 }
 
-export async function updatePaymentSchedule({
-  userId,
-  eventId,
-  expenseId,
-  payments,
-}: UpdatePaymentScheduleParams): Promise<{ success: boolean; error?: string }> {
-  try {
+export const updatePaymentSchedule = withSentryServerAction(
+  'updatePaymentSchedule',
+  async ({
+    userId,
+    eventId,
+    expenseId,
+    payments,
+  }: UpdatePaymentScheduleParams): Promise<{ success: boolean; error?: string }> => {
+    // Set user context for debugging
+    Sentry.setUser({ id: userId });
+
+    // Add breadcrumb for tracking action flow
+    Sentry.addBreadcrumb({
+      category: 'payment.schedule.update',
+      message: 'Updating payment schedule for expense',
+      level: 'info',
+      data: {
+        userId,
+        eventId,
+        expenseId,
+        paymentCount: payments.length,
+      },
+    });
+
     const expenseRef = db
       .collection('workspaces')
       .doc(userId)
@@ -67,19 +86,23 @@ export async function updatePaymentSchedule({
       _updatedBy: userId,
     });
 
-    console.log(
-      `Payment schedule updated successfully with ${paymentSchedule.length} payments for expense: ${expenseId}`,
-    );
+    // Add success breadcrumb
+    Sentry.addBreadcrumb({
+      category: 'payment.schedule.update',
+      message: 'Payment schedule updated successfully',
+      level: 'info',
+      data: {
+        userId,
+        eventId,
+        expenseId,
+        paymentCount: paymentSchedule.length,
+        totalAmount: paymentSchedule.reduce((sum, p) => sum + p.amount, 0),
+      },
+    });
 
     // Revalidate cache
     revalidateTag(`expenses-${userId}-${eventId}`);
 
     return { success: true };
-  } catch (error) {
-    console.error('Error updating payment schedule:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
-    };
-  }
-}
+  },
+);

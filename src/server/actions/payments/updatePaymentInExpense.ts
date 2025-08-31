@@ -1,17 +1,37 @@
 'use server';
 
+import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
 import { db } from '@/server/lib/firebase-admin';
+import { withSentryServerAction } from '@/server/lib/sentryServerAction';
 import type { UpdatePaymentDto } from '@/types/Payment';
 
-export async function updatePaymentInExpense(
-  userId: string,
-  eventId: string,
-  expenseId: string,
-  paymentId: string,
-  updateData: UpdatePaymentDto,
-): Promise<void> {
-  try {
+export const updatePaymentInExpense = withSentryServerAction(
+  'updatePaymentInExpense',
+  async (
+    userId: string,
+    eventId: string,
+    expenseId: string,
+    paymentId: string,
+    updateData: UpdatePaymentDto,
+  ): Promise<void> => {
+    // Set user context for debugging
+    Sentry.setUser({ id: userId });
+
+    // Add breadcrumb for tracking action flow
+    Sentry.addBreadcrumb({
+      category: 'payment.update',
+      message: 'Updating payment in expense',
+      level: 'info',
+      data: {
+        userId,
+        eventId,
+        expenseId,
+        paymentId,
+        updateFields: Object.keys(updateData),
+      },
+    });
+
     if (!userId || !eventId || !expenseId || !paymentId) {
       throw new Error('Missing required parameters');
     }
@@ -96,11 +116,18 @@ export async function updatePaymentInExpense(
       throw new Error('Payment not found');
     }
 
-    console.log('Payment updated successfully:', paymentId);
-  } catch (error) {
-    console.error('Error updating payment:', error);
-    throw new Error(
-      error instanceof Error ? error.message : 'Failed to update payment',
-    );
-  }
-}
+    // Add success breadcrumb
+    Sentry.addBreadcrumb({
+      category: 'payment.update',
+      message: 'Payment updated successfully',
+      level: 'info',
+      data: {
+        userId,
+        eventId,
+        expenseId,
+        paymentId,
+        updateFields: Object.keys(updateData),
+      },
+    });
+  },
+);
