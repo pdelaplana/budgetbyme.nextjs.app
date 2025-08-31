@@ -1,26 +1,11 @@
 'use client';
 
-import {
-  PencilIcon,
-  PlusIcon,
-  TrashIcon,
-} from '@heroicons/react/24/outline';
-import type React from 'react';
+import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import ActionDropdown from '@/components/ui/ActionDropdown';
-
-export interface Category {
-  id: string;
-  name: string;
-  description?: string;
-  icon?: string;
-  budgetedAmount?: number;
-  scheduledAmount?: number;
-  spentAmount?: number;
-  color?: string;
-}
+import type { BudgetCategory } from '@/types/BudgetCategory';
 
 export interface CategoryHeaderProps {
-  category: Category;
+  category: BudgetCategory;
   onAddExpense: () => void;
   onEditCategory: () => void;
   onDeleteCategory: () => void;

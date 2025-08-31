@@ -4,24 +4,8 @@
  */
 
 import { useMemo } from 'react';
-
-export interface Category {
-  id: string;
-  name: string;
-  description?: string;
-  budgetedAmount?: number;
-  scheduledAmount?: number;
-  spentAmount?: number;
-  color?: string;
-  icon?: string;
-}
-
-export interface Expense {
-  id: string;
-  category: {
-    id: string;
-  };
-}
+import type { BudgetCategory } from '@/types/BudgetCategory';
+import type { Expense } from '@/types/Expense';
 
 /**
  * Custom hook for managing category data with optimized filtering
@@ -31,27 +15,27 @@ export interface Expense {
  * @returns Optimized category and expense data
  */
 export function useCategoryData(
-  categories: Category[],
+  categories: BudgetCategory[],
   expenses: Expense[],
-  categoryId: string
+  categoryId: string,
 ) {
   // Find the current category (memoized for performance)
   const category = useMemo(
     () => categories.find((cat) => cat.id === categoryId),
-    [categories, categoryId]
+    [categories, categoryId],
   );
 
   // Filter expenses by current category (memoized for performance)
   const categoryExpenses = useMemo(
     () => expenses.filter((expense) => expense.category.id === categoryId),
-    [expenses, categoryId]
+    [expenses, categoryId],
   );
 
   // Calculate category statistics (memoized for performance)
   const categoryStats = useMemo(() => {
     const expenseCount = categoryExpenses.length;
     const hasExpenses = expenseCount > 0;
-    
+
     return {
       expenseCount,
       hasExpenses,
@@ -79,11 +63,11 @@ export function useCategoryData(
 export function useCategoryExpenseSearch(
   expenses: Expense[],
   categoryId: string,
-  searchTerm: string = ''
+  searchTerm: string = '',
 ) {
   const categoryExpenses = useMemo(
     () => expenses.filter((expense) => expense.category.id === categoryId),
-    [expenses, categoryId]
+    [expenses, categoryId],
   );
 
   const filteredExpenses = useMemo(() => {
@@ -93,11 +77,9 @@ export function useCategoryExpenseSearch(
 
     const lowerSearchTerm = searchTerm.toLowerCase().trim();
     return categoryExpenses.filter((expense) => {
-      // Type assertion to access expense properties (would need proper typing in real implementation)
-      const expenseAny = expense as any;
       return (
-        expenseAny.name?.toLowerCase().includes(lowerSearchTerm) ||
-        expenseAny.description?.toLowerCase().includes(lowerSearchTerm)
+        expense.name?.toLowerCase().includes(lowerSearchTerm) ||
+        expense.description?.toLowerCase().includes(lowerSearchTerm)
       );
     });
   }, [categoryExpenses, searchTerm]);
@@ -118,11 +100,11 @@ export function useCategoryExpenseSearch(
 export function useCategoryExpensePagination(
   expenses: Expense[],
   categoryId: string,
-  pageSize: number = 10
+  pageSize: number = 10,
 ) {
   const categoryExpenses = useMemo(
     () => expenses.filter((expense) => expense.category.id === categoryId),
-    [expenses, categoryId]
+    [expenses, categoryId],
   );
 
   const totalCount = categoryExpenses.length;
@@ -150,8 +132,8 @@ export function useCategoryExpensePagination(
  * Provides common validation checks for category operations
  */
 export function useCategoryValidation(
-  category: Category | undefined,
-  expenses: Expense[]
+  category: BudgetCategory | undefined,
+  expenses: Expense[],
 ) {
   const validationState = useMemo(() => {
     const isFound = category !== undefined;

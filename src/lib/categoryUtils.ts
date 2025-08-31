@@ -33,7 +33,7 @@ export interface ExpenseModalCategoryData {
   budgetedAmount: number;
   scheduledAmount: number;
   spentAmount: number;
-  color?: string;
+  color: string;
   icon: string;
   _createdDate: Date;
   _createdBy: string;
@@ -68,7 +68,7 @@ export function transformCategoryForExpenseModal(category: Category): ExpenseMod
     budgetedAmount: category.budgetedAmount ?? 0,
     scheduledAmount: category.scheduledAmount ?? 0,
     spentAmount: category.spentAmount ?? 0,
-    color: category.color,
+    color: category.color || '#059669',
     icon: category.icon || '🎉',
     _createdDate: new Date(),
     _createdBy: '',

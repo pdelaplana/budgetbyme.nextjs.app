@@ -10,19 +10,39 @@ import { memo } from 'react';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import {
   calculatePaymentStatus,
-  type ExpenseWithPayments,
   getPaymentStatusText,
 } from '@/lib/paymentCalculations';
+import type { Expense } from '@/types/Expense';
 
 export interface ExpenseListItemProps {
-  expense: ExpenseWithPayments & {
-    id: string;
-    name: string;
-    description?: string;
-    date: string | Date;
-  };
+  expense: Expense;
   onClick: (expense: ExpenseListItemProps['expense']) => void;
   className?: string;
+}
+
+// Helper function to convert Expense to ExpenseWithPayments format
+function adaptExpenseForCalculations(expense: Expense) {
+  return {
+    id: expense.id,
+    amount: expense.amount,
+    hasPaymentSchedule: expense.hasPaymentSchedule,
+    paymentSchedule: expense.paymentSchedule?.map((payment) => ({
+      ...payment,
+      dueDate:
+        payment.dueDate instanceof Date
+          ? payment.dueDate.toISOString().split('T')[0] // Convert Date to YYYY-MM-DD string
+          : payment.dueDate,
+    })),
+    oneOffPayment: expense.oneOffPayment
+      ? {
+          ...expense.oneOffPayment,
+          dueDate:
+            expense.oneOffPayment.dueDate instanceof Date
+              ? expense.oneOffPayment.dueDate.toISOString().split('T')[0]
+              : expense.oneOffPayment.dueDate,
+        }
+      : undefined,
+  };
 }
 
 function ExpenseListItem({
@@ -30,8 +50,10 @@ function ExpenseListItem({
   onClick,
   className = '',
 }: ExpenseListItemProps) {
-  // Use centralized payment calculation utility
-  const paymentStatus = calculatePaymentStatus(expense);
+  // Use centralized payment calculation utility with adapted expense
+  const paymentStatus = calculatePaymentStatus(
+    adaptExpenseForCalculations(expense),
+  );
   const statusText = getPaymentStatusText(paymentStatus);
 
   const handleClick = () => {
