@@ -45,7 +45,9 @@ export interface ExpenseModalCategoryData {
  * Transforms a category for use in the AddOrEditCategoryModal
  * Provides safe defaults for all required fields
  */
-export function transformCategoryForModal(category: Category): CategoryModalData {
+export function transformCategoryForModal(
+  category: Category,
+): CategoryModalData {
   return {
     id: category.id || '',
     name: category.name || '',
@@ -60,7 +62,9 @@ export function transformCategoryForModal(category: Category): CategoryModalData
  * Transforms a category for use in the AddOrEditExpenseModal
  * Includes additional metadata fields required by the expense modal
  */
-export function transformCategoryForExpenseModal(category: Category): ExpenseModalCategoryData {
+export function transformCategoryForExpenseModal(
+  category: Category,
+): ExpenseModalCategoryData {
   return {
     id: category.id,
     name: category.name,
@@ -90,7 +94,9 @@ export interface ValidationResult {
   };
 }
 
-export function validateCategoryData(data: Partial<CategoryModalData>): ValidationResult {
+export function validateCategoryData(
+  data: Partial<CategoryModalData>,
+): ValidationResult {
   const errors: ValidationResult['errors'] = {};
 
   // Validate name
@@ -124,7 +130,9 @@ export function validateCategoryData(data: Partial<CategoryModalData>): Validati
  * Creates a safe category object with default values
  * Useful for initializing new categories or handling undefined categories
  */
-export function createDefaultCategory(overrides: Partial<Category> = {}): Category {
+export function createDefaultCategory(
+  overrides: Partial<Category> = {},
+): Category {
   return {
     id: '',
     name: '',
@@ -155,7 +163,7 @@ export function calculateRemainingBudget(category: Category): number {
 export function calculateBudgetUtilization(category: Category): number {
   const budgeted = category.budgetedAmount ?? 0;
   const spent = category.spentAmount ?? 0;
-  
+
   if (budgeted === 0) return 0;
   return Math.round((spent / budgeted) * 100);
 }

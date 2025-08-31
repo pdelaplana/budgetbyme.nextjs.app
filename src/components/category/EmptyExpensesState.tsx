@@ -32,9 +32,7 @@ export default function EmptyExpensesState({
         <h3 className='text-lg sm:text-xl font-medium text-gray-600 mb-2'>
           No expenses yet
         </h3>
-        <p className='text-sm sm:text-base text-gray-500 px-4'>
-          {message}
-        </p>
+        <p className='text-sm sm:text-base text-gray-500 px-4'>{message}</p>
       </div>
       <div className='flex justify-center'>
         <button

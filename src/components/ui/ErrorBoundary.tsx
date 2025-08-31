@@ -1,6 +1,7 @@
 'use client';
 
-import React, { Component, ReactNode } from 'react';
+import type React from 'react';
+import { Component, type ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -42,7 +43,7 @@ export default class ErrorBoundary extends Component<
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Call custom error handler if provided
     this.props.onError?.(error, errorInfo);
-    
+
     // Log to console for development
     console.error('ErrorBoundary caught an error:', error, errorInfo);
   }
@@ -54,9 +55,9 @@ export default class ErrorBoundary extends Component<
     // Reset error state when resetKeys change
     if (hasError && resetKeys && prevProps.resetKeys) {
       const hasResetKeyChanged = resetKeys.some(
-        (key, idx) => prevProps.resetKeys![idx] !== key
+        (key, idx) => prevProps.resetKeys![idx] !== key,
       );
-      
+
       if (hasResetKeyChanged) {
         this.resetErrorBoundary();
       }
@@ -95,8 +96,8 @@ export default class ErrorBoundary extends Component<
 
       // Default error UI
       return (
-        <ErrorFallback 
-          error={this.state.error} 
+        <ErrorFallback
+          error={this.state.error}
           onRetry={this.handleRetry}
           errorId={this.state.errorId}
         />
@@ -116,41 +117,37 @@ interface ErrorFallbackProps {
 
 function ErrorFallback({ error, onRetry, errorId }: ErrorFallbackProps) {
   return (
-    <div className="text-center py-12">
-      <div className="text-6xl mb-4">⚠️</div>
-      <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+    <div className='text-center py-12'>
+      <div className='text-6xl mb-4'>⚠️</div>
+      <h2 className='text-2xl font-semibold text-gray-900 mb-2'>
         Something went wrong
       </h2>
-      <p className="text-gray-600 mb-4">
+      <p className='text-gray-600 mb-4'>
         We encountered an unexpected error. Please try again.
       </p>
-      
+
       {/* Error details for development */}
       {process.env.NODE_ENV === 'development' && error && (
-        <details className="mb-4 text-left max-w-md mx-auto">
-          <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
+        <details className='mb-4 text-left max-w-md mx-auto'>
+          <summary className='cursor-pointer text-sm text-gray-500 hover:text-gray-700'>
             Error Details
           </summary>
-          <pre className="mt-2 text-xs bg-gray-100 p-2 rounded overflow-auto">
+          <pre className='mt-2 text-xs bg-gray-100 p-2 rounded overflow-auto'>
             {error.message}
             {error.stack && '\n\nStack trace:\n' + error.stack}
           </pre>
-          <p className="text-xs text-gray-400 mt-1">Error ID: {errorId}</p>
+          <p className='text-xs text-gray-400 mt-1'>Error ID: {errorId}</p>
         </details>
       )}
 
-      <div className="space-x-3">
-        <button 
-          type="button" 
-          onClick={onRetry}
-          className="btn-primary"
-        >
+      <div className='space-x-3'>
+        <button type='button' onClick={onRetry} className='btn-primary'>
           Try Again
         </button>
-        <button 
-          type="button" 
+        <button
+          type='button'
           onClick={() => window.location.reload()}
-          className="btn-secondary"
+          className='btn-secondary'
         >
           Refresh Page
         </button>

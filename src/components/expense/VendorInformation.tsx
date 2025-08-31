@@ -1,11 +1,11 @@
 'use client';
 
-import React from 'react';
 import {
   BuildingOfficeIcon,
   GlobeAltIcon,
   MapPinIcon,
 } from '@heroicons/react/24/outline';
+import React from 'react';
 import type { Expense } from '@/types/Expense';
 
 interface VendorInformationProps {
@@ -14,7 +14,10 @@ interface VendorInformationProps {
 
 const VendorInformation = React.memo<VendorInformationProps>(({ vendor }) => {
   // Only render if vendor has meaningful data
-  if (!vendor || (!vendor.name && !vendor.address && !vendor.website && !vendor.email)) {
+  if (
+    !vendor ||
+    (!vendor.name && !vendor.address && !vendor.website && !vendor.email)
+  ) {
     return null;
   }
 
@@ -44,9 +47,7 @@ const VendorInformation = React.memo<VendorInformationProps>(({ vendor }) => {
             </div>
             <div className='mt-1 flex items-start'>
               <MapPinIcon className='h-4 w-4 text-gray-400 mr-2 mt-0.5 flex-shrink-0' />
-              <p className='text-base text-gray-900'>
-                {vendor.address}
-              </p>
+              <p className='text-base text-gray-900'>{vendor.address}</p>
             </div>
           </div>
         )}
@@ -76,9 +77,7 @@ const VendorInformation = React.memo<VendorInformationProps>(({ vendor }) => {
               Email
             </div>
             <div className='mt-1 flex items-center'>
-              <span className='text-base text-gray-900'>
-                {vendor.email}
-              </span>
+              <span className='text-base text-gray-900'>{vendor.email}</span>
             </div>
           </div>
         )}

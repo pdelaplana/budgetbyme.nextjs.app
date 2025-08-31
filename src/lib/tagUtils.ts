@@ -11,21 +11,24 @@ export interface TagValidationResult {
 /**
  * Validates a tag for addition
  */
-export function validateTag(tag: string, existingTags: string[]): TagValidationResult {
+export function validateTag(
+  tag: string,
+  existingTags: string[],
+): TagValidationResult {
   const trimmedTag = tag.trim();
-  
+
   if (!trimmedTag) {
     return { isValid: false, error: 'Tag cannot be empty' };
   }
-  
+
   if (trimmedTag.length > 15) {
     return { isValid: false, error: 'Tag cannot exceed 15 characters' };
   }
-  
+
   if (existingTags.includes(trimmedTag)) {
     return { isValid: false, error: 'Tag already exists' };
   }
-  
+
   return { isValid: true };
 }
 
@@ -35,19 +38,22 @@ export function validateTag(tag: string, existingTags: string[]): TagValidationR
  */
 export function addTag(currentTags: string[], newTag: string): string[] | null {
   const validation = validateTag(newTag, currentTags);
-  
+
   if (!validation.isValid) {
     return null;
   }
-  
+
   return [...currentTags, newTag.trim()];
 }
 
 /**
  * Removes a tag from the tags array
  */
-export function removeTag(currentTags: string[], tagToRemove: string): string[] {
-  return currentTags.filter(tag => tag !== tagToRemove);
+export function removeTag(
+  currentTags: string[],
+  tagToRemove: string,
+): string[] {
+  return currentTags.filter((tag) => tag !== tagToRemove);
 }
 
 /**
@@ -60,11 +66,14 @@ export function tagExists(tags: string[], tag: string): boolean {
 /**
  * Formats tags for display with proper truncation
  */
-export function formatTagForDisplay(tag: string, maxLength: number = 80): string {
+export function formatTagForDisplay(
+  tag: string,
+  maxLength: number = 80,
+): string {
   if (tag.length <= maxLength) {
     return tag;
   }
-  
+
   return `${tag.substring(0, maxLength - 3)}...`;
 }
 
@@ -110,7 +119,7 @@ export function tagReducer(state: TagState, action: TagAction): TagState {
         ...state,
         tags: action.tags,
       };
-      
+
     case 'ADD_TAG': {
       const updatedTags = addTag(state.tags, action.tag);
       if (updatedTags === null) {
@@ -122,45 +131,45 @@ export function tagReducer(state: TagState, action: TagAction): TagState {
         newTag: '', // Clear input after adding
       };
     }
-    
+
     case 'REMOVE_TAG':
       return {
         ...state,
         tags: removeTag(state.tags, action.tag),
       };
-      
+
     case 'SET_NEW_TAG':
       return {
         ...state,
         newTag: sanitizeTagInput(action.tag),
       };
-      
+
     case 'TOGGLE_EDITING':
       return {
         ...state,
         isEditing: !state.isEditing,
         newTag: state.isEditing ? '' : state.newTag, // Clear input when stopping editing
       };
-      
+
     case 'START_EDITING':
       return {
         ...state,
         isEditing: true,
       };
-      
+
     case 'STOP_EDITING':
       return {
         ...state,
         isEditing: false,
         newTag: '', // Clear input when stopping editing
       };
-      
+
     case 'RESET_NEW_TAG':
       return {
         ...state,
         newTag: '',
       };
-      
+
     default:
       return state;
   }

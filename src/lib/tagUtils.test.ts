@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import {
-  tagReducer,
-  initialTagState,
-  addTag,
-  removeTag,
-  validateTag,
-  sanitizeTagInput,
-} from './tagUtils';
 import type { TagAction, TagState } from './tagUtils';
+import {
+  addTag,
+  initialTagState,
+  removeTag,
+  sanitizeTagInput,
+  tagReducer,
+  validateTag,
+} from './tagUtils';
 
 describe('tagUtils', () => {
   describe('sanitizeTagInput', () => {
@@ -21,7 +21,9 @@ describe('tagUtils', () => {
     });
 
     it('should enforce max length of 15 characters', () => {
-      expect(sanitizeTagInput('this-is-a-very-long-tag-name')).toBe('this-is-a-very-');
+      expect(sanitizeTagInput('this-is-a-very-long-tag-name')).toBe(
+        'this-is-a-very-',
+      );
     });
 
     it('should handle empty and whitespace-only strings', () => {
@@ -135,7 +137,7 @@ describe('tagUtils', () => {
       };
       const action: TagAction = { type: 'ADD_TAG', tag: 'new-tag' };
       const newState = tagReducer(initialState, action);
-      
+
       expect(newState.tags).toEqual(['existing', 'new-tag']);
       expect(newState.newTag).toBe('');
       expect(newState.isEditing).toBe(false);
@@ -149,7 +151,7 @@ describe('tagUtils', () => {
       };
       const action: TagAction = { type: 'ADD_TAG', tag: 'existing' };
       const newState = tagReducer(initialState, action);
-      
+
       expect(newState.tags).toEqual(['existing']);
       expect(newState.newTag).toBe('existing'); // newTag should remain unchanged when add fails
     });
@@ -161,14 +163,14 @@ describe('tagUtils', () => {
       };
       const action: TagAction = { type: 'REMOVE_TAG', tag: 'tag2' };
       const newState = tagReducer(initialState, action);
-      
+
       expect(newState.tags).toEqual(['tag1', 'tag3']);
     });
 
     it('should handle SET_NEW_TAG action', () => {
       const action: TagAction = { type: 'SET_NEW_TAG', tag: 'new input' };
       const newState = tagReducer(initialTagState, action);
-      
+
       expect(newState.newTag).toBe('new input');
       expect(newState.error).toBeUndefined();
     });
@@ -177,7 +179,7 @@ describe('tagUtils', () => {
       const action: TagAction = { type: 'TOGGLE_EDITING' };
       let newState = tagReducer(initialTagState, action);
       expect(newState.isEditing).toBe(true);
-      
+
       newState = tagReducer(newState, action);
       expect(newState.isEditing).toBe(false);
     });
@@ -190,7 +192,7 @@ describe('tagUtils', () => {
       };
       const action: TagAction = { type: 'STOP_EDITING' };
       const newState = tagReducer(initialState, action);
-      
+
       expect(newState.isEditing).toBe(false);
       expect(newState.newTag).toBe('');
       expect(newState.error).toBeUndefined();
@@ -202,7 +204,7 @@ describe('tagUtils', () => {
       };
       const action: TagAction = { type: 'SET_NEW_TAG', tag: 'new@#$tag' };
       const newState = tagReducer(initialState, action);
-      
+
       expect(newState.newTag).toBe('newtag'); // Special chars removed by sanitizeTagInput
     });
   });

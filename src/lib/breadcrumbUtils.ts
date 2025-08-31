@@ -32,7 +32,7 @@ export interface Expense {
 export function buildCategoryBreadcrumbs(
   event: Event,
   category: Category,
-  eventId: string
+  eventId: string,
 ): BreadcrumbItem[] {
   return [
     {
@@ -59,7 +59,7 @@ export function buildExpenseBreadcrumbs(
   event: Event,
   category: Category,
   expense: Expense,
-  eventId: string
+  eventId: string,
 ): BreadcrumbItem[] {
   return [
     {
@@ -104,7 +104,7 @@ export function buildDashboardBreadcrumbs(event: Event): BreadcrumbItem[] {
 export function buildNestedCategoryBreadcrumbs(
   event: Event,
   categories: Category[],
-  eventId: string
+  eventId: string,
 ): BreadcrumbItem[] {
   const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -139,7 +139,7 @@ export function buildNestedCategoryBreadcrumbs(
 export function buildSettingsBreadcrumbs(
   event: Event,
   settingName: string,
-  eventId: string
+  eventId: string,
 ): BreadcrumbItem[] {
   return [
     {
@@ -165,8 +165,8 @@ export function buildSettingsBreadcrumbs(
  */
 export function validateBreadcrumbs(items: BreadcrumbItem[]): BreadcrumbItem[] {
   return items
-    .filter(item => item.label && item.label.trim().length > 0)
-    .map(item => ({
+    .filter((item) => item.label && item.label.trim().length > 0)
+    .map((item) => ({
       ...item,
       label: item.label.trim(),
       href: item.current ? undefined : item.href, // Remove href for current items
@@ -179,17 +179,20 @@ export function validateBreadcrumbs(items: BreadcrumbItem[]): BreadcrumbItem[] {
  * @param total - Total number of breadcrumb items
  * @returns Recommended truncation length
  */
-export function getBreadcrumbTruncationLength(position: number, total: number): number {
+export function getBreadcrumbTruncationLength(
+  position: number,
+  total: number,
+): number {
   // First item (event) gets shorter length if there are many items
   if (position === 0 && total > 2) {
     return 12;
   }
-  
+
   // Last item (current page) gets the most space
   if (position === total - 1) {
     return 18;
   }
-  
+
   // Middle items get medium space
   return 15;
 }
@@ -207,7 +210,7 @@ export function createBreadcrumbItem(
     current?: boolean;
     icon?: React.ComponentType<{ className?: string }>;
     maxLength?: number;
-  } = {}
+  } = {},
 ): BreadcrumbItem {
   const { href, current = false, icon, maxLength = 15 } = options;
 

@@ -10,7 +10,7 @@ interface BudgetCategoriesSectionProps {
   onCreateFirstCategory: () => void;
 }
 
-export default function BudgetCategoriesSection({
+function BudgetCategoriesSection({
   categories,
   onCategoryClick,
   onCreateFirstCategory,
@@ -87,3 +87,5 @@ export default function BudgetCategoriesSection({
     </div>
   );
 }
+
+export default React.memo(BudgetCategoriesSection);

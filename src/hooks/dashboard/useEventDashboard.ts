@@ -6,11 +6,12 @@ import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
 import { useDeleteEventMutation } from '@/hooks/events';
 import { useRecalculateEventTotalsMutation } from '@/hooks/events/useRecalculateEventTotalsMutation';
+import type { UseEventDashboardReturn } from '@/types/dashboard';
 import { useDashboardActions } from './useDashboardActions';
 import { useDashboardState } from './useDashboardState';
 import { useModalControls } from './useModalControls';
 
-export function useEventDashboard() {
+export function useEventDashboard(): UseEventDashboardReturn {
   const router = useRouter();
   const params = useParams();
   const eventId = params?.id as string;

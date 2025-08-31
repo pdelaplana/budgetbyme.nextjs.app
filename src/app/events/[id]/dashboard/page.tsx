@@ -1,15 +1,19 @@
 'use client';
 
+import { lazy, Suspense, useMemo } from 'react';
 import BudgetCategoriesSection from '@/components/dashboard/BudgetCategoriesSection';
 import BudgetOverview from '@/components/dashboard/BudgetOverview';
+import DashboardErrorState from '@/components/dashboard/DashboardErrorState';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import ModalManager from '@/components/dashboard/ModalManager';
+import DashboardLoadingState from '@/components/dashboard/DashboardLoadingState';
+import DashboardNotFound from '@/components/dashboard/DashboardNotFound';
 import PaymentsSection from '@/components/dashboard/PaymentsSection';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import NotFoundState from '@/components/ui/NotFoundState';
 import { DASHBOARD_ACTIONS } from '@/constants/dashboardActions';
 import { useEventDashboard } from '@/hooks/dashboard';
+
+// Lazy load ModalManager to reduce initial bundle size
+const ModalManager = lazy(() => import('@/components/dashboard/ModalManager'));
 
 export default function EventDashboardPage() {
   const {
@@ -40,73 +44,52 @@ export default function EventDashboardPage() {
     router,
   } = useEventDashboard();
 
-  // Safety check - don't render if currentEvent is null
-  if (!currentEvent) {
-    return (
-      <DashboardLayout>
-        <LoadingSpinner
-          title='Loading Event...'
-          message='Please wait while we load your event data'
-        />
-      </DashboardLayout>
-    );
-  }
+  // Stabilize props to prevent unnecessary re-renders
+  const stableDropdownItems = useMemo(() => DASHBOARD_ACTIONS, []);
+
+  const stableHandlers = useMemo(
+    () => ({
+      onCategoryClick: actions.handleCategoryClick,
+      onCreateFirstCategory: modals.openAddCategoryModal,
+      onGetStarted: modals.openAddCategoryModal,
+    }),
+    [actions.handleCategoryClick, modals.openAddCategoryModal],
+  );
 
   // Show loading state while events list or individual event is being loaded
   if (isLoading || isEventLoading) {
-    return (
-      <DashboardLayout>
-        <LoadingSpinner
-          title='Loading Event...'
-          message='Please wait while we load your event data'
-        />
-      </DashboardLayout>
-    );
+    return <DashboardLoadingState />;
   }
 
   // Show error state if there's an error
   if (eventError) {
     return (
-      <DashboardLayout>
-        <div className='flex items-center justify-center py-12'>
-          <div className='text-center'>
-            <h2 className='text-2xl font-bold text-gray-900 mb-2'>
-              Error Loading Event
-            </h2>
-            <p className='text-gray-600 mb-4'>{eventError}</p>
-            <button
-              type='button'
-              onClick={() => router.push('/events')}
-              className='btn-primary'
-            >
-              Back to Events
-            </button>
-          </div>
-        </div>
-      </DashboardLayout>
+      <DashboardErrorState
+        error={eventError}
+        onBack={() => router.push('/events')}
+      />
     );
   }
 
   // Show 404 state if event not found after events are loaded
   if (!currentEvent && !isLoading && events.length >= 0) {
     return (
-      <DashboardLayout>
-        <NotFoundState
-          title='Event Not Found'
-          message="The event you're looking for doesn't exist or you don't have access to it."
-          buttonText='Back to Events'
-          onButtonClick={() => router.push('/events')}
-          icon='📅'
-          className='flex items-center justify-center'
-        />
-      </DashboardLayout>
+      <DashboardNotFound
+        entityType='Event'
+        onBack={() => router.push('/events')}
+      />
     );
+  }
+
+  // Safety check - shouldn't happen but ensures currentEvent exists for TypeScript
+  if (!currentEvent) {
+    return <DashboardLoadingState />;
   }
 
   return (
     <DashboardLayout>
       <DashboardHeader
-        dropdownItems={DASHBOARD_ACTIONS}
+        dropdownItems={stableDropdownItems}
         isDropdownOpen={actions.isDropdownOpen}
         onDropdownToggle={actions.toggleDropdown}
         onDropdownClose={actions.closeDropdown}
@@ -118,25 +101,27 @@ export default function EventDashboardPage() {
       <BudgetOverview event={currentEvent} categories={categories} />
 
       {/* Upcoming Payments Widget - Compact */}
-      <PaymentsSection onGetStarted={modals.openAddCategoryModal} />
+      <PaymentsSection onGetStarted={stableHandlers.onGetStarted} />
 
       {/* Budget Categories List */}
       <BudgetCategoriesSection
         categories={categories}
-        onCategoryClick={actions.handleCategoryClick}
-        onCreateFirstCategory={modals.openAddCategoryModal}
+        onCategoryClick={stableHandlers.onCategoryClick}
+        onCreateFirstCategory={stableHandlers.onCreateFirstCategory}
       />
 
-      {/* All Modals */}
-      <ModalManager
-        currentEvent={currentEvent}
-        categories={categories}
-        modals={modals}
-        actions={actions}
-        isRecalculatingTotals={isRecalculatingTotals}
-        handleRecalculateTotals={handleRecalculateTotals}
-        confirmDeleteEvent={confirmDeleteEvent}
-      />
+      {/* All Modals - Lazy loaded */}
+      <Suspense fallback={null}>
+        <ModalManager
+          currentEvent={currentEvent}
+          categories={categories}
+          modals={modals}
+          actions={actions}
+          isRecalculatingTotals={isRecalculatingTotals}
+          handleRecalculateTotals={handleRecalculateTotals}
+          confirmDeleteEvent={confirmDeleteEvent}
+        />
+      </Suspense>
     </DashboardLayout>
   );
 }

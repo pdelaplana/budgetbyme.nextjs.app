@@ -44,7 +44,14 @@ export type CategoryPageAction =
   | { type: 'SET_DELETING_CATEGORY'; payload: boolean }
   | { type: 'SET_RETRYING'; payload: boolean }
   | { type: 'RESET_MODALS' }
-  | { type: 'SET_ERROR'; payload: { errorKey: keyof CategoryPageState['errors']; error: Error; errorType?: ErrorState['errorType'] } }
+  | {
+      type: 'SET_ERROR';
+      payload: {
+        errorKey: keyof CategoryPageState['errors'];
+        error: Error;
+        errorType?: ErrorState['errorType'];
+      };
+    }
   | { type: 'CLEAR_ERROR'; payload: keyof CategoryPageState['errors'] }
   | { type: 'CLEAR_ALL_ERRORS' }
   | { type: 'RETRY_OPERATION'; payload: keyof CategoryPageState['errors'] };
@@ -147,7 +154,7 @@ function categoryPageReducer(
         operations: { ...state.operations, isRetrying: action.payload },
       };
 
-    case 'SET_ERROR':
+    case 'SET_ERROR': {
       const { errorKey, error, errorType } = action.payload;
       return {
         ...state,
@@ -163,6 +170,7 @@ function categoryPageReducer(
           },
         },
       };
+    }
 
     case 'CLEAR_ERROR':
       return {
@@ -184,7 +192,7 @@ function categoryPageReducer(
         },
       };
 
-    case 'RETRY_OPERATION':
+    case 'RETRY_OPERATION': {
       const errorKey2 = action.payload;
       const currentError = state.errors[errorKey2];
       return {
@@ -204,6 +212,7 @@ function categoryPageReducer(
           isRetrying: true,
         },
       };
+    }
 
     case 'RESET_MODALS':
       return {
@@ -247,7 +256,11 @@ export function useCategoryPageState() {
       dispatch({ type: 'SET_RETRYING', payload: isRetrying }),
 
     // Error management
-    setError: (errorKey: keyof CategoryPageState['errors'], error: Error, errorType?: ErrorState['errorType']) =>
+    setError: (
+      errorKey: keyof CategoryPageState['errors'],
+      error: Error,
+      errorType?: ErrorState['errorType'],
+    ) =>
       dispatch({ type: 'SET_ERROR', payload: { errorKey, error, errorType } }),
     clearError: (errorKey: keyof CategoryPageState['errors']) =>
       dispatch({ type: 'CLEAR_ERROR', payload: errorKey }),
@@ -271,7 +284,7 @@ export function useCategoryPageState() {
 
     // Error selectors
     hasAnyError: () =>
-      Object.values(state.errors).some(error => error.hasError),
+      Object.values(state.errors).some((error) => error.hasError),
 
     getError: (errorKey: keyof CategoryPageState['errors']) =>
       state.errors[errorKey],
@@ -282,7 +295,7 @@ export function useCategoryPageState() {
     getErrorMessage: (errorKey: keyof CategoryPageState['errors']) => {
       const error = state.errors[errorKey];
       if (!error.hasError || !error.error) return null;
-      
+
       // Return user-friendly messages based on error type
       switch (error.errorType) {
         case 'network':
@@ -290,14 +303,15 @@ export function useCategoryPageState() {
         case 'validation':
           return error.error.message || 'Invalid data provided.';
         case 'permission':
-          return 'You don\'t have permission to perform this action.';
+          return "You don't have permission to perform this action.";
         default:
           return error.error.message || 'An unexpected error occurred.';
       }
     },
 
     isRetryingOperation: (errorKey: keyof CategoryPageState['errors']) =>
-      state.operations.isRetrying && state.errors[errorKey].lastRetryAt !== null,
+      state.operations.isRetrying &&
+      state.errors[errorKey].lastRetryAt !== null,
   };
 
   return {

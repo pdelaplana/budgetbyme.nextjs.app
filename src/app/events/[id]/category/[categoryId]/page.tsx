@@ -291,7 +291,9 @@ export default function CategoryPage() {
           <AddOrEditExpenseModal
             isOpen={state.modals.showAddExpense}
             onClose={actions.hideAddExpense}
-            categories={category ? [transformCategoryForExpenseModal(category)] : []}
+            categories={
+              category ? [transformCategoryForExpenseModal(category)] : []
+            }
           />
         </CategoryErrorBoundary>
 

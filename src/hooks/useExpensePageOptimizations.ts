@@ -1,11 +1,11 @@
-import { useCallback, useMemo } from 'react';
 import { HomeIcon } from '@heroicons/react/24/outline';
+import { useCallback, useMemo } from 'react';
+import type { BreadcrumbItem } from '@/components/ui/Breadcrumbs';
+import type { ExpenseWithPayments } from '@/lib/paymentCalculations';
 import { calculatePaymentStatus } from '@/lib/paymentCalculations';
 import { truncateForBreadcrumb } from '@/lib/textUtils';
-import type { BreadcrumbItem } from '@/components/ui/Breadcrumbs';
-import type { Expense } from '@/types/Expense';
 import type { Event } from '@/types/Event';
-import type { ExpenseWithPayments } from '@/lib/paymentCalculations';
+import type { Expense } from '@/types/Expense';
 
 interface UseExpensePageOptimizationsProps {
   expense: Expense | null;
@@ -27,7 +27,7 @@ export function useExpensePageOptimizations({
   // Memoized breadcrumb items - involves string operations and truncation
   const breadcrumbItems = useMemo((): BreadcrumbItem[] => {
     if (!expense || !currentEvent) return [];
-    
+
     return [
       {
         label: truncateForBreadcrumb(currentEvent.name, 15),
@@ -43,10 +43,19 @@ export function useExpensePageOptimizations({
         current: true,
       },
     ];
-  }, [currentEvent?.name, expense?.category.name, expense?.category.id, expense?.name, eventId]);
+  }, [
+    currentEvent?.name,
+    expense?.category.name,
+    expense?.category.id,
+    expense?.name,
+    eventId,
+  ]);
 
   // Memoized category ID for navigation
-  const categoryId = useMemo(() => expense?.category.id || null, [expense?.category.id]);
+  const categoryId = useMemo(
+    () => expense?.category.id || null,
+    [expense?.category.id],
+  );
 
   // Event handler callbacks - prevent unnecessary re-renders of child components
   const handleEdit = useCallback(() => {
@@ -85,30 +94,39 @@ export function useExpensePageOptimizations({
     console.log('Add tag to expense:', expense?.id);
   }, [expense?.id]);
 
-  const handleTagDelete = useCallback((tag: string) => {
-    // This will be connected to tag state actions
-    console.log('Delete tag from expense:', expense?.id, tag);
-  }, [expense?.id]);
+  const handleTagDelete = useCallback(
+    (tag: string) => {
+      // This will be connected to tag state actions
+      console.log('Delete tag from expense:', expense?.id, tag);
+    },
+    [expense?.id],
+  );
 
   const handleTagEdit = useCallback(() => {
     // This will be connected to tag state actions
     console.log('Toggle tag editing for expense:', expense?.id);
   }, [expense?.id]);
 
-  const handleNewTagChange = useCallback((tag: string) => {
-    // This will be connected to tag state actions
-    console.log('Update new tag for expense:', expense?.id, tag);
-  }, [expense?.id]);
+  const handleNewTagChange = useCallback(
+    (tag: string) => {
+      // This will be connected to tag state actions
+      console.log('Update new tag for expense:', expense?.id, tag);
+    },
+    [expense?.id],
+  );
 
-  const handleTagKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleTagAdd();
-    }
-    if (e.key === 'Escape') {
-      // Reset and stop editing
-      console.log('Reset tag editing for expense:', expense?.id);
-    }
-  }, [handleTagAdd, expense?.id]);
+  const handleTagKeyPress = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        handleTagAdd();
+      }
+      if (e.key === 'Escape') {
+        // Reset and stop editing
+        console.log('Reset tag editing for expense:', expense?.id);
+      }
+    },
+    [handleTagAdd, expense?.id],
+  );
 
   // Dropdown management callbacks
   const handleToggleActionDropdown = useCallback(() => {
@@ -124,7 +142,7 @@ export function useExpensePageOptimizations({
     paymentStatus,
     breadcrumbItems,
     categoryId,
-    
+
     // Event handlers
     handleEdit,
     handleDelete,
@@ -132,18 +150,20 @@ export function useExpensePageOptimizations({
     handleMarkAsPaid,
     handleEditSchedule,
     handleDeleteAllPayments,
-    
+
     // Tag management handlers
     handleTagAdd,
     handleTagDelete,
     handleTagEdit,
     handleNewTagChange,
     handleTagKeyPress,
-    
+
     // Dropdown handlers
     handleToggleActionDropdown,
     handleCloseActionDropdown,
   };
 }
 
-export type ExpensePageOptimizations = ReturnType<typeof useExpensePageOptimizations>;
+export type ExpensePageOptimizations = ReturnType<
+  typeof useExpensePageOptimizations
+>;

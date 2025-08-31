@@ -1,3 +1,4 @@
+export type { UseEventDashboardReturn } from '@/types/dashboard';
 export type { DashboardActionsProps } from './useDashboardActions';
 export { useDashboardActions } from './useDashboardActions';
 export type {

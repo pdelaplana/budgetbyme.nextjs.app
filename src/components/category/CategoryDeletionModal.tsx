@@ -6,7 +6,10 @@ import ConfirmDialog from '@/components/modals/ConfirmDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useDeleteCategoryMutation } from '@/hooks/categories';
-import { validateCategoryDeletion, validateDeletionRequirements } from '@/lib/categoryValidation';
+import {
+  validateCategoryDeletion,
+  validateDeletionRequirements,
+} from '@/lib/categoryValidation';
 
 export interface CategoryDeletionModalProps {
   isOpen: boolean;
@@ -54,7 +57,7 @@ export default function CategoryDeletionModal({
     const validation = validateDeletionRequirements(
       user?.uid,
       currentEvent?.id,
-      category.id
+      category.id,
     );
 
     if (!validation.isValid) {

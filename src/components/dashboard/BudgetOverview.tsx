@@ -44,10 +44,7 @@ const generateTimelineData = (event: Event) => {
   return timeline;
 };
 
-export default function BudgetOverview({
-  event,
-  categories,
-}: BudgetOverviewProps) {
+function BudgetOverview({ event, categories }: BudgetOverviewProps) {
   // Transform BudgetCategory data to CategoryData format expected by charts
   const transformedCategories = categories.map((category) => ({
     id: category.id,
@@ -86,3 +83,5 @@ export default function BudgetOverview({
     </div>
   );
 }
+
+export default React.memo(BudgetOverview);

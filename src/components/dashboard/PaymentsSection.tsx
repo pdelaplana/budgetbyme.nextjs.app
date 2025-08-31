@@ -10,9 +10,7 @@ interface PaymentsSectionProps {
   onGetStarted: () => void;
 }
 
-export default function PaymentsSection({
-  onGetStarted,
-}: PaymentsSectionProps) {
+function PaymentsSection({ onGetStarted }: PaymentsSectionProps) {
   const router = useRouter();
   const { expenses, event } = useEventDetails();
   const upcomingPayments = useUpcomingPayments(expenses);
@@ -111,3 +109,5 @@ export default function PaymentsSection({
     </div>
   );
 }
+
+export default React.memo(PaymentsSection);

@@ -1,4 +1,4 @@
-import { useReducer, useCallback } from 'react';
+import { useCallback, useReducer } from 'react';
 
 /**
  * File upload state management for expense attachments
@@ -23,21 +23,21 @@ type FileUploadAction =
   // Primary file upload
   | { type: 'SET_PRIMARY_FILE'; file: File | null }
   | { type: 'CLEAR_PRIMARY_FILE' }
-  
+
   // Empty state file upload
   | { type: 'SET_EMPTY_STATE_FILE'; file: File | null }
   | { type: 'CLEAR_EMPTY_STATE_FILE' }
-  
+
   // Operation status
   | { type: 'START_OPERATION'; operationType: 'uploading' | 'deleting' }
   | { type: 'END_OPERATION' }
-  
+
   // Attachment deletion
   | { type: 'SHOW_DELETE_CONFIRM'; attachmentUrl: string }
   | { type: 'HIDE_DELETE_CONFIRM' }
   | { type: 'START_DELETING'; attachmentUrl: string }
   | { type: 'END_DELETING' }
-  
+
   // Reset all state
   | { type: 'RESET' };
 
@@ -51,60 +51,63 @@ const initialState: FileUploadState = {
   showDeleteConfirm: false,
 };
 
-function fileUploadReducer(state: FileUploadState, action: FileUploadAction): FileUploadState {
+function fileUploadReducer(
+  state: FileUploadState,
+  action: FileUploadAction,
+): FileUploadState {
   switch (action.type) {
     case 'SET_PRIMARY_FILE':
       return {
         ...state,
         primaryFile: action.file,
       };
-      
+
     case 'CLEAR_PRIMARY_FILE':
       return {
         ...state,
         primaryFile: null,
       };
-      
+
     case 'SET_EMPTY_STATE_FILE':
       return {
         ...state,
         emptyStateFile: action.file,
       };
-      
+
     case 'CLEAR_EMPTY_STATE_FILE':
       return {
         ...state,
         emptyStateFile: null,
       };
-      
+
     case 'START_OPERATION':
       return {
         ...state,
         isOperationInProgress: true,
         operationType: action.operationType,
       };
-      
+
     case 'END_OPERATION':
       return {
         ...state,
         isOperationInProgress: false,
         operationType: null,
       };
-      
+
     case 'SHOW_DELETE_CONFIRM':
       return {
         ...state,
         attachmentToDelete: action.attachmentUrl,
         showDeleteConfirm: true,
       };
-      
+
     case 'HIDE_DELETE_CONFIRM':
       return {
         ...state,
         attachmentToDelete: null,
         showDeleteConfirm: false,
       };
-      
+
     case 'START_DELETING':
       return {
         ...state,
@@ -112,7 +115,7 @@ function fileUploadReducer(state: FileUploadState, action: FileUploadAction): Fi
         isOperationInProgress: true,
         operationType: 'deleting',
       };
-      
+
     case 'END_DELETING':
       return {
         ...state,
@@ -122,10 +125,10 @@ function fileUploadReducer(state: FileUploadState, action: FileUploadAction): Fi
         isOperationInProgress: false,
         operationType: null,
       };
-      
+
     case 'RESET':
       return initialState;
-      
+
     default:
       return state;
   }
@@ -139,7 +142,7 @@ export function useFileUploadState() {
     setPrimaryFile: useCallback((file: File | null) => {
       dispatch({ type: 'SET_PRIMARY_FILE', file });
     }, []),
-    
+
     clearPrimaryFile: useCallback(() => {
       dispatch({ type: 'CLEAR_PRIMARY_FILE' });
     }, []),
@@ -148,7 +151,7 @@ export function useFileUploadState() {
     setEmptyStateFile: useCallback((file: File | null) => {
       dispatch({ type: 'SET_EMPTY_STATE_FILE', file });
     }, []),
-    
+
     clearEmptyStateFile: useCallback(() => {
       dispatch({ type: 'CLEAR_EMPTY_STATE_FILE' });
     }, []),
@@ -157,7 +160,7 @@ export function useFileUploadState() {
     startOperation: useCallback((operationType: 'uploading' | 'deleting') => {
       dispatch({ type: 'START_OPERATION', operationType });
     }, []),
-    
+
     endOperation: useCallback(() => {
       dispatch({ type: 'END_OPERATION' });
     }, []),
@@ -166,15 +169,15 @@ export function useFileUploadState() {
     showDeleteConfirm: useCallback((attachmentUrl: string) => {
       dispatch({ type: 'SHOW_DELETE_CONFIRM', attachmentUrl });
     }, []),
-    
+
     hideDeleteConfirm: useCallback(() => {
       dispatch({ type: 'HIDE_DELETE_CONFIRM' });
     }, []),
-    
+
     startDeleting: useCallback((attachmentUrl: string) => {
       dispatch({ type: 'START_DELETING', attachmentUrl });
     }, []),
-    
+
     endDeleting: useCallback(() => {
       dispatch({ type: 'END_DELETING' });
     }, []),
@@ -191,4 +194,6 @@ export function useFileUploadState() {
   };
 }
 
-export type FileUploadActions = ReturnType<typeof useFileUploadState>['actions'];
+export type FileUploadActions = ReturnType<
+  typeof useFileUploadState
+>['actions'];

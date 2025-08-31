@@ -1,7 +1,10 @@
 'use client';
 
+import {
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
+} from '@heroicons/react/24/outline';
 import React from 'react';
-import { ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 
 export interface ErrorRecoveryCardProps {
   title: string;
@@ -34,7 +37,6 @@ export default function ErrorRecoveryCard({
   showDetails = false,
   technicalDetails,
 }: ErrorRecoveryCardProps) {
-  
   const getErrorIcon = () => {
     switch (errorType) {
       case 'network':
@@ -125,21 +127,19 @@ export default function ErrorRecoveryCard({
   };
 
   return (
-    <div className={`border rounded-lg ${getErrorColor()} ${getSizeClasses()} ${className}`}>
-      <div className="flex items-start space-x-3">
-        <div className="text-2xl flex-shrink-0 mt-0.5">
-          {getErrorIcon()}
-        </div>
-        
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between">
-            <h3 className={`font-semibold ${getTextColor()}`}>
-              {title}
-            </h3>
-            
+    <div
+      className={`border rounded-lg ${getErrorColor()} ${getSizeClasses()} ${className}`}
+    >
+      <div className='flex items-start space-x-3'>
+        <div className='text-2xl flex-shrink-0 mt-0.5'>{getErrorIcon()}</div>
+
+        <div className='flex-1 min-w-0'>
+          <div className='flex items-center justify-between'>
+            <h3 className={`font-semibold ${getTextColor()}`}>{title}</h3>
+
             {onDismiss && (
               <button
-                type="button"
+                type='button'
                 onClick={onDismiss}
                 className={`text-sm ${getSecondaryTextColor()} hover:opacity-70 ml-2`}
               >
@@ -147,11 +147,9 @@ export default function ErrorRecoveryCard({
               </button>
             )}
           </div>
-          
-          <p className={`mt-1 text-sm ${getSecondaryTextColor()}`}>
-            {message}
-          </p>
-          
+
+          <p className={`mt-1 text-sm ${getSecondaryTextColor()}`}>{message}</p>
+
           <p className={`mt-2 text-xs ${getSecondaryTextColor()} opacity-75`}>
             {getRecoveryAction()}
           </p>
@@ -163,36 +161,40 @@ export default function ErrorRecoveryCard({
           )}
 
           {showDetails && technicalDetails && (
-            <details className="mt-2">
-              <summary className={`cursor-pointer text-xs ${getSecondaryTextColor()} hover:opacity-70`}>
+            <details className='mt-2'>
+              <summary
+                className={`cursor-pointer text-xs ${getSecondaryTextColor()} hover:opacity-70`}
+              >
                 Technical Details
               </summary>
-              <pre className="mt-1 text-xs bg-black bg-opacity-10 p-2 rounded overflow-auto">
+              <pre className='mt-1 text-xs bg-black bg-opacity-10 p-2 rounded overflow-auto'>
                 {technicalDetails}
               </pre>
             </details>
           )}
 
-          <div className="flex items-center space-x-2 mt-3">
+          <div className='flex items-center space-x-2 mt-3'>
             {canRetry && onRetry && (
               <button
-                type="button"
+                type='button'
                 onClick={onRetry}
                 disabled={isRetrying}
                 className={`flex items-center space-x-1 px-3 py-1.5 rounded text-sm font-medium ${getButtonColor()} disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                <ArrowPathIcon className={`w-4 h-4 ${isRetrying ? 'animate-spin' : ''}`} />
+                <ArrowPathIcon
+                  className={`w-4 h-4 ${isRetrying ? 'animate-spin' : ''}`}
+                />
                 <span>{isRetrying ? 'Retrying...' : 'Try Again'}</span>
               </button>
             )}
-            
+
             {!canRetry && (
               <button
-                type="button"
+                type='button'
                 onClick={() => window.location.reload()}
                 className={`flex items-center space-x-1 px-3 py-1.5 rounded text-sm font-medium ${getButtonColor()}`}
               >
-                <ArrowPathIcon className="w-4 h-4" />
+                <ArrowPathIcon className='w-4 h-4' />
                 <span>Refresh Page</span>
               </button>
             )}
@@ -206,7 +208,8 @@ export default function ErrorRecoveryCard({
 /**
  * Specialized error recovery card for category operations
  */
-interface CategoryErrorRecoveryProps extends Omit<ErrorRecoveryCardProps, 'title' | 'message'> {
+interface CategoryErrorRecoveryProps
+  extends Omit<ErrorRecoveryCardProps, 'title' | 'message'> {
   operation: 'load' | 'update' | 'delete' | 'expenses';
   categoryName?: string;
 }
@@ -216,7 +219,6 @@ export function CategoryErrorRecovery({
   categoryName,
   ...props
 }: CategoryErrorRecoveryProps) {
-  
   const getOperationText = () => {
     switch (operation) {
       case 'load':
@@ -249,11 +251,5 @@ export function CategoryErrorRecovery({
 
   const { title, message } = getOperationText();
 
-  return (
-    <ErrorRecoveryCard
-      title={title}
-      message={message}
-      {...props}
-    />
-  );
+  return <ErrorRecoveryCard title={title} message={message} {...props} />;
 }

@@ -28,7 +28,7 @@ export interface DeletionExpense {
  */
 export function validateCategoryDeletion(
   category: DeletionCategory,
-  expenses: DeletionExpense[]
+  expenses: DeletionExpense[],
 ): CategoryDeletionResult {
   const expenseCount = expenses.length;
   const canDelete = expenseCount === 0;
@@ -44,7 +44,7 @@ export function validateCategoryDeletion(
   }
 
   const pluralSuffix = expenseCount === 1 ? '' : 's';
-  
+
   return {
     canDelete: false,
     message: `Cannot delete this category because it contains ${expenseCount} expense${pluralSuffix}. Please delete or reassign the expenses first before deleting this category.`,
@@ -118,7 +118,7 @@ export function createDeletionWarning(expenseCount: number): string | null {
 export function validateDeletionRequirements(
   userId?: string,
   eventId?: string,
-  categoryId?: string
+  categoryId?: string,
 ): {
   isValid: boolean;
   missingFields: string[];
@@ -135,8 +135,8 @@ export function validateDeletionRequirements(
   return {
     isValid,
     missingFields,
-    errorMessage: isValid 
-      ? undefined 
+    errorMessage: isValid
+      ? undefined
       : `Missing required information: ${missingFields.join(', ')}`,
   };
 }

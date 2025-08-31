@@ -1,4 +1,4 @@
-import { useReducer, useCallback } from 'react';
+import { useCallback, useReducer } from 'react';
 import type { Payment } from '@/types/Payment';
 
 // Modal state interfaces
@@ -40,30 +40,28 @@ type ModalAction =
   // Payment Schedule Modal
   | { type: 'OPEN_PAYMENT_SCHEDULE'; mode: 'create' | 'edit' }
   | { type: 'CLOSE_PAYMENT_SCHEDULE' }
-  
+
   // Mark as Paid Modals
   | { type: 'OPEN_MARK_AS_PAID' }
   | { type: 'CLOSE_MARK_AS_PAID' }
   | { type: 'OPEN_MARK_PAYMENT_AS_PAID'; payment: Payment }
   | { type: 'CLOSE_MARK_PAYMENT_AS_PAID' }
-  
+
   // Edit Expense Modal
   | { type: 'OPEN_EDIT_EXPENSE' }
   | { type: 'CLOSE_EDIT_EXPENSE' }
-  
+
   // Action Dropdown
   | { type: 'TOGGLE_ACTION_DROPDOWN' }
   | { type: 'CLOSE_ACTION_DROPDOWN' }
-  
+
   // Confirm Dialogs
   | { type: 'OPEN_DELETE_PAYMENTS_CONFIRM' }
   | { type: 'CLOSE_DELETE_PAYMENTS_CONFIRM' }
   | { type: 'SET_DELETE_PAYMENTS_LOADING'; isLoading: boolean }
-  
   | { type: 'OPEN_DELETE_EXPENSE_CONFIRM' }
   | { type: 'CLOSE_DELETE_EXPENSE_CONFIRM' }
   | { type: 'SET_DELETE_EXPENSE_LOADING'; isLoading: boolean }
-  
   | { type: 'OPEN_DELETE_ATTACHMENT_CONFIRM'; attachmentUrl: string }
   | { type: 'CLOSE_DELETE_ATTACHMENT_CONFIRM' }
   | { type: 'SET_DELETE_ATTACHMENT_LOADING'; isLoading: boolean };

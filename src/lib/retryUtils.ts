@@ -41,7 +41,7 @@ const DEFAULT_RETRY_CONFIG: Required<RetryConfig> = {
  */
 export async function withRetry<T>(
   operation: () => Promise<T>,
-  config: RetryConfig = {}
+  config: RetryConfig = {},
 ): Promise<RetryResult<T>> {
   const mergedConfig = { ...DEFAULT_RETRY_CONFIG, ...config };
   const startTime = Date.now();
@@ -58,7 +58,7 @@ export async function withRetry<T>(
       };
     } catch (error) {
       lastError = error as Error;
-      
+
       // Don't retry if this is the last attempt
       if (attempt === mergedConfig.maxRetries) {
         break;
@@ -71,15 +71,15 @@ export async function withRetry<T>(
 
       // Calculate delay with exponential backoff
       const delay = Math.min(
-        mergedConfig.baseDelay * Math.pow(mergedConfig.backoffMultiplier, attempt),
-        mergedConfig.maxDelay
+        mergedConfig.baseDelay * mergedConfig.backoffMultiplier ** attempt,
+        mergedConfig.maxDelay,
       );
 
       // Add some jitter to avoid thundering herd
       const jitter = Math.random() * 0.3; // ±30% jitter
       const delayWithJitter = delay * (1 + jitter - 0.15);
 
-      await new Promise(resolve => setTimeout(resolve, delayWithJitter));
+      await new Promise((resolve) => setTimeout(resolve, delayWithJitter));
     }
   }
 
@@ -100,8 +100,8 @@ export const CATEGORY_RETRY_CONFIGS = {
     maxRetries: 3,
     baseDelay: 500,
     maxDelay: 5000,
-    shouldRetry: (error: Error) => 
-      DEFAULT_RETRY_CONFIG.shouldRetry(error) || 
+    shouldRetry: (error: Error) =>
+      DEFAULT_RETRY_CONFIG.shouldRetry(error) ||
       error.message.toLowerCase().includes('not found'), // Retry 404s for categories
   },
 
@@ -110,8 +110,8 @@ export const CATEGORY_RETRY_CONFIGS = {
     maxRetries: 2,
     baseDelay: 1000,
     maxDelay: 3000,
-    shouldRetry: (error: Error) => 
-      DEFAULT_RETRY_CONFIG.shouldRetry(error) && 
+    shouldRetry: (error: Error) =>
+      DEFAULT_RETRY_CONFIG.shouldRetry(error) &&
       !error.message.toLowerCase().includes('validation'), // Don't retry validation errors
   },
 
@@ -120,8 +120,8 @@ export const CATEGORY_RETRY_CONFIGS = {
     maxRetries: 1,
     baseDelay: 2000,
     maxDelay: 5000,
-    shouldRetry: (error: Error) => 
-      DEFAULT_RETRY_CONFIG.shouldRetry(error) && 
+    shouldRetry: (error: Error) =>
+      DEFAULT_RETRY_CONFIG.shouldRetry(error) &&
       !error.message.toLowerCase().includes('not found'), // Don't retry if already deleted
   },
 
@@ -137,7 +137,9 @@ export const CATEGORY_RETRY_CONFIGS = {
 /**
  * Determine error type based on error characteristics
  */
-export function determineErrorType(error: Error): 'network' | 'validation' | 'permission' | 'unknown' {
+export function determineErrorType(
+  error: Error,
+): 'network' | 'validation' | 'permission' | 'unknown' {
   const message = error.message.toLowerCase();
   const name = error.name.toLowerCase();
 
@@ -183,33 +185,39 @@ export function determineErrorType(error: Error): 'network' | 'validation' | 'pe
  */
 export function createUserFriendlyErrorMessage(
   error: Error,
-  context: 'load' | 'update' | 'delete' | 'expenses'
+  context: 'load' | 'update' | 'delete' | 'expenses',
 ): string {
   const errorType = determineErrorType(error);
-  
+
   const contextMessages = {
     load: {
-      network: 'Unable to load category. Please check your connection and try again.',
+      network:
+        'Unable to load category. Please check your connection and try again.',
       validation: 'Category data is invalid. Please refresh the page.',
-      permission: 'You don\'t have permission to view this category.',
+      permission: "You don't have permission to view this category.",
       unknown: 'Unable to load category. Please try again later.',
     },
     update: {
-      network: 'Unable to save changes. Please check your connection and try again.',
-      validation: 'Invalid category data. Please check your inputs and try again.',
-      permission: 'You don\'t have permission to edit this category.',
+      network:
+        'Unable to save changes. Please check your connection and try again.',
+      validation:
+        'Invalid category data. Please check your inputs and try again.',
+      permission: "You don't have permission to edit this category.",
       unknown: 'Unable to save changes. Please try again later.',
     },
     delete: {
-      network: 'Unable to delete category. Please check your connection and try again.',
-      validation: 'Cannot delete this category. It may have associated expenses.',
-      permission: 'You don\'t have permission to delete this category.',
+      network:
+        'Unable to delete category. Please check your connection and try again.',
+      validation:
+        'Cannot delete this category. It may have associated expenses.',
+      permission: "You don't have permission to delete this category.",
       unknown: 'Unable to delete category. Please try again later.',
     },
     expenses: {
-      network: 'Unable to load expenses. Please check your connection and try again.',
+      network:
+        'Unable to load expenses. Please check your connection and try again.',
       validation: 'Expense data is invalid. Please refresh the page.',
-      permission: 'You don\'t have permission to view these expenses.',
+      permission: "You don't have permission to view these expenses.",
       unknown: 'Unable to load expenses. Please try again later.',
     },
   };
