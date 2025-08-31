@@ -6,6 +6,7 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import type React from 'react';
+import { memo } from 'react';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import {
   calculatePaymentStatus,
@@ -24,7 +25,7 @@ export interface ExpenseListItemProps {
   className?: string;
 }
 
-export default function ExpenseListItem({
+function ExpenseListItem({
   expense,
   onClick,
   className = '',
@@ -141,3 +142,5 @@ export default function ExpenseListItem({
     </button>
   );
 }
+
+export default memo(ExpenseListItem);

@@ -2,18 +2,20 @@
 
 import {
   HomeIcon,
-  PencilIcon,
   PlusIcon,
-  TrashIcon,
 } from '@heroicons/react/24/outline';
 import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
+import dynamic from 'next/dynamic';
+import { useCallback, useEffect, useMemo } from 'react';
 import { toast } from 'sonner';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import AddOrEditCategoryModal from '@/components/modals/AddOrEditCategoryModal';
-import AddOrEditExpenseModal from '@/components/modals/AddOrEditExpenseModal';
-import ConfirmDialog from '@/components/modals/ConfirmDialog';
-import ActionDropdown from '@/components/ui/ActionDropdown';
+// Dynamic imports for modal components to reduce initial bundle size
+const AddOrEditCategoryModal = dynamic(() => import('@/components/modals/AddOrEditCategoryModal'), {
+  loading: () => <div className="animate-pulse">Loading modal...</div>
+});
+const AddOrEditExpenseModal = dynamic(() => import('@/components/modals/AddOrEditExpenseModal'), {
+  loading: () => <div className="animate-pulse">Loading modal...</div>
+});
 import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 import BudgetOverviewCard, {
   createBudgetData,
@@ -24,9 +26,19 @@ import NotFoundState from '@/components/ui/NotFoundState';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
-import { useDeleteCategoryMutation } from '@/hooks/categories';
 import { useCategoryPageState } from '@/hooks/category/useCategoryPageState';
-import { truncateForBreadcrumb } from '@/lib/textUtils';
+import { useCategoryData } from '@/hooks/category/useCategoryData';
+import { useCategoryRetryOperations } from '@/hooks/category/useCategoryRetryOperations';
+import CategoryErrorBoundary from '@/components/category/CategoryErrorBoundary';
+import CategoryErrorStates from '@/components/category/CategoryErrorStates';
+import type { ExpenseWithPayments } from '@/lib/paymentCalculations';
+import { transformCategoryForModal, transformCategoryForExpenseModal } from '@/lib/categoryUtils';
+import { buildCategoryBreadcrumbs } from '@/lib/breadcrumbUtils';
+import CategoryHeader from '@/components/category/CategoryHeader';
+import EmptyExpensesState from '@/components/category/EmptyExpensesState';
+const CategoryDeletionModal = dynamic(() => import('@/components/category/CategoryDeletionModal'), {
+  loading: () => <div className="animate-pulse">Loading deletion modal...</div>
+});
 
 export default function CategoryPage() {
   const router = useRouter();
@@ -51,38 +63,47 @@ export default function CategoryPage() {
     }
   }, [eventId, events.length, isLoading, selectEventById]);
 
-  // Consolidated state management
-  const { state, actions } = useCategoryPageState();
+  // Consolidated state management with error handling and retry operations
+  const retryOperations = useCategoryRetryOperations();
+  const { state, actions, selectors } = retryOperations;
 
-  // Delete category mutation
-  const deleteCategoryMutation = useDeleteCategoryMutation({
-    onSuccess: () => {
-      actions.setDeletingCategory(false);
-      actions.hideDeleteCategoryConfirm();
-      toast.success('Category deleted successfully!');
-      router.push(`/events/${eventId}/dashboard`);
-    },
-    onError: (error) => {
-      actions.setDeletingCategory(false);
-      console.error('Failed to delete category:', error);
-      toast.error(
-        error.message || 'Failed to delete category. Please try again.',
-      );
-      // Don't close modal on error - allow retry
-    },
-  });
-
-  // Find the current category from EventDetailsContext (memoized for performance)
-  const category = useMemo(
-    () => categories.find((cat) => cat.id === categoryId),
-    [categories, categoryId],
+  // Optimized category data management with custom hook
+  const { category, categoryExpenses, isFound } = useCategoryData(
+    categories,
+    expenses,
+    categoryId
   );
 
-  // Filter expenses by current category (memoized for performance)
-  const categoryExpenses = useMemo(
-    () => expenses.filter((expense) => expense.category.id === categoryId),
-    [expenses, categoryId],
+  // Event handlers (must be before any early returns to follow Rules of Hooks)
+  const handleExpenseClick = useCallback((expense: ExpenseWithPayments & { id: string; name: string; description?: string; date: string | Date }) => {
+    router.push(`/events/${eventId}/expense/${expense.id}`);
+  }, [router, eventId]);
+
+  const handleEditCategory = useCallback(() => {
+    actions.setEditCategoryMode(true);
+  }, [actions]);
+
+  const handleDeleteCategory = useCallback(() => {
+    actions.showDeleteCategoryConfirm();
+  }, [actions]);
+
+  // Create budget data for the overview card (memoized for performance)
+  const budgetData = useMemo(
+    () =>
+      createBudgetData({
+        budgetedAmount: category?.budgetedAmount ?? 0,
+        scheduledAmount: category?.scheduledAmount ?? 0,
+        spentAmount: category?.spentAmount ?? 0,
+        color: category?.color,
+      }),
+    [category],
   );
+
+  // Breadcrumb items (memoized for performance)
+  const breadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    if (!currentEvent || !category) return [];
+    return buildCategoryBreadcrumbs(currentEvent, category, eventId);
+  }, [currentEvent, category, eventId]);
 
   // Loading state - show while event, categories, or expenses are being fetched
   if (
@@ -103,7 +124,7 @@ export default function CategoryPage() {
   }
 
   // Not found state - only check for category since currentEvent is already verified above
-  if (!category) {
+  if (!isFound) {
     return (
       <DashboardLayout>
         <NotFoundState
@@ -117,256 +138,172 @@ export default function CategoryPage() {
     );
   }
 
-  const handleExpenseClick = (expense: any) => {
-    router.push(`/events/${eventId}/expense/${expense.id}`);
-  };
-
-  const handleEditCategory = () => {
-    actions.setEditCategoryMode(true);
-  };
-
-  const handleDeleteCategory = () => {
-    actions.showDeleteCategoryConfirm();
-  };
-
-  const confirmDeleteCategory = async () => {
-    if (!user?.uid || !currentEvent?.id) {
-      toast.error('Missing required information');
-      return;
-    }
-
-    actions.setDeletingCategory(true);
-
-    try {
-      await deleteCategoryMutation.mutateAsync({
-        userId: user.uid,
-        eventId: currentEvent.id,
-        categoryId: categoryId,
-      });
-      // Success/error handling is done in mutation callbacks
-    } catch (error) {
-      // Error handling is done in mutation callbacks
-      console.error('Error deleting category:', error);
-    }
-  };
-
-  // Create budget data for the overview card (memoized for performance)
-  const budgetData = useMemo(
-    () =>
-      createBudgetData({
-        budgetedAmount: category?.budgetedAmount ?? 0,
-        scheduledAmount: category?.scheduledAmount ?? 0,
-        spentAmount: category?.spentAmount ?? 0,
-        color: category?.color,
-      }),
-    [category],
-  );
-
-  // Breadcrumb items (memoized for performance)
-  const breadcrumbItems: BreadcrumbItem[] = useMemo(
-    () => [
-      {
-        label: truncateForBreadcrumb(currentEvent.name, 15),
-        href: `/events/${eventId}/dashboard`,
-        icon: HomeIcon,
-      },
-      {
-        label: truncateForBreadcrumb(category?.name || '', 18),
-        current: true,
-      },
-    ],
-    [currentEvent.name, eventId, category?.name],
-  );
+  // If there are critical errors, show error state instead of the main content
+  if (selectors.getError('categoryLoad').hasError) {
+    return (
+      <DashboardLayout>
+        <CategoryErrorStates
+          eventId={eventId}
+          categoryName={category?.name}
+          errors={state.errors}
+          isRetrying={retryOperations.isRetrying}
+          onRetryLoad={() => {
+            // This would typically be handled by the data fetching logic
+            // For now, we'll just refresh the page
+            window.location.reload();
+          }}
+          onClearError={actions.clearError}
+          showInline={false}
+        />
+      </DashboardLayout>
+    );
+  }
 
   return (
-    <DashboardLayout>
-      {/* Breadcrumbs */}
-      <div className='mb-3 sm:mb-4'>
-        <Breadcrumbs items={breadcrumbItems} />
-      </div>
+    <CategoryErrorBoundary 
+      eventId={eventId} 
+      categoryId={categoryId}
+      fallbackLevel="page"
+    >
+      <DashboardLayout>
+        {/* Error States - Inline Errors */}
+        <CategoryErrorStates
+          eventId={eventId}
+          categoryName={category?.name}
+          errors={state.errors}
+          isRetrying={retryOperations.isRetrying}
+          onRetryUpdate={() => {
+            // Retry update operations
+            console.log('Retry update operation');
+          }}
+          onRetryDelete={() => {
+            // Retry delete operations
+            console.log('Retry delete operation');
+          }}
+          onRetryExpenses={() => {
+            // Retry expenses loading
+            console.log('Retry expenses operation');
+          }}
+          onClearError={actions.clearError}
+          showInline={true}
+        />
 
-      {/* Category Header */}
-      <div className='mb-4 sm:mb-6'>
-        <div className='flex items-start justify-between'>
-          <div className='flex items-start space-x-3 sm:space-x-4 flex-1 min-w-0'>
-            <span className='text-3xl sm:text-4xl flex-shrink-0'>
-              {category.icon || '🎉'}
-            </span>
-            <div className='flex-1 min-w-0'>
-              <h1 className='text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight'>
-                {category.name}
-              </h1>
-              <p className='text-sm sm:text-base text-gray-600 mt-1'>
-                {category.description ||
-                  'Track and manage expenses for this budget category'}
-              </p>
-            </div>
+        {/* Main Content wrapped in section-level error boundary */}
+        <CategoryErrorBoundary 
+          eventId={eventId} 
+          categoryId={categoryId}
+          fallbackLevel="section"
+        >
+          {/* Breadcrumbs */}
+          <div className='mb-3 sm:mb-4'>
+            <Breadcrumbs items={breadcrumbItems} />
           </div>
 
-          {/* Action Dropdown - Aligned with title, anchored right */}
-          <div className='flex-shrink-0 ml-4'>
-            <ActionDropdown
-              variant='mobile-only'
-              primaryAction={{
-                label: 'Add Expense',
-                icon: PlusIcon,
-                onClick: actions.showAddExpense,
-              }}
-              options={[
-                {
-                  id: 'edit-category',
-                  label: 'Edit Category',
-                  icon: PencilIcon,
-                  onClick: handleEditCategory,
-                },
-                {
-                  id: 'delete-category',
-                  label: 'Delete Category',
-                  icon: TrashIcon,
-                  onClick: handleDeleteCategory,
-                  variant: 'danger',
-                },
-              ]}
+          {/* Category Header */}
+          <CategoryHeader
+            category={category}
+            onAddExpense={actions.showAddExpense}
+            onEditCategory={handleEditCategory}
+            onDeleteCategory={handleDeleteCategory}
+          />
+
+          {/* Budget Overview Card */}
+          <CategoryErrorBoundary 
+            eventId={eventId} 
+            categoryId={categoryId}
+            fallbackLevel="component"
+          >
+            <BudgetOverviewCard
+              data={budgetData}
+              title='Budget Overview'
+              className='mb-4 sm:mb-6'
             />
+          </CategoryErrorBoundary>
 
-            {/* Desktop Action Dropdown */}
-            <div className='hidden sm:block'>
-              <ActionDropdown
-                variant='desktop-split'
-                primaryAction={{
-                  label: 'Add Expense',
-                  icon: PlusIcon,
-                  onClick: actions.showAddExpense,
-                }}
-                options={[
-                  {
-                    id: 'edit-category',
-                    label: 'Edit Category',
-                    icon: PencilIcon,
-                    onClick: handleEditCategory,
-                  },
-                  {
-                    id: 'delete-category',
-                    label: 'Delete Category',
-                    icon: TrashIcon,
-                    onClick: handleDeleteCategory,
-                    variant: 'danger',
-                  },
-                ]}
-              />
+          {/* Expenses List */}
+          <CategoryErrorBoundary 
+            eventId={eventId} 
+            categoryId={categoryId}
+            fallbackLevel="section"
+          >
+            <div className='card'>
+              <div className='card-header'>
+                <h2 className='text-base sm:text-lg lg:text-heading font-semibold text-gray-900'>
+                  Expenses ({categoryExpenses.length})
+                </h2>
+              </div>
+
+              {categoryExpenses.length === 0 ? (
+                <EmptyExpensesState
+                  onAddExpense={actions.showAddExpense}
+                  categoryName={category.name}
+                />
+              ) : (
+                <div className='space-y-2 sm:space-y-3'>
+                  {categoryExpenses.map((expense) => (
+                    <CategoryErrorBoundary 
+                      key={expense.id}
+                      eventId={eventId} 
+                      categoryId={categoryId}
+                      fallbackLevel="component"
+                    >
+                      <ExpenseListItem
+                        expense={expense}
+                        onClick={handleExpenseClick}
+                      />
+                    </CategoryErrorBoundary>
+                  ))}
+                </div>
+              )}
             </div>
-          </div>
-        </div>
-      </div>
+          </CategoryErrorBoundary>
+        </CategoryErrorBoundary>
 
-      {/* Budget Overview Card */}
-      <BudgetOverviewCard
-        data={budgetData}
-        title='Budget Overview'
-        className='mb-4 sm:mb-6'
-      />
+        {/* Modals - Each wrapped in component-level error boundary */}
+        <CategoryErrorBoundary 
+          eventId={eventId} 
+          categoryId={categoryId}
+          fallbackLevel="component"
+        >
+          <AddOrEditExpenseModal
+            isOpen={state.modals.showAddExpense}
+            onClose={actions.hideAddExpense}
+            categories={[transformCategoryForExpenseModal(category)]}
+          />
+        </CategoryErrorBoundary>
 
-      {/* Expenses List */}
-      <div className='card'>
-        <div className='card-header'>
-          <h2 className='text-base sm:text-lg lg:text-heading font-semibold text-gray-900'>
-            Expenses ({categoryExpenses.length})
-          </h2>
-        </div>
+        <CategoryErrorBoundary 
+          eventId={eventId} 
+          categoryId={categoryId}
+          fallbackLevel="component"
+        >
+          <AddOrEditCategoryModal
+            isOpen={state.modals.showAddCategoryModal}
+            onClose={actions.hideAddCategoryModal}
+            editingCategory={
+              state.modals.isEditCategoryMode && category
+                ? transformCategoryForModal(category)
+                : null
+            }
+            isEditMode={state.modals.isEditCategoryMode}
+          />
+        </CategoryErrorBoundary>
 
-        {categoryExpenses.length === 0 ? (
-          <div className='text-center py-8 sm:py-12'>
-            <div className='text-gray-400 mb-4'>
-              <div className='text-4xl sm:text-6xl mb-3 sm:mb-4'>💸</div>
-              <h3 className='text-lg sm:text-xl font-medium text-gray-600 mb-2'>
-                No expenses yet
-              </h3>
-              <p className='text-sm sm:text-base text-gray-500 px-4'>
-                Start by adding your first expense to this category
-              </p>
-            </div>
-            <div className='flex justify-center'>
-              <button
-                type='button'
-                onClick={actions.showAddExpense}
-                className='btn-primary w-full sm:w-auto sm:min-w-[180px] flex items-center justify-center'
-              >
-                <PlusIcon className='h-4 w-4 mr-2 flex-shrink-0' />
-                <span>Add First Expense</span>
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className='space-y-2 sm:space-y-3'>
-            {categoryExpenses.map((expense) => (
-              <ExpenseListItem
-                key={expense.id}
-                expense={expense}
-                onClick={handleExpenseClick}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Add Expense Modal */}
-      <AddOrEditExpenseModal
-        isOpen={state.modals.showAddExpense}
-        onClose={actions.hideAddExpense}
-        categories={[
-          {
-            id: category.id,
-            name: category.name,
-            description: category.description || '',
-            budgetedAmount: category.budgetedAmount ?? 0,
-            scheduledAmount: category.scheduledAmount ?? 0,
-            spentAmount: category.spentAmount ?? 0,
-            color: category.color,
-            icon: category.icon || '🎉',
-            _createdDate: new Date(),
-            _createdBy: '',
-            _updatedDate: new Date(),
-            _updatedBy: '',
-          },
-        ]}
-      />
-
-      {/* Add/Edit Category Modal */}
-      <AddOrEditCategoryModal
-        isOpen={state.modals.showAddCategoryModal}
-        onClose={actions.hideAddCategoryModal}
-        editingCategory={
-          state.modals.isEditCategoryMode && category
-            ? {
-                id: category.id || '',
-                name: category.name || '',
-                budgetedAmount: category.budgetedAmount ?? 0,
-                description: category.description || '',
-                color: category.color || '#059669',
-                icon: category.icon || '🎉',
-              }
-            : null
-        }
-        isEditMode={state.modals.isEditCategoryMode}
-      />
-
-      {/* Delete Category Confirmation */}
-      <ConfirmDialog
-        isOpen={state.modals.showDeleteCategoryConfirm}
-        onClose={actions.hideDeleteCategoryConfirm}
-        onConfirm={
-          categoryExpenses.length > 0 ? undefined : confirmDeleteCategory
-        }
-        title='Delete Category'
-        message={
-          categoryExpenses.length > 0
-            ? `Cannot delete this category because it contains ${categoryExpenses.length} expense${categoryExpenses.length === 1 ? '' : 's'}. Please delete or reassign the expenses first before deleting this category.`
-            : `Are you sure you want to delete "${category?.name}"? This action cannot be undone.`
-        }
-        confirmText={categoryExpenses.length > 0 ? undefined : 'Delete'}
-        type='danger'
-        isLoading={state.operations.isDeletingCategory}
-      />
-    </DashboardLayout>
+        <CategoryErrorBoundary 
+          eventId={eventId} 
+          categoryId={categoryId}
+          fallbackLevel="component"
+        >
+          <CategoryDeletionModal
+            isOpen={state.modals.showDeleteCategoryConfirm}
+            onClose={actions.hideDeleteCategoryConfirm}
+            category={category}
+            expenses={categoryExpenses}
+            isDeleting={state.operations.isDeletingCategory}
+            onDeletingChange={actions.setDeletingCategory}
+          />
+        </CategoryErrorBoundary>
+      </DashboardLayout>
+    </CategoryErrorBoundary>
   );
 }
