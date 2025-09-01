@@ -7,7 +7,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { revalidateTag } from 'next/cache';
 import { db } from '@/server/lib/firebase-admin';
 import { withSentryServerAction } from '@/server/lib/sentryServerAction';
-import type { Payment, PaymentMethod } from '@/types/Payment';
+import type { PaymentMethod } from '@/types/Payment';
 
 interface UpdatePaymentScheduleParams {
   userId: string;

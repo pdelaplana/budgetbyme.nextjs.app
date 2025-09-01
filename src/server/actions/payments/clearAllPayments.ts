@@ -56,7 +56,7 @@ export const clearAllPayments = withSentryServerAction(
       totalPaidAmount = expenseData.paymentSchedule
         .filter((payment: any) => payment.isPaid)
         .reduce((sum: number, payment: any) => sum + payment.amount, 0);
-    } else if (expenseData.oneOffPayment && expenseData.oneOffPayment.isPaid) {
+    } else if (expenseData.oneOffPayment?.isPaid) {
       totalPaidAmount = expenseData.oneOffPayment.amount;
     }
 

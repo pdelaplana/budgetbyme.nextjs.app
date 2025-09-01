@@ -3,7 +3,6 @@
 import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
 import { getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
-import { addToEventTotals } from '@/server/lib/eventAggregation';
 import { db } from '@/server/lib/firebase-admin';
 import { withSentryServerAction } from '@/server/lib/sentryServerAction';
 import type { MarkPaymentAsPaidDto } from '@/types/Payment';
