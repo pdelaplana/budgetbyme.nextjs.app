@@ -1,6 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { BudgetCategory } from '@/types/BudgetCategory';
 import { db } from '../../lib/firebase-admin';
 import type { BudgetCategoryDocument } from '../../types/BudgetCategoryDocument';
 import { fetchCategories } from './fetchCategories';
@@ -37,9 +36,11 @@ describe('fetchCategories', () => {
   const mockCategoryData: BudgetCategoryDocument = {
     name: 'Venue & Reception',
     description: 'Wedding venue and reception costs',
-    budgettedAmount: 5000,
+    budgetedAmount: 5000,
+    scheduledAmount: 4800,
     spentAmount: 1200,
     color: '#059669',
+    icon: 'home',
     _createdDate: mockTimestamp,
     _createdBy: 'user123',
     _updatedDate: mockTimestamp,
@@ -124,7 +125,7 @@ describe('fetchCategories', () => {
       expect(result[0]).toEqual({
         id: 'category789',
         name: 'Venue & Reception',
-        budgettedAmount: 5000,
+        budgetedAmount: 5000,
         spentAmount: 1200,
         color: '#059669',
         _createdDate: new Date('2023-11-01'),
@@ -138,9 +139,11 @@ describe('fetchCategories', () => {
       const category2Data: BudgetCategoryDocument = {
         name: 'Photography',
         description: 'Professional photography services',
-        budgettedAmount: 2000,
+        budgetedAmount: 2000,
+        scheduledAmount: 1800,
         spentAmount: 0,
         color: '#7C3AED',
+        icon: 'camera',
         _createdDate: Timestamp.fromDate(new Date('2023-11-02')),
         _createdBy: 'user123',
         _updatedDate: Timestamp.fromDate(new Date('2023-11-02')),

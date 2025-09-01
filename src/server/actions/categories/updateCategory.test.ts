@@ -38,7 +38,7 @@ describe('updateCategory', () => {
     categoryId: mockCategoryId,
     name: 'Updated Category Name',
     description: 'Updated description',
-    budgettedAmount: 6000,
+    budgetedAmount: 6000,
     color: '#7C3AED',
   };
 
@@ -100,8 +100,8 @@ describe('updateCategory', () => {
       );
     });
 
-    it('should throw error if budgettedAmount is negative', async () => {
-      const dto = { ...validUpdateDto, budgettedAmount: -100 };
+    it('should throw error if budgetedAmount is negative', async () => {
+      const dto = { ...validUpdateDto, budgetedAmount: -100 };
 
       await expect(updateCategory(dto)).rejects.toThrow(
         'Budget amount cannot be negative',
@@ -140,8 +140,8 @@ describe('updateCategory', () => {
       );
     });
 
-    it('should allow budgettedAmount of zero', async () => {
-      const dto = { ...validUpdateDto, budgettedAmount: 0 };
+    it('should allow budgetedAmount of zero', async () => {
+      const dto = { ...validUpdateDto, budgetedAmount: 0 };
 
       const result = await updateCategory(dto);
       expect(result).toBe(mockCategoryId);
@@ -173,7 +173,7 @@ describe('updateCategory', () => {
       expect(mockUpdate).toHaveBeenCalledWith({
         name: 'Updated Category Name',
         description: 'Updated description',
-        budgettedAmount: 6000,
+        budgetedAmount: 6000,
         color: '#7C3AED',
         _updatedDate: expect.any(Timestamp),
         _updatedBy: mockUserId,
@@ -197,18 +197,18 @@ describe('updateCategory', () => {
       });
     });
 
-    it('should update only budgettedAmount when provided', async () => {
+    it('should update only budgetedAmount when provided', async () => {
       const dto = {
         userId: mockUserId,
         eventId: mockEventId,
         categoryId: mockCategoryId,
-        budgettedAmount: 3000,
+        budgetedAmount: 3000,
       };
 
       await updateCategory(dto);
 
       expect(mockUpdate).toHaveBeenCalledWith({
-        budgettedAmount: 3000,
+        budgetedAmount: 3000,
         _updatedDate: expect.any(Timestamp),
         _updatedBy: mockUserId,
       });

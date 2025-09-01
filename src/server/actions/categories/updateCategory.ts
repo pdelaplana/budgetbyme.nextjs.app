@@ -4,6 +4,7 @@ import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
 import { db } from '../../lib/firebase-admin';
 import { withSentryServerAction } from '../../lib/sentryServerAction';
+import type { BudgetCategoryDocument } from '../../types/BudgetCategoryDocument';
 
 export interface UpdateCategoryDto {
   userId: string;
@@ -83,7 +84,7 @@ export const updateCategory = withSentryServerAction(
       }
 
       // Prepare update data
-      const updateData: Record<string, any> = {
+      const updateData: Partial<BudgetCategoryDocument> = {
         _updatedDate: Timestamp.now(),
         _updatedBy: updateCategoryDto.userId,
       };

@@ -1,7 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { db } from '../../lib/firebase-admin';
-import type { BudgetCategoryDocument } from '../../types/BudgetCategoryDocument';
 import { type AddCategoryDto, addCategory } from './addCategory';
 
 // Mock Firebase Admin
@@ -38,8 +37,9 @@ describe('addCategory', () => {
     eventId: mockEventId,
     name: 'Venue & Reception',
     description: 'Wedding venue and reception costs',
-    budgettedAmount: 5000,
+    budgetedAmount: 5000,
     color: '#059669',
+    icon: 'home',
   };
 
   beforeEach(() => {
@@ -99,8 +99,8 @@ describe('addCategory', () => {
       );
     });
 
-    it('should throw error if budgettedAmount is negative', async () => {
-      const dto = { ...validAddCategoryDto, budgettedAmount: -100 };
+    it('should throw error if budgetedAmount is negative', async () => {
+      const dto = { ...validAddCategoryDto, budgetedAmount: -100 };
 
       await expect(addCategory(dto)).rejects.toThrow(
         'Budget amount cannot be negative',
@@ -123,8 +123,8 @@ describe('addCategory', () => {
       );
     });
 
-    it('should allow budgettedAmount of zero', async () => {
-      const dto = { ...validAddCategoryDto, budgettedAmount: 0 };
+    it('should allow budgetedAmount of zero', async () => {
+      const dto = { ...validAddCategoryDto, budgetedAmount: 0 };
 
       const result = await addCategory(dto);
       expect(result).toBe(mockCategoryId);
@@ -150,7 +150,7 @@ describe('addCategory', () => {
         expect.objectContaining({
           name: validAddCategoryDto.name,
           description: validAddCategoryDto.description,
-          budgettedAmount: validAddCategoryDto.budgettedAmount,
+          budgetedAmount: validAddCategoryDto.budgetedAmount,
           spentAmount: 0,
           color: validAddCategoryDto.color,
           _createdBy: mockUserId,
