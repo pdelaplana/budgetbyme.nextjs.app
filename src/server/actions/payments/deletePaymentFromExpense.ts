@@ -5,6 +5,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
 import { db } from '@/server/lib/firebase-admin';
 import { withSentryServerAction } from '@/server/lib/sentryServerAction';
+import type { PaymentDocument } from '@/server/types/PaymentDocument';
 
 export const deletePaymentFromExpense = withSentryServerAction(
   'deletePaymentFromExpense',
@@ -52,7 +53,11 @@ export const deletePaymentFromExpense = withSentryServerAction(
     }
 
     const expenseData = expenseDoc.data();
-    const hasPaymentSchedule = expenseData?.hasPaymentSchedule || false;
+    if (!expenseData) {
+      throw new Error('Expense document data not found');
+    }
+
+    const hasPaymentSchedule = expenseData.hasPaymentSchedule || false;
     let deletedPaymentAmount = 0;
     let paymentWasPaid = false;
 
@@ -60,7 +65,7 @@ export const deletePaymentFromExpense = withSentryServerAction(
     if (hasPaymentSchedule && expenseData.paymentSchedule) {
       // Find payment in schedule array
       const paymentToDelete = expenseData.paymentSchedule.find(
-        (payment: any) =>
+        (payment: PaymentDocument) =>
           payment._createdDate.toMillis().toString() === paymentId,
       );
 
@@ -76,7 +81,7 @@ export const deletePaymentFromExpense = withSentryServerAction(
 
       // Remove payment from schedule array
       const paymentSchedule = expenseData.paymentSchedule.filter(
-        (payment: any) =>
+        (payment: PaymentDocument) =>
           payment._createdDate.toMillis().toString() !== paymentId,
       );
 
@@ -118,7 +123,10 @@ export const deletePaymentFromExpense = withSentryServerAction(
 
         const categoryDoc = await categoryRef.get();
         if (categoryDoc.exists) {
-          const categoryData = categoryDoc.data()!;
+          const categoryData = categoryDoc.data();
+          if (!categoryData) {
+            throw new Error('Category document data not found');
+          }
           const newSpentAmount = Math.max(
             0,
             (categoryData.spentAmount || 0) - deletedPaymentAmount,
@@ -140,7 +148,10 @@ export const deletePaymentFromExpense = withSentryServerAction(
 
         const eventDoc = await eventRef.get();
         if (eventDoc.exists) {
-          const eventData = eventDoc.data()!;
+          const eventData = eventDoc.data();
+          if (!eventData) {
+            throw new Error('Event document data not found');
+          }
           const newTotalSpentAmount = Math.max(
             0,
             (eventData.totalSpentAmount || 0) - deletedPaymentAmount,
@@ -217,7 +228,10 @@ export const deletePaymentFromExpense = withSentryServerAction(
 
         const categoryDoc = await categoryRef.get();
         if (categoryDoc.exists) {
-          const categoryData = categoryDoc.data()!;
+          const categoryData = categoryDoc.data();
+          if (!categoryData) {
+            throw new Error('Category document data not found');
+          }
           const newSpentAmount = Math.max(
             0,
             (categoryData.spentAmount || 0) - deletedPaymentAmount,
@@ -239,7 +253,10 @@ export const deletePaymentFromExpense = withSentryServerAction(
 
         const eventDoc = await eventRef.get();
         if (eventDoc.exists) {
-          const eventData = eventDoc.data()!;
+          const eventData = eventDoc.data();
+          if (!eventData) {
+            throw new Error('Event document data not found');
+          }
           const newTotalSpentAmount = Math.max(
             0,
             (eventData.totalSpentAmount || 0) - deletedPaymentAmount,

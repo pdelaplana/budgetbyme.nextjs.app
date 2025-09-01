@@ -4,6 +4,7 @@ import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
 import { db } from '@/server/lib/firebase-admin';
 import { withSentryServerAction } from '@/server/lib/sentryServerAction';
+import type { PaymentDocument } from '@/server/types/PaymentDocument';
 import type { UpdatePaymentDto } from '@/types/Payment';
 
 export const updatePaymentInExpense = withSentryServerAction(
@@ -54,10 +55,14 @@ export const updatePaymentInExpense = withSentryServerAction(
     }
 
     const expenseData = expenseDoc.data();
-    const hasPaymentSchedule = expenseData?.hasPaymentSchedule || false;
+    if (!expenseData) {
+      throw new Error('Expense document data not found');
+    }
+
+    const hasPaymentSchedule = expenseData.hasPaymentSchedule || false;
 
     // Build update fields for payment
-    const paymentUpdateFields: any = {};
+    const paymentUpdateFields: Partial<PaymentDocument> = {};
     if (updateData.name !== undefined)
       paymentUpdateFields.name = updateData.name;
     if (updateData.description !== undefined)

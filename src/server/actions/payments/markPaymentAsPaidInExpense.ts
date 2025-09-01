@@ -5,6 +5,7 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { getCategoryIdFromExpense } from '@/server/lib/categoryUtils';
 import { db } from '@/server/lib/firebase-admin';
 import { withSentryServerAction } from '@/server/lib/sentryServerAction';
+import type { PaymentDocument } from '@/server/types/PaymentDocument';
 import type { MarkPaymentAsPaidDto } from '@/types/Payment';
 
 export const markPaymentAsPaidInExpense = withSentryServerAction(
@@ -59,7 +60,11 @@ export const markPaymentAsPaidInExpense = withSentryServerAction(
     }
 
     const expenseData = expenseDoc.data();
-    const hasPaymentSchedule = expenseData?.hasPaymentSchedule || false;
+    if (!expenseData) {
+      throw new Error('Expense document data not found');
+    }
+
+    const hasPaymentSchedule = expenseData.hasPaymentSchedule || false;
 
     const paymentUpdateFields = {
       isPaid: true,
@@ -71,8 +76,8 @@ export const markPaymentAsPaidInExpense = withSentryServerAction(
     };
 
     let paymentAmount = 0;
-    let paymentSchedule: any[] | undefined;
-    let updatedPayment: any | undefined;
+    let paymentSchedule: PaymentDocument[] | undefined;
+    let updatedPayment: PaymentDocument | undefined;
 
     if (hasPaymentSchedule && expenseData.paymentSchedule) {
       // Update payment in schedule array
@@ -142,7 +147,10 @@ export const markPaymentAsPaidInExpense = withSentryServerAction(
 
       const categoryDoc = await categoryRef.get();
       if (categoryDoc.exists) {
-        const categoryData = categoryDoc.data()!;
+        const categoryData = categoryDoc.data();
+        if (!categoryData) {
+          throw new Error('Category document data not found');
+        }
         const newSpentAmount = (categoryData.spentAmount || 0) + paymentAmount;
 
         batch.update(categoryRef, {
@@ -161,7 +169,10 @@ export const markPaymentAsPaidInExpense = withSentryServerAction(
 
       const eventDoc = await eventRef.get();
       if (eventDoc.exists) {
-        const eventData = eventDoc.data()!;
+        const eventData = eventDoc.data();
+        if (!eventData) {
+          throw new Error('Event document data not found');
+        }
         const newTotalSpentAmount =
           (eventData.totalSpentAmount || 0) + paymentAmount;
 

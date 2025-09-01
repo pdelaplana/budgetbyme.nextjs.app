@@ -119,7 +119,10 @@ export const createSinglePayment = withSentryServerAction(
 
       const categoryDoc = await categoryRef.get();
       if (categoryDoc.exists) {
-        const categoryData = categoryDoc.data()!;
+        const categoryData = categoryDoc.data();
+        if (!categoryData) {
+          throw new Error('Category document data not found');
+        }
         const newSpentAmount =
           (categoryData.spentAmount || 0) + paymentData.amount;
 
@@ -139,7 +142,10 @@ export const createSinglePayment = withSentryServerAction(
 
       const eventDoc = await eventRef.get();
       if (eventDoc.exists) {
-        const eventData = eventDoc.data()!;
+        const eventData = eventDoc.data();
+        if (!eventData) {
+          throw new Error('Event document data not found');
+        }
         const newTotalSpentAmount =
           (eventData.totalSpentAmount || 0) + paymentData.amount;
 

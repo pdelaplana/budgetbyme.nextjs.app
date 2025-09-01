@@ -8,6 +8,7 @@ import {
 } from '@/server/lib/categoryUtils';
 import { db } from '@/server/lib/firebase-admin';
 import { withSentryServerAction } from '@/server/lib/sentryServerAction';
+import type { PaymentDocument } from '@/server/types/PaymentDocument';
 
 export const clearAllPayments = withSentryServerAction(
   'clearAllPayments',
@@ -49,13 +50,20 @@ export const clearAllPayments = withSentryServerAction(
     }
 
     const expenseData = expenseDoc.data();
+    if (!expenseData) {
+      throw new Error('Expense document data not found');
+    }
+
     let totalPaidAmount = 0;
 
     // Calculate total paid amount that will be lost
     if (expenseData.hasPaymentSchedule && expenseData.paymentSchedule) {
       totalPaidAmount = expenseData.paymentSchedule
-        .filter((payment: any) => payment.isPaid)
-        .reduce((sum: number, payment: any) => sum + payment.amount, 0);
+        .filter((payment: PaymentDocument) => payment.isPaid)
+        .reduce(
+          (sum: number, payment: PaymentDocument) => sum + payment.amount,
+          0,
+        );
     } else if (expenseData.oneOffPayment?.isPaid) {
       totalPaidAmount = expenseData.oneOffPayment.amount;
     }
