@@ -11,11 +11,7 @@ import { withSentryServerAction } from '@/server/lib/sentryServerAction';
 
 export const clearAllPayments = withSentryServerAction(
   'clearAllPayments',
-  async (
-    userId: string,
-    eventId: string,
-    expenseId: string,
-  ): Promise<void> => {
+  async (userId: string, eventId: string, expenseId: string): Promise<void> => {
     // Set user context for debugging
     Sentry.setUser({ id: userId });
 

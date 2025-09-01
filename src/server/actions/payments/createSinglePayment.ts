@@ -164,7 +164,7 @@ export const createSinglePayment = withSentryServerAction(
     }
 
     const paymentId = now.toMillis().toString();
-    
+
     // Add success breadcrumb
     Sentry.addBreadcrumb({
       category: 'payment.single.create',

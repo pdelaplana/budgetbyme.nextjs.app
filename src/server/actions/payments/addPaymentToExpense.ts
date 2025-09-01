@@ -123,7 +123,7 @@ export const addPaymentToExpense = withSentryServerAction(
     }
 
     const paymentId = now.toMillis().toString(); // Use timestamp as ID
-    
+
     // Add success breadcrumb
     Sentry.addBreadcrumb({
       category: 'payment.add',

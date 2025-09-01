@@ -1,7 +1,10 @@
 import type { UseMutationResult } from '@tanstack/react-query';
 import type { User } from 'firebase/auth';
 import type { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
-import type { DashboardState, ExpenseDetail } from '@/hooks/dashboard/useDashboardState';
+import type {
+  DashboardState,
+  ExpenseDetail,
+} from '@/hooks/dashboard/useDashboardState';
 import type { BudgetCategory } from '@/types/BudgetCategory';
 import type { Category, Event } from '@/types/firebase';
 
@@ -10,7 +13,10 @@ interface ModalControls {
   openModal: (modal: keyof DashboardState['modals']) => void;
   closeModal: (modal: keyof DashboardState['modals']) => void;
   setSelectedExpense: (expense: ExpenseDetail | null) => void;
-  setEditingCategory: (category: BudgetCategory | null, isEditMode?: boolean) => void;
+  setEditingCategory: (
+    category: BudgetCategory | null,
+    isEditMode?: boolean,
+  ) => void;
   resetEditingState: () => void;
   setDeletingEvent: (isDeleting: boolean) => void;
   openAddExpenseModal: () => void;

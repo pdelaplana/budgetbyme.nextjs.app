@@ -30,7 +30,10 @@ export const updatePaymentSchedule = withSentryServerAction(
     eventId,
     expenseId,
     payments,
-  }: UpdatePaymentScheduleParams): Promise<{ success: boolean; error?: string }> => {
+  }: UpdatePaymentScheduleParams): Promise<{
+    success: boolean;
+    error?: string;
+  }> => {
     // Set user context for debugging
     Sentry.setUser({ id: userId });
 
