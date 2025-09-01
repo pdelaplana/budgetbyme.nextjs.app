@@ -12,3 +12,8 @@ postcss.config.js
 next.config.js
 biome.json
 tsconfig.json
+.claude/
+.git/
+.vscode/
+coverage/
+.nyc_output/
