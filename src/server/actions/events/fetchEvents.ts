@@ -74,7 +74,7 @@ export const fetchEvents = withSentryServerAction(
           totalSpentAmount: data.totalSpentAmount,
           spentPercentage,
           status: data.status as EventStatus,
-          currency: (data.currency || 'AUD') as Currency,
+          currency: (data.currency || 'AUD') as unknown as Currency,
           _createdDate: data._createdDate.toDate(),
           _createdBy: data._createdBy,
           _updatedDate: data._updatedDate.toDate(),

@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Event } from '@/types/Event';
+import { CurrencyImplementation } from '@/types/currencies';
 import { db } from '../../lib/firebase-admin';
 import type { EventDocument } from '../../types/EventDocument';
 import { fetchEvents } from './fetchEvents';
@@ -39,6 +39,7 @@ describe('fetchEvents', () => {
     description: 'A test event',
     eventDate: mockTimestamp,
     totalBudgetedAmount: 1000,
+    totalScheduledAmount: 800,
     totalSpentAmount: 500,
     status: 'on-track',
     currency: 'AUD',
@@ -90,7 +91,7 @@ describe('fetchEvents', () => {
       name: 'Test Event',
       type: 'wedding',
       spentPercentage: 50, // (500/1000) * 100
-      currency: 'AUD',
+      currency: CurrencyImplementation.AUD,
     });
     expect(db.collection).toHaveBeenCalledWith('workspaces');
     expect(mockDoc).toHaveBeenCalledWith(mockUserId);
@@ -154,14 +155,14 @@ describe('fetchEvents', () => {
       name: 'Test Event',
       type: 'wedding',
       spentPercentage: 50, // (500/1000) * 100
-      currency: 'AUD',
+      currency: CurrencyImplementation.AUD,
     });
     expect(result[1]).toMatchObject({
       id: 'event789',
       name: 'Second Event',
       type: 'birthday',
       spentPercentage: 50,
-      currency: 'AUD',
+      currency: CurrencyImplementation.AUD,
     });
   });
 });

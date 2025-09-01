@@ -1,6 +1,5 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Event } from '@/types/Event';
 import { db } from '../../lib/firebase-admin';
 import type { EventDocument } from '../../types/EventDocument';
 import { fetchEvent } from './fetchEvent';
@@ -40,29 +39,13 @@ describe('fetchEvent', () => {
     description: 'A test event',
     eventDate: mockTimestamp,
     totalBudgetedAmount: 1000,
+    totalScheduledAmount: 800,
     totalSpentAmount: 500,
     status: 'on-track',
     currency: 'AUD',
     _createdDate: mockTimestamp,
     _createdBy: 'user123',
     _updatedDate: mockTimestamp,
-    _updatedBy: 'user123',
-  };
-
-  const mockEvent: Event = {
-    id: mockEventId,
-    name: 'Test Event',
-    type: 'wedding',
-    description: 'A test event',
-    eventDate: new Date('2023-11-01'),
-    totalBudgetedAmount: 1000,
-    totalSpentAmount: 500,
-    spentPercentage: 50,
-    status: 'on-track',
-    currency: 'AUD',
-    _createdDate: new Date('2023-11-01'),
-    _createdBy: 'user123',
-    _updatedDate: new Date('2023-11-01'),
     _updatedBy: 'user123',
   };
 
@@ -84,7 +67,7 @@ describe('fetchEvent', () => {
 
     vi.mocked(db.collection).mockReturnValue({
       doc: mockDoc,
-    } as any);
+    } as unknown as ReturnType<typeof db.collection>);
   });
 
   it('should fetch an event successfully', async () => {
