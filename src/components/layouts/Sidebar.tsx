@@ -2,6 +2,7 @@
 
 import {
   ArrowRightOnRectangleIcon,
+  CalendarIcon,
   PlusIcon,
   UserCircleIcon,
   XMarkIcon,
@@ -121,75 +122,99 @@ export default function Sidebar({
 
         {/* Scrollable Events List */}
         <div className='flex-1 overflow-y-auto px-2 py-3'>
-          <div className='space-y-2'>
-            {events.map((event) => {
-              const isActive = currentEventId === event.id;
-              const statusColor = getEventStatusColor(event.status);
+          {events.length > 0 ? (
+            <div className='space-y-2'>
+              {events.map((event) => {
+                const isActive = currentEventId === event.id;
+                const statusColor = getEventStatusColor(event.status);
 
-              return (
-                <button
-                  key={event.id}
-                  onClick={() => handleEventSelect(event)}
-                  className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] group ${
-                    isActive
-                      ? 'bg-primary-100 text-primary-700 shadow-md border border-primary-200 scale-[1.02]'
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md border border-transparent hover:border-gray-200'
-                  }`}
-                >
-                  <div className='flex items-center space-x-3'>
-                    <div className='flex-shrink-0 text-xl'>
-                      {getEventIcon(event.type)}
-                    </div>
-                    <div className='flex-1 min-w-0'>
-                      <p
-                        className={`text-sm font-semibold truncate ${
-                          isActive ? 'text-primary-900' : 'text-gray-900'
-                        }`}
-                      >
-                        {event.name}
-                      </p>
-                      <div className='flex items-center justify-between mt-1'>
-                        <p className='text-xs text-gray-500 truncate'>
-                          {new Date(event.eventDate).toLocaleDateString(
-                            'en-US',
-                            {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            },
-                          )}
-                        </p>
-                        <div
-                          className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColor.bg} ${statusColor.text} ${statusColor.border} border`}
+                return (
+                  <button
+                    key={event.id}
+                    onClick={() => handleEventSelect(event)}
+                    className={`w-full text-left px-4 py-3 rounded-lg transition-all duration-300 ease-in-out transform hover:scale-[1.02] group ${
+                      isActive
+                        ? 'bg-primary-100 text-primary-700 shadow-md border border-primary-200 scale-[1.02]'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:shadow-md border border-transparent hover:border-gray-200'
+                    }`}
+                  >
+                    <div className='flex items-center space-x-3'>
+                      <div className='flex-shrink-0 text-xl'>
+                        {getEventIcon(event.type)}
+                      </div>
+                      <div className='flex-1 min-w-0'>
+                        <p
+                          className={`text-sm font-semibold truncate ${
+                            isActive ? 'text-primary-900' : 'text-gray-900'
+                          }`}
                         >
-                          {event.spentPercentage}%
-                        </div>
-                      </div>
-                      <div className='mt-2'>
-                        <div className='flex justify-between text-xs text-gray-500 mb-1'>
-                          <span>Budget Progress</span>
-                          <span>
-                            ${event.totalSpentAmount.toLocaleString()} / $
-                            {event.totalBudgetedAmount.toLocaleString()}
-                          </span>
-                        </div>
-                        <div className='w-full bg-gray-200 rounded-full h-1.5'>
+                          {event.name}
+                        </p>
+                        <div className='flex items-center justify-between mt-1'>
+                          <p className='text-xs text-gray-500 truncate'>
+                            {new Date(event.eventDate).toLocaleDateString(
+                              'en-US',
+                              {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              },
+                            )}
+                          </p>
                           <div
-                            className={`h-1.5 rounded-full transition-all duration-500 ${
-                              isActive ? 'bg-primary-600' : 'bg-gray-400'
-                            }`}
-                            style={{
-                              width: `${Math.min(event.spentPercentage, 100)}%`,
-                            }}
-                          />
+                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColor.bg} ${statusColor.text} ${statusColor.border} border`}
+                          >
+                            {event.spentPercentage}%
+                          </div>
+                        </div>
+                        <div className='mt-2'>
+                          <div className='flex justify-between text-xs text-gray-500 mb-1'>
+                            <span>Budget Progress</span>
+                            <span>
+                              ${event.totalSpentAmount.toLocaleString()} / $
+                              {event.totalBudgetedAmount.toLocaleString()}
+                            </span>
+                          </div>
+                          <div className='w-full bg-gray-200 rounded-full h-1.5'>
+                            <div
+                              className={`h-1.5 rounded-full transition-all duration-500 ${
+                                isActive ? 'bg-primary-600' : 'bg-gray-400'
+                              }`}
+                              style={{
+                                width: `${Math.min(event.spentPercentage, 100)}%`,
+                              }}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className='flex flex-col items-center justify-center h-full px-4 py-8 text-center'>
+              <div className='w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mb-4'>
+                <CalendarIcon className='w-8 h-8 text-primary-600' />
+              </div>
+              <h3 className='text-base font-semibold text-gray-900 mb-2'>
+                No events yet
+              </h3>
+              <p className='text-sm text-gray-500 mb-6 leading-relaxed max-w-44'>
+                Create your first event to start planning your special moments
+              </p>
+              <button
+                onClick={onAddEventClick}
+                className='inline-flex items-center px-4 py-2.5 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 transition-colors duration-200 shadow-sm'
+              >
+                <PlusIcon className='w-4 h-4 mr-2' />
+                Create Event
+              </button>
+              <p className='text-xs text-gray-400 mt-3'>
+                or use the + button above
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Footer - Fixed */}
