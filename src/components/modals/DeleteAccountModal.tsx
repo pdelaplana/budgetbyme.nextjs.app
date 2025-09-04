@@ -8,6 +8,10 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import React, { Fragment, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { deleteAccount } from '@/server/actions/jobs/deleteAccount';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 interface DeleteAccountModalProps {
   isOpen: boolean;
@@ -18,11 +22,12 @@ export default function DeleteAccountModal({
   isOpen,
   onClose,
 }: DeleteAccountModalProps) {
+  const { user } = useAuth();
+  const isTestMode = process.env.NEXT_PUBLIC_DELETE_ACCOUNT_TEST_MODE === 'true';
   const [step, setStep] = useState<
     'warning' | 'confirm' | 'deleting' | 'completed'
   >('warning');
   const [confirmationText, setConfirmationText] = useState('');
-  const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -31,7 +36,6 @@ export default function DeleteAccountModal({
   const handleClose = () => {
     setStep('warning');
     setConfirmationText('');
-    setPassword('');
     setErrors({});
     setIsDeleting(false);
     onClose();
@@ -48,10 +52,6 @@ export default function DeleteAccountModal({
       newErrors.confirmation = `Please type "${requiredText}" exactly as shown`;
     }
 
-    if (!password) {
-      newErrors.password = 'Password is required to confirm account deletion';
-    }
-
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
@@ -59,29 +59,28 @@ export default function DeleteAccountModal({
     setStep('deleting');
 
     try {
-      // Simulate account deletion process
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-
-      console.log('Delete account confirmed:', { confirmationText, password });
-      // In real app, this would:
-      // 1. Re-authenticate user with password
-      // 2. Delete all user data from Firestore
-      // 3. Delete user files from Storage
-      // 4. Delete the Firebase Auth user
-      // 5. Sign out and redirect to landing page
-
+      if (isTestMode) {
+        // Simulate account deletion process in test mode
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        console.log('🧪 TEST MODE: Account deletion simulated successfully');
+      } else {
+        // User is already authenticated, just call server action
+        await deleteAccount(user?.uid || '');
+      }
+      
       setStep('completed');
-
-      // Auto redirect after showing success
-      setTimeout(() => {
-        // In real app, this would redirect to landing page
-        console.log('Redirecting to landing page...');
+      
+      // Sign out user after showing confirmation 
+      setTimeout(async () => {
+        if (isTestMode) {
+          console.log('🧪 TEST MODE: Account deletion simulated - performing real sign-out');
+        }
+        await signOut(auth);
         window.location.href = '/';
       }, 3000);
     } catch (error) {
       setErrors({
-        submit:
-          'Failed to delete account. Please check your password and try again.',
+        submit: 'Failed to delete account. Please try again.',
       });
       setStep('confirm');
       setIsDeleting(false);
@@ -158,11 +157,12 @@ export default function DeleteAccountModal({
                 <ExclamationTriangleIcon className='h-5 w-5 text-blue-400 mt-0.5 mr-3 flex-shrink-0' />
                 <div>
                   <h4 className='text-sm font-semibold text-blue-800 mb-1'>
-                    Before you delete your account
+                    What happens next
                   </h4>
                   <p className='text-sm text-blue-700'>
-                    Consider exporting your data first. You can download a
-                    complete backup of all your information.
+                    After confirmation, your account deletion will begin immediately. 
+                    You'll receive a confirmation email at <strong>{user?.email}</strong> within 5 minutes
+                    and be signed out of all devices.
                   </p>
                 </div>
               </div>
@@ -252,23 +252,6 @@ export default function DeleteAccountModal({
             )}
           </div>
 
-          {/* Password */}
-          <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>
-              Enter your password to confirm:
-            </label>
-            <input
-              type='password'
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={`form-input ${errors.password ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : ''}`}
-              placeholder='Enter your current password'
-              disabled={isDeleting}
-            />
-            {errors.password && (
-              <p className='mt-1 text-sm text-red-600'>{errors.password}</p>
-            )}
-          </div>
 
           {/* Submit Error */}
           {errors.submit && (
@@ -278,7 +261,7 @@ export default function DeleteAccountModal({
           )}
         </div>
 
-        <div className='flex flex-col-reverse sm:flex-row sm:justify-end space-y-3 space-y-reverse sm:space-y-0 sm:space-x-3 mt-6 pt-6 border-t border-gray-200'>
+        <div className='flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3 mt-6 pt-6 border-t border-gray-200'>
           <button
             type='button'
             onClick={() => setStep('warning')}
@@ -289,7 +272,7 @@ export default function DeleteAccountModal({
           </button>
           <button
             type='submit'
-            className='bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto font-medium'
+            className='bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto font-medium min-w-[160px] inline-flex items-center justify-center'
             disabled={isDeleting}
           >
             {isDeleting ? (
@@ -330,13 +313,22 @@ export default function DeleteAccountModal({
         <CheckCircleIcon className='h-6 w-6 text-green-600' />
       </div>
       <Dialog.Title className='text-lg font-semibold text-gray-900 mb-2'>
-        Account Deleted Successfully
+        Account Deletion Initiated
       </Dialog.Title>
-      <p className='text-sm text-gray-500 mb-6'>
-        Your account and all associated data have been permanently deleted. You
-        will be redirected to the home page.
-      </p>
-      <div className='animate-pulse text-sm text-gray-400'>Redirecting...</div>
+      <div className='bg-green-50 border border-green-200 rounded-lg p-3 mb-4'>
+        <p className='text-sm text-green-700'>
+          🔒 Secure deletion initiated - Your data is being permanently removed using industry-standard practices.
+        </p>
+      </div>
+      <div className='space-y-3 text-sm text-gray-600 mb-6'>
+        <p>Your account deletion has been initiated and cannot be stopped.</p>
+        <p>Check your email at <strong>{user?.email}</strong> for confirmation details.</p>
+        <p>If you change your mind, create a new account with the same email within 30 days.</p>
+        <p>You are being signed out of all devices...</p>
+      </div>
+      <div className='animate-pulse text-sm text-gray-400'>
+        Signing out in 3 seconds...
+      </div>
     </div>
   );
 
@@ -387,7 +379,7 @@ export default function DeleteAccountModal({
               leaveFrom='opacity-100 scale-100'
               leaveTo='opacity-0 scale-95'
             >
-              <Dialog.Panel className='w-full max-w-md transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all'>
+              <Dialog.Panel className='w-full max-w-md mx-4 transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all'>
                 {renderStepContent()}
               </Dialog.Panel>
             </Transition.Child>

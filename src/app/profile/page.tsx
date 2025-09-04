@@ -17,6 +17,7 @@ import AccountLayout from '@/components/layouts/AccountLayout';
 import ChangePasswordModal from '@/components/modals/ChangePasswordModal';
 import DeleteAccountModal from '@/components/modals/DeleteAccountModal';
 import ExportDataModal from '@/components/modals/ExportDataModal';
+import ReAuthModal from '@/components/modals/ReAuthModal';
 import DisplayNameEditor from '@/components/profile/DisplayNameEditor';
 import ProfilePhotoEditor from '@/components/profile/ProfilePhotoEditor';
 import { useAuth } from '@/contexts/AuthContext';
@@ -40,12 +41,14 @@ const mockUser = {
 
 export default function ProfilePage() {
   const { user, updateUserProfile } = useAuth();
+  const isTestMode = process.env.NEXT_PUBLIC_DELETE_ACCOUNT_TEST_MODE === 'true';
 
   const { data: userWorkspace } = useFetchUserWorkspace(user?.uid || '');
 
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [showDeleteAccount, setShowDeleteAccount] = useState(false);
   const [showExportData, setShowExportData] = useState(false);
+  const [showReAuthModal, setShowReAuthModal] = useState(false);
   const [isSettingUpWorkspace, setIsSettingUpWorkspace] = useState(false);
   const [hasWorkspace, setHasWorkspace] = useState(false);
 
@@ -186,19 +189,21 @@ export default function ProfilePage() {
 
           <div className='space-y-4'>
             <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0'>
-              <div>
+              <div className='flex-1'>
                 <h3 className='text-sm font-medium text-gray-900'>Password</h3>
                 <p className='text-xs sm:text-sm text-gray-500'>
                   Change your password to keep your account secure
                 </p>
               </div>
-              <button
-                type='button'
-                onClick={() => setShowChangePassword(true)}
-                className='btn-secondary w-full sm:w-auto'
-              >
-                Change Password
-              </button>
+              <div className='flex-shrink-0 sm:ml-4'>
+                <button
+                  type='button'
+                  onClick={() => setShowChangePassword(true)}
+                  className='btn-secondary profile-action-button'
+                >
+                  Change Password
+                </button>
+              </div>
             </div>
 
             <div className='pt-4 border-t'>
@@ -225,7 +230,7 @@ export default function ProfilePage() {
 
           <div className='space-y-4'>
             <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0'>
-              <div>
+              <div className='flex-1'>
                 <h3 className='text-sm font-medium text-gray-900'>
                   Export Your Data
                 </h3>
@@ -233,14 +238,16 @@ export default function ProfilePage() {
                   Download a copy of all your events, expenses, and payments
                 </p>
               </div>
-              <button
-                type='button'
-                onClick={() => setShowExportData(true)}
-                className='btn-secondary w-full sm:w-auto flex items-center justify-center'
-              >
-                <ArrowDownTrayIcon className='h-4 w-4 mr-2' />
-                Export Data
-              </button>
+              <div className='flex-shrink-0 sm:ml-4'>
+                <button
+                  type='button'
+                  onClick={() => setShowExportData(true)}
+                  className='btn-secondary profile-action-button'
+                >
+                  <ArrowDownTrayIcon className='h-4 w-4 mr-2' />
+                  Export Data
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -269,9 +276,29 @@ export default function ProfilePage() {
           </div>
 
           <div className='space-y-4'>
-            {/* Setup Workspace */}
+            {/* Zone 1: Primary Actions - Sign Out (most frequent, neutral action) */}
             <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 pb-4 border-b'>
-              <div>
+              <div className='flex-1'>
+                <h3 className='text-sm font-medium text-gray-900'>Sign Out</h3>
+                <p className='text-xs sm:text-sm text-gray-500'>
+                  Sign out of your account on this device
+                </p>
+              </div>
+              <div className='flex-shrink-0 sm:ml-4'>
+                <button
+                  type='button'
+                  onClick={handleSignOut}
+                  className='btn-secondary profile-action-button'
+                >
+                  <ArrowRightOnRectangleIcon className='h-4 w-4 mr-2' />
+                  Sign Out
+                </button>
+              </div>
+            </div>
+
+            {/* Zone 2: Status Information - Workspace Status */}
+            <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 pb-4 border-b'>
+              <div className='flex-1'>
                 <h3 className='text-sm font-medium text-gray-900'>
                   {hasWorkspace ? 'Workspace Status' : 'Setup Workspace'}
                 </h3>
@@ -281,61 +308,55 @@ export default function ProfilePage() {
                     : 'Initialize your user workspace with default settings'}
                 </p>
               </div>
-              {hasWorkspace ? (
-                <div className='flex items-center text-green-600'>
-                  <ShieldCheckIcon className='h-4 w-4 mr-2' />
-                  <span className='text-sm font-medium'>Active</span>
+              <div className='flex-shrink-0 sm:ml-4'>
+                {hasWorkspace ? (
+                  <span className='profile-action-button bg-green-100 text-green-800 rounded-md'>
+                    <ShieldCheckIcon className='h-4 w-4 mr-2' />
+                    Active
+                  </span>
+                ) : (
+                  <button
+                    type='button'
+                    onClick={onSetupWorkspace}
+                    disabled={isSettingUpWorkspace}
+                    className='btn-primary profile-action-button disabled:opacity-50 disabled:cursor-not-allowed'
+                  >
+                    <BuildingOfficeIcon className='h-4 w-4 mr-2' />
+                    {isSettingUpWorkspace ? 'Setting up...' : 'Setup'}
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Zone 3: Destructive Actions - Delete Account (separated with extra spacing) */}
+            <div className='pt-2'>
+              <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0'>
+                <div className='flex-1'>
+                  <h3 className='text-sm font-medium text-red-900'>
+                    Delete Account
+                  </h3>
+                  <p className='text-xs sm:text-sm text-red-600'>
+                    Permanently delete your account and all associated data. This requires password confirmation for security. You will receive an email confirmation and be signed out immediately.
+                  </p>
+                  {isTestMode && (
+                    <div className='bg-blue-50 border border-blue-200 rounded-lg p-2 mt-3'>
+                      <p className='text-xs text-blue-700 font-medium'>
+                        🧪 Test Mode Active: Experience the full workflow without any actual deletion
+                      </p>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <button
-                  type='button'
-                  onClick={onSetupWorkspace}
-                  disabled={isSettingUpWorkspace}
-                  className='btn-primary w-full sm:w-auto flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed'
-                >
-                  <BuildingOfficeIcon className='h-4 w-4 mr-2' />
-                  {isSettingUpWorkspace ? 'Setting up...' : 'Setup Workspace'}
-                </button>
-              )}
-            </div>
-
-            {/* Sign Out */}
-            <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0 pb-4 border-b'>
-              <div>
-                <h3 className='text-sm font-medium text-gray-900'>Sign Out</h3>
-                <p className='text-xs sm:text-sm text-gray-500'>
-                  Sign out of your account on this device
-                </p>
+                <div className='flex-shrink-0 sm:ml-4'>
+                  <button
+                    type='button'
+                    onClick={() => setShowReAuthModal(true)}
+                    className='btn-secondary profile-action-button border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700'
+                  >
+                    <TrashIcon className='h-4 w-4 mr-2' />
+                    Delete Account
+                  </button>
+                </div>
               </div>
-              <button
-                type='button'
-                onClick={handleSignOut}
-                className='btn-secondary w-full sm:w-auto flex items-center justify-center'
-              >
-                <ArrowRightOnRectangleIcon className='h-4 w-4 mr-2' />
-                Sign Out
-              </button>
-            </div>
-
-            {/* Delete Account */}
-            <div className='flex flex-col sm:flex-row sm:items-start sm:justify-between space-y-3 sm:space-y-0'>
-              <div>
-                <h3 className='text-sm font-medium text-red-900'>
-                  Delete Account
-                </h3>
-                <p className='text-xs sm:text-sm text-red-600'>
-                  Permanently delete your account and all associated data. This
-                  action cannot be undone.
-                </p>
-              </div>
-              <button
-                type='button'
-                onClick={() => setShowDeleteAccount(true)}
-                className='btn-secondary border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 w-full sm:w-auto flex items-center justify-center'
-              >
-                <TrashIcon className='h-4 w-4 mr-2' />
-                Delete Account
-              </button>
             </div>
           </div>
         </div>
@@ -350,6 +371,24 @@ export default function ProfilePage() {
       <ExportDataModal
         isOpen={showExportData}
         onClose={() => setShowExportData(false)}
+      />
+
+      {/* Re-Authentication Modal for Delete Account */}
+      <ReAuthModal
+        isOpen={showReAuthModal}
+        onClose={() => {
+          setShowReAuthModal(false);
+        }}
+        onSuccess={() => {
+          setShowReAuthModal(false);
+          // Wait for modal to close before opening next one for better UX
+          setTimeout(() => {
+            setShowDeleteAccount(true);
+          }, 150);
+        }}
+        onError={() => {/* Error handled within modal */}}
+        title="Confirm Your Identity"
+        description="Please enter your password to proceed with account deletion."
       />
 
       <DeleteAccountModal
