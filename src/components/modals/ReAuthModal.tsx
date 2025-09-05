@@ -31,7 +31,8 @@ export default function ReAuthModal({
   description,
 }: ReAuthModalProps) {
   const { user } = useAuth();
-  const isTestMode = process.env.NEXT_PUBLIC_DELETE_ACCOUNT_TEST_MODE === 'true';
+  const isTestMode =
+    process.env.NEXT_PUBLIC_DELETE_ACCOUNT_TEST_MODE === 'true';
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
@@ -62,7 +63,7 @@ export default function ReAuthModal({
 
   const handleReAuthenticate = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!password.trim()) {
       setLocalError('Password is required');
       return;
@@ -81,14 +82,14 @@ export default function ReAuthModal({
         // Simulate authentication in test mode
         await new Promise((resolve) => setTimeout(resolve, 1500));
         console.log('🧪 TEST MODE: Authentication simulated successfully');
-        
+
         // Always succeed in test mode
         onSuccess();
         handleClose();
       } else {
         // Re-authenticate user with their email and password
         await signInWithEmailAndPassword(auth, user.email, password);
-        
+
         // Success - call the onSuccess callback
         onSuccess();
         handleClose();
@@ -158,7 +159,8 @@ export default function ReAuthModal({
                       <div className='flex items-start'>
                         <ShieldCheckIcon className='h-4 w-4 text-blue-500 mt-0.5 mr-2 flex-shrink-0' />
                         <p className='text-xs text-blue-700'>
-                          For your security, we require password confirmation for account deletion.
+                          For your security, we require password confirmation
+                          for account deletion.
                         </p>
                       </div>
                     </div>
@@ -213,10 +215,13 @@ export default function ReAuthModal({
                       </div>
                       {localError && (
                         <>
-                          <p className='mt-1 text-sm text-red-600'>{localError}</p>
+                          <p className='mt-1 text-sm text-red-600'>
+                            {localError}
+                          </p>
                           {localError.includes('password') && (
                             <p className='mt-1 text-xs text-gray-500'>
-                              Having trouble? You can change your password in the Security section above.
+                              Having trouble? You can change your password in
+                              the Security section above.
                             </p>
                           )}
                         </>

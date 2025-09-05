@@ -82,9 +82,10 @@ export default function ChangePasswordModal({
       }, 2000);
     } catch (error: any) {
       console.error('Password change error:', error);
-      let errorMessage = 'Unable to change your password right now. Please try again.';
+      let errorMessage =
+        'Unable to change your password right now. Please try again.';
       let fieldSpecificError = '';
-      
+
       // Handle specific Firebase Auth errors with user-friendly messages
       if (error?.code) {
         switch (error.code) {
@@ -92,44 +93,53 @@ export default function ChangePasswordModal({
           case 'auth/wrong-password':
           case 'auth/invalid-credential':
             fieldSpecificError = 'current';
-            errorMessage = 'Your current password is incorrect. Please check and try again.';
+            errorMessage =
+              'Your current password is incorrect. Please check and try again.';
             break;
-          
+
           // Password policy errors
           case 'auth/weak-password':
             fieldSpecificError = 'new';
-            errorMessage = 'Your new password is too weak. Please choose a stronger password with at least 8 characters, including uppercase, lowercase, and numbers.';
+            errorMessage =
+              'Your new password is too weak. Please choose a stronger password with at least 8 characters, including uppercase, lowercase, and numbers.';
             break;
-          
+
           // Session/authentication state errors
           case 'auth/requires-recent-login':
-            errorMessage = 'For security reasons, please sign out and sign back in before changing your password.';
+            errorMessage =
+              'For security reasons, please sign out and sign back in before changing your password.';
             break;
           case 'auth/user-not-found':
           case 'auth/user-disabled':
-            errorMessage = 'There was an issue with your account. Please contact support if this continues.';
+            errorMessage =
+              'There was an issue with your account. Please contact support if this continues.';
             break;
-          
+
           // Network and service errors
           case 'auth/network-request-failed':
-            errorMessage = 'Network connection issue. Please check your internet connection and try again.';
+            errorMessage =
+              'Network connection issue. Please check your internet connection and try again.';
             break;
           case 'auth/too-many-requests':
-            errorMessage = 'Too many attempts. Please wait a few minutes before trying again.';
+            errorMessage =
+              'Too many attempts. Please wait a few minutes before trying again.';
             break;
           case 'auth/operation-not-allowed':
-            errorMessage = 'Password changes are currently disabled. Please contact support.';
+            errorMessage =
+              'Password changes are currently disabled. Please contact support.';
             break;
-          
+
           // Generic auth errors
           case 'auth/internal-error':
-            errorMessage = 'Something went wrong on our end. Please try again in a few moments.';
+            errorMessage =
+              'Something went wrong on our end. Please try again in a few moments.';
             break;
-          
+
           // Fallback for unknown Firebase errors
           default:
             if (error.message && error.message.includes('auth/')) {
-              errorMessage = 'Authentication error occurred. Please try signing out and back in.';
+              errorMessage =
+                'Authentication error occurred. Please try signing out and back in.';
             } else if (error.message) {
               errorMessage = `Error: ${error.message}. Please try again or contact support if this continues.`;
             }
@@ -142,7 +152,7 @@ export default function ChangePasswordModal({
           errorMessage = `${error.message}. Please try again.`;
         }
       }
-      
+
       // Set field-specific error if applicable
       const errorObj: Record<string, string> = { submit: errorMessage };
       if (fieldSpecificError === 'current') {
@@ -152,7 +162,7 @@ export default function ChangePasswordModal({
         errorObj.newPassword = 'Password is too weak';
         delete errorObj.submit; // Remove general error in favor of field error
       }
-      
+
       setErrors(errorObj);
     } finally {
       setIsSubmitting(false);

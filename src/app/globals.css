@@ -139,7 +139,7 @@ body {
     @apply w-full sm:w-[200px] h-[40px] flex items-center justify-center text-sm font-medium;
     box-sizing: border-box;
   }
-  
+
   .text-display-lg {
     font-size: var(--font-size-display-lg);
   }

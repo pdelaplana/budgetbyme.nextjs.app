@@ -23,7 +23,8 @@ export default function DeleteAccountModal({
   onClose,
 }: DeleteAccountModalProps) {
   const { user } = useAuth();
-  const isTestMode = process.env.NEXT_PUBLIC_DELETE_ACCOUNT_TEST_MODE === 'true';
+  const isTestMode =
+    process.env.NEXT_PUBLIC_DELETE_ACCOUNT_TEST_MODE === 'true';
   const [step, setStep] = useState<
     'warning' | 'confirm' | 'deleting' | 'completed'
   >('warning');
@@ -67,13 +68,15 @@ export default function DeleteAccountModal({
         // User is already authenticated, just call server action
         await deleteAccount(user?.uid || '');
       }
-      
+
       setStep('completed');
-      
-      // Sign out user after showing confirmation 
+
+      // Sign out user after showing confirmation
       setTimeout(async () => {
         if (isTestMode) {
-          console.log('🧪 TEST MODE: Account deletion simulated - performing real sign-out');
+          console.log(
+            '🧪 TEST MODE: Account deletion simulated - performing real sign-out',
+          );
         }
         await signOut(auth);
         window.location.href = '/';
@@ -119,7 +122,7 @@ export default function DeleteAccountModal({
                   Deleting your account will permanently remove all your data
                   and cannot be recovered.
                 </p>
-                
+
                 <div>
                   <h4 className='text-sm font-semibold text-red-800 mb-2'>
                     What will be permanently deleted:
@@ -152,7 +155,6 @@ export default function DeleteAccountModal({
           </div>
 
           <div className='space-y-4'>
-
             <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
               <div className='flex'>
                 <ExclamationTriangleIcon className='h-5 w-5 text-blue-400 mt-0.5 mr-3 flex-shrink-0' />
@@ -161,9 +163,10 @@ export default function DeleteAccountModal({
                     What happens next
                   </h4>
                   <p className='text-sm text-blue-700 break-words'>
-                    After confirmation, your account deletion will begin immediately. 
-                    You'll receive a confirmation email at <strong className='break-all'>{user?.email}</strong> within 5 minutes
-                    and be signed out of all devices.
+                    After confirmation, your account deletion will begin
+                    immediately. You'll receive a confirmation email at{' '}
+                    <strong className='break-all'>{user?.email}</strong> within
+                    5 minutes and be signed out of all devices.
                   </p>
                 </div>
               </div>
@@ -172,10 +175,7 @@ export default function DeleteAccountModal({
         </div>
 
         <div className='flex flex-col sm:flex-row gap-3'>
-          <button
-            onClick={handleClose}
-            className='btn-secondary flex-1'
-          >
+          <button onClick={handleClose} className='btn-secondary flex-1'>
             Keep My Account
           </button>
           <button
@@ -253,7 +253,6 @@ export default function DeleteAccountModal({
             )}
           </div>
 
-
           {/* Submit Error */}
           {errors.submit && (
             <div className='rounded-md bg-red-50 border border-red-200 p-3'>
@@ -318,13 +317,20 @@ export default function DeleteAccountModal({
       </Dialog.Title>
       <div className='bg-green-50 border border-green-200 rounded-lg p-3 mb-4'>
         <p className='text-sm text-green-700'>
-          🔒 Secure deletion initiated - Your data is being permanently removed using industry-standard practices.
+          🔒 Secure deletion initiated - Your data is being permanently removed
+          using industry-standard practices.
         </p>
       </div>
       <div className='space-y-3 text-sm text-gray-600 mb-6'>
         <p>Your account deletion has been initiated and cannot be stopped.</p>
-        <p>Check your email at <strong>{user?.email}</strong> for confirmation details.</p>
-        <p>If you change your mind, create a new account with the same email within 30 days.</p>
+        <p>
+          Check your email at <strong>{user?.email}</strong> for confirmation
+          details.
+        </p>
+        <p>
+          If you change your mind, create a new account with the same email
+          within 30 days.
+        </p>
         <p>You are being signed out of all devices...</p>
       </div>
       <div className='animate-pulse text-sm text-gray-400'>

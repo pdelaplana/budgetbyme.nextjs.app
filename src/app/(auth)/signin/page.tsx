@@ -5,7 +5,6 @@ import type { FirebaseError } from 'firebase/app';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import ForgotPasswordModal from '@/components/modals/ForgotPasswordModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { getAuthErrorMessage } from '@/lib/firebase/authUtils';
 
@@ -20,7 +19,6 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState('');
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   const {
     register,
@@ -59,7 +57,7 @@ export default function SignInPage() {
   };
 
   const handleForgotPassword = () => {
-    setShowForgotPassword(true);
+    router.push('/forgot-password');
   };
 
   return (
@@ -238,12 +236,6 @@ export default function SignInPage() {
           Continue with Google
         </button>
       </div>
-
-      {/* Forgot Password Modal */}
-      <ForgotPasswordModal
-        isOpen={showForgotPassword}
-        onClose={() => setShowForgotPassword(false)}
-      />
     </div>
   );
 }

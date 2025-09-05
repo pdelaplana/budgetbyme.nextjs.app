@@ -28,7 +28,10 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<void>;
   updateUserProfile: ({
     displayName,
     photoURL,
@@ -128,7 +131,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const changePassword = async (currentPassword: string, newPassword: string) => {
+  const changePassword = async (
+    currentPassword: string,
+    newPassword: string,
+  ) => {
     try {
       if (!auth.currentUser || !auth.currentUser.email) {
         const noUserError = new Error('No authenticated user found');
@@ -139,7 +145,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Create credential for reauthentication
       const credential = EmailAuthProvider.credential(
         auth.currentUser.email,
-        currentPassword
+        currentPassword,
       );
 
       // Reauthenticate the user first
