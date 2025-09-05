@@ -7,6 +7,7 @@ interface LoadingSpinnerProps {
   message?: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  noPadding?: boolean;
 }
 
 export default function LoadingSpinner({
@@ -14,6 +15,7 @@ export default function LoadingSpinner({
   message = 'Please wait while we load your data',
   size = 'md',
   className = '',
+  noPadding = false,
 }: LoadingSpinnerProps) {
   const sizeClasses = {
     sm: 'h-8 w-8',
@@ -28,7 +30,7 @@ export default function LoadingSpinner({
   };
 
   return (
-    <div className={`text-center py-12 ${className}`}>
+    <div className={`text-center ${noPadding ? '' : 'py-12'} ${className}`}>
       <div
         className={`animate-spin rounded-full ${sizeClasses[size]} border-b-2 border-primary-600 mx-auto mb-4`}
       ></div>

@@ -30,8 +30,12 @@ export default function HomePage() {
   }, [user, authLoading, events, eventsLoading]);
 
   return (
-    <div className='min-h-screen bg-slate-100'>
-      <LoadingSpinner className='min-h-screen flex items-center justify-center' />
+    <div className='min-h-[60vh] flex items-center justify-center'>
+      <LoadingSpinner
+        title='Loading your workspace...'
+        message='Please wait while we prepare your workspace'
+        size='md'
+      />
     </div>
   );
 }

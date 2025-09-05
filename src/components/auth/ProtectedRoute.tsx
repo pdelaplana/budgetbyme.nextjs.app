@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import type React from 'react';
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -26,8 +27,13 @@ export default function ProtectedRoute({
   // Show minimal loading state while checking authentication
   if (loading) {
     return (
-      <div className='min-h-screen bg-slate-100 flex items-center justify-center'>
-        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600'></div>
+      <div className='min-h-screen bg-slate-100'>
+        <LoadingSpinner 
+          title="Authenticating..." 
+          message="Verifying your credentials"
+          className="min-h-screen flex items-center justify-center"
+          noPadding={true}
+        />
       </div>
     );
   }
