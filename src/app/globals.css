@@ -64,6 +64,11 @@ body {
   overflow: hidden;
 }
 
+/* Auth pages need natural scrolling */
+body:has(.auth-page) {
+  overflow: visible;
+}
+
 /* Focus styles */
 *:focus {
   outline: none;

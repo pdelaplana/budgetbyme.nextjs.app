@@ -9,12 +9,12 @@ interface AuthLayoutProps {
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <div className='min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100'>
-      <div className='flex min-h-screen items-center justify-center px-4 py-12 sm:px-6 lg:px-8'>
-        <div className='w-full max-w-md space-y-8'>
+    <div className='auth-page min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100'>
+      <div className='min-h-screen flex flex-col justify-center items-center px-4 py-6 sm:py-8 sm:px-6 lg:px-8'>
+        <div className='w-full max-w-md space-y-4 sm:space-y-6'>
           {/* Logo and Branding */}
           <div className='text-center'>
-            <div className='flex justify-center mb-4'>
+            <div className='flex justify-center mb-3'>
               <Logo variant='full' size='lg' />
             </div>
             <p className='mt-2 text-sm text-gray-600'>
@@ -23,7 +23,7 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
           </div>
 
           {/* Auth Form Container */}
-          <div className='bg-white rounded-lg shadow-xl border border-gray-200 px-6 py-8 sm:px-8'>
+          <div className='bg-white rounded-lg shadow-xl border border-gray-200 px-4 py-5 sm:px-6 sm:py-6 lg:px-8'>
             {children}
           </div>
 

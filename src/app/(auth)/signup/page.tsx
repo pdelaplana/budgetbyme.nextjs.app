@@ -106,7 +106,7 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className='space-y-6'>
+    <div className='space-y-4 sm:space-y-6'>
       {/* Header */}
       <div className='text-center'>
         <h2 className='text-2xl font-bold text-gray-900'>
@@ -125,7 +125,7 @@ export default function SignUpPage() {
       )}
 
       {/* Sign Up Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className='space-y-5'>
+      <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 sm:space-y-5'>
         {/* Full Name Field */}
         <div>
           <label
@@ -231,7 +231,7 @@ export default function SignUpPage() {
 
           {/* Password Strength Indicator */}
           {watchPassword && (
-            <div className='mt-3 space-y-2'>
+            <div className='mt-2 space-y-1.5'>
               <div className='flex items-center justify-between'>
                 <span className='text-xs text-gray-500'>
                   Password strength:
@@ -262,7 +262,7 @@ export default function SignUpPage() {
                   />
                 ))}
               </div>
-              <div className='grid grid-cols-1 gap-1 text-xs'>
+              <div className='grid grid-cols-1 gap-0.5 text-xs'>
                 {passwordChecks.map((check, index) => (
                   <div key={index} className='flex items-center space-x-2'>
                     {check.test ? (
