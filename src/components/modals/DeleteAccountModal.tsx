@@ -111,57 +111,58 @@ export default function DeleteAccountModal({
           <div className='rounded-lg bg-red-50 border border-red-200 p-4 mb-4'>
             <div className='flex'>
               <ExclamationTriangleIcon className='h-5 w-5 text-red-400 mt-0.5 mr-3 flex-shrink-0' />
-              <div>
+              <div className='min-w-0 flex-1'>
                 <h3 className='text-sm font-semibold text-red-800 mb-2'>
                   This action cannot be undone
                 </h3>
-                <p className='text-sm text-red-700'>
+                <p className='text-sm text-red-700 break-words mb-4'>
                   Deleting your account will permanently remove all your data
                   and cannot be recovered.
                 </p>
+                
+                <div>
+                  <h4 className='text-sm font-semibold text-red-800 mb-2'>
+                    What will be permanently deleted:
+                  </h4>
+                  <ul className='text-sm text-red-700 space-y-1'>
+                    <li className='flex items-center'>
+                      <div className='w-1.5 h-1.5 bg-red-500 rounded-full mr-2 flex-shrink-0'></div>
+                      All your events and budgets
+                    </li>
+                    <li className='flex items-center'>
+                      <div className='w-1.5 h-1.5 bg-red-500 rounded-full mr-2 flex-shrink-0'></div>
+                      All expenses, payments, and transaction history
+                    </li>
+                    <li className='flex items-center'>
+                      <div className='w-1.5 h-1.5 bg-red-500 rounded-full mr-2 flex-shrink-0'></div>
+                      All uploaded receipts and documents
+                    </li>
+                    <li className='flex items-center'>
+                      <div className='w-1.5 h-1.5 bg-red-500 rounded-full mr-2 flex-shrink-0'></div>
+                      Your profile and account settings
+                    </li>
+                    <li className='flex items-center'>
+                      <div className='w-1.5 h-1.5 bg-red-500 rounded-full mr-2 flex-shrink-0'></div>
+                      Access to this account
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
 
           <div className='space-y-4'>
-            <div>
-              <h4 className='text-sm font-semibold text-gray-900 mb-2'>
-                What will be permanently deleted:
-              </h4>
-              <ul className='text-sm text-gray-600 space-y-1'>
-                <li className='flex items-center'>
-                  <div className='w-1.5 h-1.5 bg-red-500 rounded-full mr-2 flex-shrink-0'></div>
-                  All your events and budgets (5 events, $45,000 total budget)
-                </li>
-                <li className='flex items-center'>
-                  <div className='w-1.5 h-1.5 bg-red-500 rounded-full mr-2 flex-shrink-0'></div>
-                  All expenses, payments, and transaction history
-                </li>
-                <li className='flex items-center'>
-                  <div className='w-1.5 h-1.5 bg-red-500 rounded-full mr-2 flex-shrink-0'></div>
-                  All uploaded receipts and documents
-                </li>
-                <li className='flex items-center'>
-                  <div className='w-1.5 h-1.5 bg-red-500 rounded-full mr-2 flex-shrink-0'></div>
-                  Your profile and account settings
-                </li>
-                <li className='flex items-center'>
-                  <div className='w-1.5 h-1.5 bg-red-500 rounded-full mr-2 flex-shrink-0'></div>
-                  Access to this account (sarah.johnson@example.com)
-                </li>
-              </ul>
-            </div>
 
             <div className='bg-blue-50 border border-blue-200 rounded-lg p-4'>
               <div className='flex'>
                 <ExclamationTriangleIcon className='h-5 w-5 text-blue-400 mt-0.5 mr-3 flex-shrink-0' />
-                <div>
+                <div className='min-w-0 flex-1'>
                   <h4 className='text-sm font-semibold text-blue-800 mb-1'>
                     What happens next
                   </h4>
-                  <p className='text-sm text-blue-700'>
+                  <p className='text-sm text-blue-700 break-words'>
                     After confirmation, your account deletion will begin immediately. 
-                    You'll receive a confirmation email at <strong>{user?.email}</strong> within 5 minutes
+                    You'll receive a confirmation email at <strong className='break-all'>{user?.email}</strong> within 5 minutes
                     and be signed out of all devices.
                   </p>
                 </div>
@@ -170,16 +171,16 @@ export default function DeleteAccountModal({
           </div>
         </div>
 
-        <div className='flex flex-col-reverse sm:flex-row sm:justify-end space-y-3 space-y-reverse sm:space-y-0 sm:space-x-3'>
+        <div className='flex flex-col sm:flex-row gap-3'>
           <button
             onClick={handleClose}
-            className='btn-secondary w-full sm:w-auto'
+            className='btn-secondary flex-1'
           >
             Keep My Account
           </button>
           <button
             onClick={handleContinue}
-            className='btn-secondary border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 w-full sm:w-auto'
+            className='btn-secondary border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 flex-1'
           >
             Continue with Deletion
           </button>
@@ -261,18 +262,18 @@ export default function DeleteAccountModal({
           )}
         </div>
 
-        <div className='flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3 mt-6 pt-6 border-t border-gray-200'>
+        <div className='flex flex-col sm:flex-row gap-3 mt-6 pt-6 border-t border-gray-200'>
           <button
             type='button'
             onClick={() => setStep('warning')}
-            className='btn-secondary w-full sm:w-auto'
+            className='btn-secondary flex-[1]'
             disabled={isDeleting}
           >
             Back
           </button>
           <button
             type='submit'
-            className='bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto font-medium min-w-[160px] inline-flex items-center justify-center'
+            className='bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium inline-flex items-center justify-center flex-[2]'
             disabled={isDeleting}
           >
             {isDeleting ? (
@@ -379,7 +380,7 @@ export default function DeleteAccountModal({
               leaveFrom='opacity-100 scale-100'
               leaveTo='opacity-0 scale-95'
             >
-              <Dialog.Panel className='w-full max-w-md mx-4 transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all'>
+              <Dialog.Panel className='w-full max-w-lg mx-4 transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all'>
                 {renderStepContent()}
               </Dialog.Panel>
             </Transition.Child>

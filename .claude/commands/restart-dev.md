@@ -41,3 +41,4 @@ This command will:
 2. Kill those processes if found
 3. Start a fresh Next.js development server
 4. Handle Windows-specific process management properly
+

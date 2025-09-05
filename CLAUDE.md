@@ -237,3 +237,8 @@ Task documents should follow this structure:
 - **Progress Tracking** - Real-time status updates as work is completed
 
 This ensures task continuity across different development sessions and provides clear documentation of all refactoring and development work.
+
+
+## Running commands
+
+Always use powershell commands first as we are running on a windows environment
