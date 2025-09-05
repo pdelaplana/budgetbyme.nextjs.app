@@ -2,13 +2,16 @@
 
 import {
   createUserWithEmailAndPassword,
+  EmailAuthProvider,
   GoogleAuthProvider,
   onAuthStateChanged,
+  reauthenticateWithCredential,
   sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
   type User,
+  updatePassword,
   updateProfile,
 } from 'firebase/auth';
 import type React from 'react';
@@ -25,6 +28,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   updateUserProfile: ({
     displayName,
     photoURL,
@@ -97,6 +101,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const handleSignOut = async () => {
     try {
       await signOut(auth);
+      // Redirect to sign-in page immediately after successful sign out
+      window.location.href = '/signin';
     } catch (error) {
       console.error('Sign out error:', error);
       throw error;
@@ -118,6 +124,44 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await signInWithPopup(auth, provider);
     } catch (error) {
       console.error('Google sign in error:', error);
+      throw error;
+    }
+  };
+
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    try {
+      if (!auth.currentUser || !auth.currentUser.email) {
+        const noUserError = new Error('No authenticated user found');
+        (noUserError as any).code = 'auth/user-not-found';
+        throw noUserError;
+      }
+
+      // Create credential for reauthentication
+      const credential = EmailAuthProvider.credential(
+        auth.currentUser.email,
+        currentPassword
+      );
+
+      // Reauthenticate the user first
+      try {
+        await reauthenticateWithCredential(auth.currentUser, credential);
+      } catch (reauthError: any) {
+        // Re-throw with more specific error context
+        console.error('Reauthentication failed:', reauthError);
+        throw reauthError;
+      }
+
+      // Update password after successful reauthentication
+      try {
+        await updatePassword(auth.currentUser, newPassword);
+      } catch (updateError: any) {
+        // Re-throw with more specific error context
+        console.error('Password update failed:', updateError);
+        throw updateError;
+      }
+    } catch (error: any) {
+      console.error('Change password error:', error);
+      // Preserve the original Firebase error code and message
       throw error;
     }
   };
@@ -164,6 +208,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signOut: handleSignOut,
     resetPassword,
     signInWithGoogle,
+    changePassword,
     updateUserProfile,
   };
 

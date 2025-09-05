@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import type React from 'react';
 import { Fragment, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export default function ChangePasswordModal({
   isOpen,
   onClose,
 }: ChangePasswordModalProps) {
+  const { changePassword } = useAuth();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -69,12 +71,8 @@ export default function ChangePasswordModal({
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      console.log('Change password:', { currentPassword, newPassword });
-      // In real app, this would call Firebase Auth reauthenticateWithCredential
-      // and then updatePassword
+      // Call Firebase Auth change password
+      await changePassword(currentPassword, newPassword);
 
       setIsSuccess(true);
 
@@ -82,11 +80,80 @@ export default function ChangePasswordModal({
       setTimeout(() => {
         handleClose();
       }, 2000);
-    } catch (error) {
-      setErrors({
-        submit:
-          'Failed to change password. Please check your current password and try again.',
-      });
+    } catch (error: any) {
+      console.error('Password change error:', error);
+      let errorMessage = 'Unable to change your password right now. Please try again.';
+      let fieldSpecificError = '';
+      
+      // Handle specific Firebase Auth errors with user-friendly messages
+      if (error?.code) {
+        switch (error.code) {
+          // Reauthentication errors (current password issues)
+          case 'auth/wrong-password':
+          case 'auth/invalid-credential':
+            fieldSpecificError = 'current';
+            errorMessage = 'Your current password is incorrect. Please check and try again.';
+            break;
+          
+          // Password policy errors
+          case 'auth/weak-password':
+            fieldSpecificError = 'new';
+            errorMessage = 'Your new password is too weak. Please choose a stronger password with at least 8 characters, including uppercase, lowercase, and numbers.';
+            break;
+          
+          // Session/authentication state errors
+          case 'auth/requires-recent-login':
+            errorMessage = 'For security reasons, please sign out and sign back in before changing your password.';
+            break;
+          case 'auth/user-not-found':
+          case 'auth/user-disabled':
+            errorMessage = 'There was an issue with your account. Please contact support if this continues.';
+            break;
+          
+          // Network and service errors
+          case 'auth/network-request-failed':
+            errorMessage = 'Network connection issue. Please check your internet connection and try again.';
+            break;
+          case 'auth/too-many-requests':
+            errorMessage = 'Too many attempts. Please wait a few minutes before trying again.';
+            break;
+          case 'auth/operation-not-allowed':
+            errorMessage = 'Password changes are currently disabled. Please contact support.';
+            break;
+          
+          // Generic auth errors
+          case 'auth/internal-error':
+            errorMessage = 'Something went wrong on our end. Please try again in a few moments.';
+            break;
+          
+          // Fallback for unknown Firebase errors
+          default:
+            if (error.message && error.message.includes('auth/')) {
+              errorMessage = 'Authentication error occurred. Please try signing out and back in.';
+            } else if (error.message) {
+              errorMessage = `Error: ${error.message}. Please try again or contact support if this continues.`;
+            }
+        }
+      } else if (error?.message) {
+        // Non-Firebase errors
+        if (error.message.includes('No authenticated user')) {
+          errorMessage = 'Please sign in again to change your password.';
+        } else {
+          errorMessage = `${error.message}. Please try again.`;
+        }
+      }
+      
+      // Set field-specific error if applicable
+      const errorObj: Record<string, string> = { submit: errorMessage };
+      if (fieldSpecificError === 'current') {
+        errorObj.currentPassword = 'Current password is incorrect';
+        delete errorObj.submit; // Remove general error in favor of field error
+      } else if (fieldSpecificError === 'new') {
+        errorObj.newPassword = 'Password is too weak';
+        delete errorObj.submit; // Remove general error in favor of field error
+      }
+      
+      setErrors(errorObj);
     } finally {
       setIsSubmitting(false);
     }
@@ -361,18 +428,18 @@ export default function ChangePasswordModal({
                   </div>
 
                   {/* Actions */}
-                  <div className='flex space-x-3 mt-6 pt-6 border-t border-gray-200'>
+                  <div className='flex flex-col sm:flex-row gap-3 mt-6 pt-6 border-t border-gray-200'>
                     <button
                       type='button'
                       onClick={handleClose}
-                      className='btn-secondary flex-1'
+                      className='btn-secondary w-full sm:flex-1'
                       disabled={isSubmitting}
                     >
                       Cancel
                     </button>
                     <button
                       type='submit'
-                      className='btn-primary flex-1'
+                      className='btn-primary w-full sm:flex-1'
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? (
