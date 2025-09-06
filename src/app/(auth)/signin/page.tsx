@@ -33,10 +33,10 @@ export default function SignInPage() {
     try {
       await signIn(data.email, data.password);
       router.push('/');
+      // Keep loading state active until navigation completes
     } catch (error) {
       const firebaseError = error as FirebaseError;
       setAuthError(getAuthErrorMessage(firebaseError));
-    } finally {
       setIsLoading(false);
     }
   };
@@ -48,10 +48,10 @@ export default function SignInPage() {
     try {
       await signInWithGoogle();
       router.push('/');
+      // Keep loading state active until navigation completes
     } catch (error) {
       const firebaseError = error as FirebaseError;
       setAuthError(getAuthErrorMessage(firebaseError));
-    } finally {
       setIsLoading(false);
     }
   };
