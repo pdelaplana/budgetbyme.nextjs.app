@@ -7,6 +7,7 @@ import {
   ShieldCheckIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
+import type { FirebaseError } from 'firebase/app';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import type React from 'react';
 import { Fragment, useState } from 'react';
@@ -94,9 +95,10 @@ export default function ReAuthModal({
         onSuccess();
         handleClose();
       }
-    } catch (error: any) {
+    } catch (error) {
       if (!isTestMode) {
-        const errorMessage = getFirebaseErrorMessage(error.code);
+        const firebaseError = error as FirebaseError;
+        const errorMessage = getFirebaseErrorMessage(firebaseError.code);
         setLocalError(errorMessage);
         onError(errorMessage);
       }
@@ -143,6 +145,7 @@ export default function ReAuthModal({
                     </Dialog.Title>
                   </div>
                   <button
+                    type='button'
                     onClick={handleClose}
                     className='text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg p-1'
                     disabled={isAuthenticating}
@@ -169,10 +172,14 @@ export default function ReAuthModal({
 
                     {/* Email (Read-only) */}
                     <div>
-                      <label className='block text-sm font-medium text-gray-700 mb-2'>
+                      <label
+                        htmlFor='reauth-email'
+                        className='block text-sm font-medium text-gray-700 mb-2'
+                      >
                         Email Address
                       </label>
                       <input
+                        id='reauth-email'
                         type='email'
                         value={user?.email || ''}
                         disabled
@@ -182,11 +189,15 @@ export default function ReAuthModal({
 
                     {/* Password */}
                     <div>
-                      <label className='block text-sm font-medium text-gray-700 mb-2'>
+                      <label
+                        htmlFor='reauth-password'
+                        className='block text-sm font-medium text-gray-700 mb-2'
+                      >
                         Password
                       </label>
                       <div className='relative'>
                         <input
+                          id='reauth-password'
                           type={showPassword ? 'text' : 'password'}
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
