@@ -2,6 +2,7 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
+import { getCategoryTemplateById } from '@/lib/categoryTemplates';
 import { db } from '../../lib/firebase-admin';
 import { withSentryServerAction } from '../../lib/sentryServerAction';
 import type { EventDocument } from '../../types/EventDocument';
@@ -15,6 +16,7 @@ export interface AddEventDto {
   totalBudgetedAmount: number;
   currency: string;
   status?: string;
+  selectedCategoryTemplates?: string[]; // Optional category template IDs
 }
 
 /**
@@ -83,6 +85,54 @@ export const addEvent = withSentryServerAction(
 
       // Save to Firestore
       await newEventRef.set(newEventDocument);
+
+      // Create selected categories if provided
+      if (
+        addEventDto.selectedCategoryTemplates &&
+        addEventDto.selectedCategoryTemplates.length > 0
+      ) {
+        // Use batch write for atomic operation
+        const batch = db.batch();
+        const categoriesCollectionRef = newEventRef.collection('categories');
+
+        for (const templateId of addEventDto.selectedCategoryTemplates) {
+          const template = getCategoryTemplateById(templateId);
+
+          if (template) {
+            const categoryRef = categoriesCollectionRef.doc(); // Auto-generate ID
+            const categoryData = {
+              name: template.name,
+              description: template.description,
+              icon: template.icon,
+              color: template.color,
+              budgetedAmount: 0, // Start with $0 as specified
+              scheduledAmount: 0,
+              spentAmount: 0,
+              _createdDate: now,
+              _createdBy: addEventDto.userId,
+              _updatedDate: now,
+              _updatedBy: addEventDto.userId,
+            };
+
+            batch.set(categoryRef, categoryData);
+          }
+        }
+
+        // Commit all category creates atomically
+        await batch.commit();
+
+        // Add breadcrumb for category creation
+        Sentry.addBreadcrumb({
+          category: 'event.create',
+          message: 'Categories created from templates',
+          level: 'info',
+          data: {
+            userId: addEventDto.userId,
+            eventId: newEventRef.id,
+            categoryCount: addEventDto.selectedCategoryTemplates.length,
+          },
+        });
+      }
 
       // Add breadcrumb for successful event creation
       Sentry.addBreadcrumb({
