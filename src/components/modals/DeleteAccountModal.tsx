@@ -7,11 +7,11 @@ import {
   TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import React, { Fragment, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { deleteAccount } from '@/server/actions/jobs/deleteAccount';
 import { signOut } from 'firebase/auth';
+import { Fragment, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { auth } from '@/lib/firebase';
+import { deleteAccount } from '@/server/actions/jobs/deleteAccount';
 
 interface DeleteAccountModalProps {
   isOpen: boolean;
@@ -81,7 +81,7 @@ export default function DeleteAccountModal({
         await signOut(auth);
         window.location.href = '/';
       }, 3000);
-    } catch (error) {
+    } catch (_error) {
       setErrors({
         submit: 'Failed to delete account. Please try again.',
       });
@@ -102,6 +102,7 @@ export default function DeleteAccountModal({
           </Dialog.Title>
         </div>
         <button
+          type='button'
           onClick={handleClose}
           className='text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg p-1'
         >
@@ -175,10 +176,15 @@ export default function DeleteAccountModal({
         </div>
 
         <div className='flex flex-col sm:flex-row gap-3'>
-          <button onClick={handleClose} className='btn-secondary flex-1'>
+          <button
+            type='button'
+            onClick={handleClose}
+            className='btn-secondary flex-1'
+          >
             Keep My Account
           </button>
           <button
+            type='button'
             onClick={handleContinue}
             className='btn-secondary border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 flex-1'
           >
@@ -201,6 +207,7 @@ export default function DeleteAccountModal({
           </Dialog.Title>
         </div>
         <button
+          type='button'
           onClick={handleClose}
           className='text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg p-1'
         >
@@ -233,7 +240,10 @@ export default function DeleteAccountModal({
 
           {/* Confirmation Text */}
           <div>
-            <label className='block text-sm font-medium text-gray-700 mb-2'>
+            <label
+              htmlFor='confirmationText'
+              className='block text-sm font-medium text-gray-700 mb-2'
+            >
               Type{' '}
               <span className='font-mono font-bold text-red-600'>
                 "{requiredText}"
@@ -241,6 +251,7 @@ export default function DeleteAccountModal({
               to confirm:
             </label>
             <input
+              id='confirmationText'
               type='text'
               value={confirmationText}
               onChange={(e) => setConfirmationText(e.target.value)}
@@ -360,7 +371,11 @@ export default function DeleteAccountModal({
         as='div'
         className='relative z-50'
         onClose={
-          step === 'deleting' || step === 'completed' ? () => {} : handleClose
+          step === 'deleting' || step === 'completed'
+            ? () => {
+                /* Prevent close during deletion */
+              }
+            : handleClose
         }
       >
         <Transition.Child
