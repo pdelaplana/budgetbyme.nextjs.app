@@ -236,7 +236,7 @@ describe('ExpenseBasicInfo', () => {
     const { rerender } = render(<ExpenseBasicInfo {...defaultProps} />);
 
     // Get reference to an element
-    const expenseName = screen.getByText('Test Expense');
+    const _expenseName = screen.getByText('Test Expense');
 
     // Re-render with same props
     rerender(<ExpenseBasicInfo {...defaultProps} />);

@@ -166,7 +166,10 @@ export default function AddOrEditCategoryModal({
 
     if (!formData.budget.trim()) {
       newErrors.budget = 'Budget amount is required';
-    } else if (isNaN(Number(formData.budget)) || Number(formData.budget) < 0) {
+    } else if (
+      Number.isNaN(Number(formData.budget)) ||
+      Number(formData.budget) < 0
+    ) {
       newErrors.budget =
         'Please enter a valid budget amount (zero or positive)';
     }

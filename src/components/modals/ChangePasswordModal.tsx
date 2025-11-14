@@ -137,7 +137,7 @@ export default function ChangePasswordModal({
 
           // Fallback for unknown Firebase errors
           default:
-            if (error.message && error.message.includes('auth/')) {
+            if (error.message?.includes('auth/')) {
               errorMessage =
                 'Authentication error occurred. Please try signing out and back in.';
             } else if (error.message) {

@@ -64,7 +64,9 @@ export default function SignInPage() {
     <div className='space-y-3 sm:space-y-5'>
       {/* Header */}
       <div className='text-center'>
-        <h2 className='text-xl sm:text-2xl font-bold text-gray-900'>Welcome back</h2>
+        <h2 className='text-xl sm:text-2xl font-bold text-gray-900'>
+          Welcome back
+        </h2>
         <p className='mt-1.5 text-sm text-gray-600'>
           Sign in to your account to continue planning
         </p>
@@ -78,7 +80,10 @@ export default function SignInPage() {
       )}
 
       {/* Sign In Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className='space-y-3 sm:space-y-4'>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className='space-y-3 sm:space-y-4'
+      >
         {/* Email Field */}
         <div>
           <label

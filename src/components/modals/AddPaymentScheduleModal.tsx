@@ -2,10 +2,7 @@
 
 import {
   CalendarDaysIcon,
-  CalendarIcon,
   CheckCircleIcon,
-  CurrencyDollarIcon,
-  DocumentTextIcon,
   PlusIcon,
   TrashIcon,
   XMarkIcon,
@@ -165,7 +162,7 @@ export default function PaymentScheduleModal({
       setPayments(getInitialPayments());
       setErrors({});
     }
-  }, [isOpen, existingPayments, mode, totalAmount]);
+  }, [isOpen, getInitialPayments]);
 
   const handlePaymentChange = (
     paymentId: string,
@@ -241,7 +238,10 @@ export default function PaymentScheduleModal({
       if (!payment.amount.trim()) {
         paymentErrors.amount = 'Amount is required';
         hasErrors = true;
-      } else if (isNaN(Number(payment.amount)) || Number(payment.amount) <= 0) {
+      } else if (
+        Number.isNaN(Number(payment.amount)) ||
+        Number(payment.amount) <= 0
+      ) {
         paymentErrors.amount = 'Please enter a valid amount';
         hasErrors = true;
       }

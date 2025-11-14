@@ -1,7 +1,6 @@
 'use client';
 
 import { ChevronRightIcon, PlusIcon } from '@heroicons/react/24/outline';
-import React from 'react';
 import { formatCurrency } from '@/lib/formatters';
 import type { BudgetCategory } from '@/types/BudgetCategory';
 
@@ -16,7 +15,7 @@ export default function BudgetCategoriesList({
   onCategoryClick,
   onCreateCategory,
 }: BudgetCategoriesListProps) {
-  const getCategoryIcon = (name: string) => {
+  const _getCategoryIcon = (name: string) => {
     const icons: Record<string, string> = {
       'Venue & Reception': '🏛️',
       'Catering & Beverages': '🍰',
@@ -59,7 +58,7 @@ export default function BudgetCategoriesList({
         const remaining = budgeted - spent;
 
         const progressColor = getProgressColor(percentage);
-        const progressBgColor = getProgressBgColor(percentage);
+        const _progressBgColor = getProgressBgColor(percentage);
 
         return (
           <div

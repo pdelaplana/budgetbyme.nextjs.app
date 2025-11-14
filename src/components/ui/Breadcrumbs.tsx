@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronRightIcon, HomeIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import type React from 'react';
 

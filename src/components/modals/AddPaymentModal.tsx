@@ -130,7 +130,7 @@ export default function AddPaymentModal({
     } else if (!isOpen) {
       resetForm();
     }
-  }, [editingPayment, isEditMode, isOpen]);
+  }, [editingPayment, isEditMode, isOpen, resetForm]);
 
   const handleInputChange = (
     field: keyof AddPaymentFormData,
@@ -156,7 +156,10 @@ export default function AddPaymentModal({
 
     if (!formData.amount.trim()) {
       newErrors.amount = 'Amount is required';
-    } else if (isNaN(Number(formData.amount)) || Number(formData.amount) <= 0) {
+    } else if (
+      Number.isNaN(Number(formData.amount)) ||
+      Number(formData.amount) <= 0
+    ) {
       newErrors.amount = 'Please enter a valid amount';
     }
 

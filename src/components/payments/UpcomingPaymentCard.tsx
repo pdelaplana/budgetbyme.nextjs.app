@@ -1,7 +1,6 @@
 'use client';
 
 import { CalendarIcon, CreditCardIcon } from '@heroicons/react/24/outline';
-import React from 'react';
 import type { UpcomingPayment } from '@/hooks/payments';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 

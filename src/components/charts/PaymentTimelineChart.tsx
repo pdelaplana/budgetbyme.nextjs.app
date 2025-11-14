@@ -1,13 +1,10 @@
 'use client';
 
-import React from 'react';
 import {
-  Area,
   Bar,
   CartesianGrid,
   ComposedChart,
   Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -29,7 +26,7 @@ export default function PaymentTimelineChart({
   data,
 }: PaymentTimelineChartProps) {
   const formatMonth = (dateString: string) => {
-    const date = new Date(dateString + '-01');
+    const date = new Date(`${dateString}-01`);
     return date.toLocaleDateString('en-US', { month: 'short' });
   };
 

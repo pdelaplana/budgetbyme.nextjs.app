@@ -190,7 +190,7 @@ describe('ExpenseHeader', () => {
     const { rerender } = render(<ExpenseHeader {...defaultProps} />);
 
     // Get initial render count (this is conceptual - React.memo prevents unnecessary renders)
-    const initialEditButton = screen.getByRole('button', { name: /edit/i });
+    const _initialEditButton = screen.getByRole('button', { name: /edit/i });
 
     // Re-render with same props
     rerender(<ExpenseHeader {...defaultProps} />);

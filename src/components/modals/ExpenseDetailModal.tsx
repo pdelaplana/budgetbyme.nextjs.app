@@ -14,7 +14,6 @@ import {
   TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import React from 'react';
 import {
   formatCurrency,
   formatDateLong,

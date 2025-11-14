@@ -1,5 +1,5 @@
 export const formatCurrency = (amount: number): string => {
-  const validAmount = isNaN(amount) || amount == null ? 0 : amount;
+  const validAmount = Number.isNaN(amount) || amount == null ? 0 : amount;
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -9,7 +9,7 @@ export const formatCurrency = (amount: number): string => {
 };
 
 export const formatCurrencyWithCents = (amount: number): string => {
-  const validAmount = isNaN(amount) || amount == null ? 0 : amount;
+  const validAmount = Number.isNaN(amount) || amount == null ? 0 : amount;
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'USD',
@@ -48,5 +48,5 @@ export const formatDateTime = (dateValue: Date): string => {
 export const sanitizeCurrencyInput = (value: string): number => {
   const sanitized = value.replace(/[^0-9.]/g, '');
   const parsed = parseFloat(sanitized);
-  return isNaN(parsed) ? 0 : parsed;
+  return Number.isNaN(parsed) ? 0 : parsed;
 };

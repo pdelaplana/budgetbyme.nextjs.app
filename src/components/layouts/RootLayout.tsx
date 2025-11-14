@@ -18,7 +18,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   const { addEvent } = useEvents();
   const pathname = usePathname();
 
-  const handleAddEvent = (eventData: any) => {
+  const _handleAddEvent = (eventData: any) => {
     addEvent(eventData);
     setShowAddEventModal(false);
   };

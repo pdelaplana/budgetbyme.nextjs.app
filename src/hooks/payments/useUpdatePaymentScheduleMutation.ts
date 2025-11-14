@@ -38,7 +38,7 @@ export function useUpdatePaymentScheduleMutation({
 
       return result;
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       // Invalidate and refetch expenses query to update the UI
       queryClient.invalidateQueries({
         queryKey: ['expenses', variables.userId, variables.eventId],

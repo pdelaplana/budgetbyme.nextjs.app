@@ -6,7 +6,7 @@ import ExpenseListItem from './ExpenseListItem';
 // Mock the formatters
 vi.mock('@/lib/formatters', () => ({
   formatCurrency: (amount: number) => `$${amount.toFixed(0)}`,
-  formatDate: (date: string | Date) => 'Jan 15, 2025',
+  formatDate: (_date: string | Date) => 'Jan 15, 2025',
 }));
 
 // Mock the payment calculations

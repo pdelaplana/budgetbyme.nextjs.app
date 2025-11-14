@@ -44,7 +44,7 @@ export default function FileUpload({
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / k ** i).toFixed(2)) + ' ' + sizes[i];
+    return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
   };
 
   const validateFile = (selectedFile: File): string | null => {
@@ -56,8 +56,7 @@ export default function FileUpload({
     // Check file type if accept is specified
     if (accept) {
       const acceptedTypes = accept.split(',').map((type) => type.trim());
-      const fileExtension =
-        '.' + selectedFile.name.split('.').pop()?.toLowerCase();
+      const fileExtension = `.${selectedFile.name.split('.').pop()?.toLowerCase()}`;
       const isAccepted = acceptedTypes.some((type) => {
         if (type.startsWith('.')) {
           return type.toLowerCase() === fileExtension;

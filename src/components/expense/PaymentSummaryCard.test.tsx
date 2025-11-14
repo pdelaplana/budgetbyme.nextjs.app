@@ -166,7 +166,7 @@ describe('PaymentSummaryCard', () => {
     );
 
     // Get reference to an element
-    const totalAmount = screen.getByText('$1,000');
+    const _totalAmount = screen.getByText('$1,000');
 
     // Re-render with same props
     rerender(<PaymentSummaryCard paymentStatus={paymentStatus} />);

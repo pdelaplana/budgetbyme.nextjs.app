@@ -2,7 +2,6 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { type AddEventDto, addEvent } from '@/server/actions/events';
-import type { Event } from '@/types/Event';
 
 export interface UseAddEventMutationOptions {
   onSuccess?: (

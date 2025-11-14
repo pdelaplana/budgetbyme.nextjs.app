@@ -80,7 +80,7 @@ export default function AddOrEditExpenseModal({
   const availableCategories = categories || contextCategories || [];
 
   const addExpenseMutation = useAddExpenseMutation({
-    onSuccess: (expenseId) => {
+    onSuccess: (_expenseId) => {
       // Close modal immediately for better UX
       handleClose(true);
 
@@ -96,7 +96,7 @@ export default function AddOrEditExpenseModal({
   });
 
   const updateExpenseMutation = useUpdateExpenseMutation({
-    onSuccess: (expenseId) => {
+    onSuccess: (_expenseId) => {
       // Show success toast
       toast.success('Expense updated successfully!');
 

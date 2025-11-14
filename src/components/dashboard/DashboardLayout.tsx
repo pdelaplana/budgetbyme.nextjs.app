@@ -60,7 +60,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         headerSlot.innerHTML = '';
       }
     };
-  }, [currentEvent]);
+  }, [currentEvent, formatEventDate, getAbbreviatedEventName]);
 
   // Show loading state if event not found
   if (!currentEvent) {

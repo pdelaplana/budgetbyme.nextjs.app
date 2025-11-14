@@ -8,7 +8,7 @@ import {
 } from '@heroicons/react/24/outline';
 import type { FirebaseError } from 'firebase/app';
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -125,7 +125,10 @@ export default function SignUpPage() {
       )}
 
       {/* Sign Up Form */}
-      <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 sm:space-y-5'>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className='space-y-4 sm:space-y-5'
+      >
         {/* Full Name Field */}
         <div>
           <label

@@ -1,14 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import {
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-} from 'recharts';
+import { useState } from 'react';
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { formatCurrency } from '@/lib/formatters';
 
 interface CategoryData {
@@ -76,7 +69,10 @@ export default function CategoryBreakdownChart({
             <div className='flex justify-between pt-1 border-t border-gray-200'>
               <span className='text-sm text-gray-600'>Percentage:</span>
               <span className='text-sm font-medium'>
-                {isNaN(data.percentage) ? '0.0' : data.percentage.toFixed(1)}%
+                {Number.isNaN(data.percentage)
+                  ? '0.0'
+                  : data.percentage.toFixed(1)}
+                %
               </span>
             </div>
           </div>
@@ -176,7 +172,10 @@ export default function CategoryBreakdownChart({
                 {formatCurrency(item.value)}
               </div>
               <div className='text-xs text-gray-500'>
-                {isNaN(item.percentage) ? '0.0' : item.percentage.toFixed(1)}%
+                {Number.isNaN(item.percentage)
+                  ? '0.0'
+                  : item.percentage.toFixed(1)}
+                %
               </div>
             </div>
           </div>
@@ -225,7 +224,7 @@ export default function CategoryBreakdownChart({
               <td>{formatCurrency(item.budgeted)}</td>
               <td>{formatCurrency(item.spent)}</td>
               <td>
-                {isNaN(pieData[index].percentage)
+                {Number.isNaN(pieData[index].percentage)
                   ? '0.0'
                   : pieData[index].percentage.toFixed(1)}
                 %

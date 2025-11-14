@@ -125,10 +125,7 @@ export async function updateEventTotals(
               (sum: number, payment: any) => sum + (payment.amount || 0),
               0,
             );
-        } else if (
-          expenseData.oneOffPayment &&
-          expenseData.oneOffPayment.isPaid
-        ) {
+        } else if (expenseData.oneOffPayment?.isPaid) {
           // Single paid payment
           expenseSpentAmount = expenseData.oneOffPayment.amount || 0;
         }

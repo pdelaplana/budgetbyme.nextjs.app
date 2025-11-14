@@ -69,8 +69,8 @@ export default function CategoryDeletionModal({
 
     try {
       await deleteCategoryMutation.mutateAsync({
-        userId: user!.uid,
-        eventId: currentEvent!.id,
+        userId: user?.uid,
+        eventId: currentEvent?.id,
         categoryId: category.id,
       });
       // Success/error handling is done in mutation callbacks

@@ -14,7 +14,7 @@ export const useRecalculateEventTotalsMutation = (
 
   return useMutation({
     mutationFn: (dto: RecalculateEventTotalsDto) => recalculateEventTotals(dto),
-    onSuccess: async (result, variables) => {
+    onSuccess: async (_result, variables) => {
       // Invalidate event queries to refresh UI with updated totals
       const invalidationPromises = [];
 

@@ -5,7 +5,6 @@ import {
   ClockIcon,
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
-import React from 'react';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import type { Payment } from '@/types/Payment';
 
@@ -21,7 +20,7 @@ interface UpcomingPaymentsProps {
 }
 
 export default function UpcomingPayments({ payments }: UpcomingPaymentsProps) {
-  const getPriorityIcon = (priority: string, daysUntilDue: number) => {
+  const getPriorityIcon = (_priority: string, daysUntilDue: number) => {
     if (daysUntilDue < 0) {
       return <ExclamationTriangleIcon className='h-5 w-5 text-danger-600' />;
     }
