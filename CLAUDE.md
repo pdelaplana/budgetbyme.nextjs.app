@@ -51,13 +51,15 @@ Implement Firestore rules ensuring users can only access their own events and re
 - `npm run dev` - Development server with Turbopack (fast builds)
 - `npm run build` - Production build
 - `npm run start` - Production server
-- `npm run lint` - ESLint
-- `npm run check` - Biome linter check
+- `npm run check` - Biome linting & formatting check
+- `npm run biome:check` - Biome check (alias for check)
 - `npm run biome:fix` - Biome auto-fix issues
 - `npm run format` - Biome format code
 - `npm test` - Run Vitest tests
 - `npm test formatters` - Run specific formatter tests
 - `npm test -- --watch` - Run tests in watch mode
+
+**Note**: This project uses **Biome** for linting and formatting (not ESLint). Biome is a fast, modern alternative that handles both linting and formatting in one tool.
 
 ## Recent Updates
 

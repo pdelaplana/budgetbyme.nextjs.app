@@ -32,14 +32,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run ESLint
-        run: npm run lint
+      - name: Run Biome checks (linting & formatting)
+        run: npm run biome:check
 
       - name: Run TypeScript type checking
         run: npx tsc --noEmit
-
-      - name: Run Biome checks
-        run: npm run biome:check
 
       - name: Run tests
         run: npm test
@@ -194,9 +191,8 @@ jobs:
             ---
 
             ✅ **All quality checks passed:**
-            - ESLint
+            - Biome linting & formatting
             - TypeScript type checking
-            - Biome linting
             - Vitest tests
 
             🔥 **Firebase:** Using development Firebase project for safe testing

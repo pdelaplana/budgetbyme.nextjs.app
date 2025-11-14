@@ -138,9 +138,8 @@ git push origin main
    - Checkout code
    - Setup Node.js 20.x
    - Install dependencies
-   - Run ESLint (`npm run lint`)
+   - Run Biome checks for linting & formatting (`npm run biome:check`)
    - Run TypeScript type checking (`npx tsc --noEmit`)
-   - Run Biome checks (`npm run biome:check`)
    - Run Vitest tests (`npm test`)
 
 2. **Production Deployment Job** (runs only if quality checks pass):
