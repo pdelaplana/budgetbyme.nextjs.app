@@ -1,6 +1,11 @@
 'use client';
 
 import {
+  InformationCircleIcon,
+  RectangleStackIcon,
+} from '@heroicons/react/24/outline';
+import { useState } from 'react';
+import {
   type CategoryTemplate,
   getCategoryTemplates,
 } from '@/lib/categoryTemplates';
@@ -18,6 +23,7 @@ export default function CategorySelector({
   onSelectionChange,
 }: CategorySelectorProps) {
   const templates = getCategoryTemplates(eventType);
+  const [showTooltip, setShowTooltip] = useState(false);
 
   const handleToggleCategory = (categoryId: string) => {
     if (selectedCategories.includes(categoryId)) {
@@ -38,15 +44,30 @@ export default function CategorySelector({
   };
 
   const allSelected = selectedCategories.length === templates.length;
-  const noneSelected = selectedCategories.length === 0;
 
   return (
     <div className='space-y-3'>
       {/* Header with action buttons */}
       <div className='flex items-center justify-between'>
-        <h3 className='text-sm font-medium text-gray-900'>
-          Suggested Categories
-        </h3>
+        <div className='flex items-center gap-2'>
+          <div className='form-label mb-0'>
+            <RectangleStackIcon className='h-4 w-4 inline mr-2' />
+            Suggested Categories
+          </div>
+          <div className='relative'>
+            <InformationCircleIcon
+              className='h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help transition-colors'
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+            />
+            {showTooltip && (
+              <div className='absolute left-1/2 -translate-x-1/2 bottom-full mb-2 z-10 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-lg'>
+                💡 You can skip this step and add categories later
+                <div className='absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900'></div>
+              </div>
+            )}
+          </div>
+        </div>
         <div className='flex gap-2'>
           <button
             type='button'
@@ -121,15 +142,10 @@ export default function CategorySelector({
       </div>
 
       {/* Selection counter */}
-      <div className='flex items-center justify-between text-xs text-gray-500'>
+      <div className='text-xs text-gray-500'>
         <span>
           {selectedCategories.length} of {templates.length} categories selected
         </span>
-        {noneSelected && (
-          <span className='text-amber-600'>
-            💡 Tip: Select categories to organize your budget
-          </span>
-        )}
       </div>
     </div>
   );

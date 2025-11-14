@@ -360,16 +360,11 @@ export default function AddOrEditEventModal({
 
             {/* Category Selection - Only show when creating new event */}
             {!isEditMode && (
-              <div>
-                <CategorySelector
-                  eventType={formData.type}
-                  selectedCategories={selectedCategoryTemplates}
-                  onSelectionChange={setSelectedCategoryTemplates}
-                />
-                <div className='mt-2 text-xs text-gray-500'>
-                  💡 You can skip this step and add categories later
-                </div>
-              </div>
+              <CategorySelector
+                eventType={formData.type}
+                selectedCategories={selectedCategoryTemplates}
+                onSelectionChange={setSelectedCategoryTemplates}
+              />
             )}
 
             {/* Event Date and Budget Row */}
