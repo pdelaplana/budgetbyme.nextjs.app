@@ -2,9 +2,21 @@
 
 This guide provides step-by-step instructions for setting up all required GitHub secrets for Vercel deployment with Firebase.
 
+## ⚠️ IMPORTANT: Using GitHub Environments
+
+**This project uses GitHub Environments to manage deployment secrets.**
+
+Instead of adding secrets at the repository level, you'll add them to **two separate environments**:
+- **Production** environment (for main branch deployments)
+- **Preview** environment (for dev branch and PR deployments)
+
+**For complete setup instructions, see [GITHUB_ENVIRONMENTS_SETUP.md](./GITHUB_ENVIRONMENTS_SETUP.md)**
+
+This guide explains **how to GET the secret values**. The companion guide explains **where to ADD them**.
+
 ## Overview
 
-You need to configure **10 required secrets** (+ 2 optional) in your GitHub repository to enable automated deployments to Vercel.
+You need to configure **10 required secrets** (+ 2 optional) for each GitHub Environment to enable automated deployments to Vercel.
 
 **Required Secrets (10):**
 - 3 Vercel deployment secrets
@@ -276,51 +288,64 @@ Only needed if you're using Sentry for error tracking.
 
 ## How to Add Secrets to GitHub
 
-Once you have all the values, add them to GitHub:
+Once you have all the values, you'll add them to **GitHub Environments**, not repository secrets.
 
-1. Go to your GitHub repository
-2. Click **"Settings"** (repository settings, not account settings)
-3. In the left sidebar, click **"Secrets and variables"** → **"Actions"**
-4. Click **"New repository secret"**
-5. Add each secret one by one:
-   - **Name:** Exact secret name (case-sensitive)
-   - **Value:** The value you copied (no quotes, no extra spaces)
-6. Click **"Add secret"**
-7. Repeat for all secrets
+**See [GITHUB_ENVIRONMENTS_SETUP.md](./GITHUB_ENVIRONMENTS_SETUP.md) for complete instructions on:**
+
+1. Creating the Production and Preview environments
+2. Adding secrets to each environment
+3. Configuring protection rules
+4. Setting up separate Firebase projects for production and development
+
+**Key points:**
+- **Production environment** gets production Firebase project secrets
+- **Preview environment** gets development Firebase project secrets
+- Both environments get the same Vercel secrets
+- Each environment needs ALL 10 required secrets (or 12 with Sentry)
 
 ---
 
 ## Quick Checklist
 
-Use this checklist to ensure you've added all required secrets:
+Use this checklist to ensure you've obtained all required secret values:
 
 ### Vercel Secrets ✅
-- [ ] `VERCEL_TOKEN`
-- [ ] `VERCEL_ORG_ID`
-- [ ] `VERCEL_PROJECT_ID`
+- [ ] `VERCEL_TOKEN` - obtained from Vercel
+- [ ] `VERCEL_ORG_ID` - obtained from `.vercel/project.json`
+- [ ] `VERCEL_PROJECT_ID` - obtained from `.vercel/project.json`
 
-### Firebase Secrets ✅
-- [ ] `NEXT_PUBLIC_FIREBASE_API_KEY`
-- [ ] `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
-- [ ] `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
-- [ ] `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
-- [ ] `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
-- [ ] `NEXT_PUBLIC_FIREBASE_APP_ID`
-- [ ] `NEXT_PUBLIC_FIREBASE_CLOUD_FUNCTIONS_URL`
+### Production Firebase Secrets ✅
+- [ ] `NEXT_PUBLIC_FIREBASE_API_KEY` - from production Firebase project
+- [ ] `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` - from production Firebase project
+- [ ] `NEXT_PUBLIC_FIREBASE_PROJECT_ID` - from production Firebase project
+- [ ] `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` - from production Firebase project
+- [ ] `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` - from production Firebase project
+- [ ] `NEXT_PUBLIC_FIREBASE_APP_ID` - from production Firebase project
+- [ ] `NEXT_PUBLIC_FIREBASE_CLOUD_FUNCTIONS_URL` - from production Firebase project
+
+### Development Firebase Secrets ✅
+- [ ] `NEXT_PUBLIC_FIREBASE_API_KEY` - from development Firebase project
+- [ ] `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` - from development Firebase project
+- [ ] `NEXT_PUBLIC_FIREBASE_PROJECT_ID` - from development Firebase project
+- [ ] `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` - from development Firebase project
+- [ ] `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` - from development Firebase project
+- [ ] `NEXT_PUBLIC_FIREBASE_APP_ID` - from development Firebase project
+- [ ] `NEXT_PUBLIC_FIREBASE_CLOUD_FUNCTIONS_URL` - from development Firebase project
 
 ### Optional Sentry Secrets ⭕
 - [ ] `SENTRY_AUTH_TOKEN` (if using Sentry)
 - [ ] `NEXT_PUBLIC_SENTRY_DSN` (if using Sentry)
 
+**Next:** Add these secrets to GitHub Environments following [GITHUB_ENVIRONMENTS_SETUP.md](./GITHUB_ENVIRONMENTS_SETUP.md)
+
 ---
 
 ## Verifying Your Setup
 
-After adding all secrets:
+After obtaining all secret values and adding them to GitHub Environments:
 
-1. **Verify in GitHub:**
-   - Go to Settings → Secrets and variables → Actions
-   - You should see all secret names listed (values are hidden)
+1. **Verify environments are configured:**
+   - See [GITHUB_ENVIRONMENTS_SETUP.md](./GITHUB_ENVIRONMENTS_SETUP.md) for verification steps
 
 2. **Test the workflow:**
    - Make a small change to your code
@@ -329,10 +354,12 @@ After adding all secrets:
    - Watch the workflow run
    - Check for any "Missing environment variable" errors
 
-3. **Check deployment:**
-   - If workflow succeeds, check the Vercel deployment
-   - Open the deployed URL
-   - Test Firebase features (sign in, etc.)
+3. **Check deployments:**
+   - **Preview deployment** (dev branch) should deploy automatically
+   - **Production deployment** (main branch) requires approval
+   - Test Firebase features on both deployed environments
+   - Verify production uses production Firebase data
+   - Verify preview uses development Firebase data
 
 ---
 
@@ -352,9 +379,15 @@ After adding all secrets:
 ❌ **Using development Firebase config in production**
 - Make sure you're using production Firebase values
 
-❌ **Forgetting to also add env vars in Vercel Dashboard**
-- GitHub secrets are for CI/CD
-- Also add Firebase vars in Vercel → Settings → Environment Variables
+❌ **Adding secrets to wrong environment**
+- Production environment should get production Firebase secrets
+- Preview environment should get development Firebase secrets
+- Don't mix them up!
+
+❌ **Adding secrets at repository level instead of environments**
+- This project uses GitHub Environments
+- Add secrets to **Production** and **Preview** environments
+- Not to repository-level secrets
 
 ---
 

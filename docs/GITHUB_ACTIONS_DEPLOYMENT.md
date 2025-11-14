@@ -1,13 +1,15 @@
 # GitHub Actions Deployment to Vercel
 
-This guide explains how to set up automatic deployments to Vercel using GitHub Actions.
+This guide explains how to set up automatic deployments to Vercel using GitHub Actions with GitHub Environments.
 
 ## Overview
 
 The workflow automatically:
-- **Production Deployments**: Deploys to production when code is pushed to `main` branch
-- **Preview Deployments**: Creates preview deployments for pull requests
-- **CI Checks**: Runs linting, type checking, and builds before deployment
+- **Production Deployments**: Deploys to production when code is pushed to `main` branch (requires approval)
+- **Preview Deployments**: Deploys to preview when code is pushed to `dev` branch (automatic)
+- **PR Preview Deployments**: Creates preview deployments for pull requests (automatic)
+- **CI Checks**: Runs linting, type checking, and tests before deployment
+- **Environment Separation**: Production uses production Firebase, Preview uses development Firebase
 - **PR Comments**: Adds deployment status comments to pull requests
 
 ## Setup Instructions
@@ -59,14 +61,20 @@ The `.vercel/project.json` file contains:
 echo ".vercel" >> .gitignore
 ```
 
-### Step 2: Add GitHub Secrets
+### Step 2: Set Up GitHub Environments and Secrets
 
-1. Go to your GitHub repository
-2. Navigate to **Settings** → **Secrets and variables** → **Actions**
-3. Click **"New repository secret"**
-4. Add the following secrets:
+**This project uses GitHub Environments to separate production and development deployments.**
 
-#### Required Vercel Secrets:
+**Complete setup instructions:** See [GITHUB_ENVIRONMENTS_SETUP.md](./GITHUB_ENVIRONMENTS_SETUP.md)
+
+**Quick summary:**
+1. Create two GitHub Environments: **Production** and **Preview**
+2. Configure protection rules (Production requires approval, Preview allows auto-deploy)
+3. Add secrets to each environment
+
+#### Required Secrets (add to BOTH environments):
+
+**Vercel Secrets** (same for both environments):
 
 | Secret Name | Description | Where to Find |
 |------------|-------------|---------------|
@@ -74,19 +82,23 @@ echo ".vercel" >> .gitignore
 | `VERCEL_ORG_ID` | Vercel organization ID | `.vercel/project.json` or Vercel dashboard |
 | `VERCEL_PROJECT_ID` | Vercel project ID | `.vercel/project.json` or Vercel dashboard |
 
-#### Required Application Secrets (Firebase):
+**Firebase Secrets** (different for each environment):
 
-| Secret Name | Description | Where to Find |
-|------------|-------------|---------------|
-| `NEXT_PUBLIC_FIREBASE_API_KEY` | Firebase API key | [Firebase Console](https://console.firebase.google.com/) → Project Settings → General |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | Firebase Auth domain | Firebase Console → Project Settings → General |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | Firebase project ID | Firebase Console → Project Settings → General |
-| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | Firebase Storage bucket | Firebase Console → Project Settings → General |
-| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID | Firebase Console → Project Settings → General → Cloud Messaging |
-| `NEXT_PUBLIC_FIREBASE_APP_ID` | Firebase app ID | Firebase Console → Project Settings → General |
-| `NEXT_PUBLIC_FIREBASE_CLOUD_FUNCTIONS_URL` | Firebase Cloud Functions URL | Firebase Console → Functions (your deployed function URL) |
+**Production Environment** uses production Firebase project:
 
-#### Optional Secrets (if you use them):
+| Secret Name | Value Source |
+|------------|--------------|
+| All 7 Firebase secrets | Production Firebase project in [Firebase Console](https://console.firebase.google.com/) |
+
+**Preview Environment** uses development Firebase project:
+
+| Secret Name | Value Source |
+|------------|--------------|
+| All 7 Firebase secrets | Development Firebase project in [Firebase Console](https://console.firebase.google.com/) |
+
+See [GITHUB_SECRETS_SETUP.md](./GITHUB_SECRETS_SETUP.md) for detailed instructions on obtaining each value.
+
+#### Optional Secrets:
 
 | Secret Name | Description |
 |------------|-------------|
@@ -131,26 +143,35 @@ git push origin main
    - Run Biome checks (`npm run biome:check`)
    - Run Vitest tests (`npm test`)
 
-2. **Deploy Job** (runs only if quality checks pass):
-   - Checkout code
-   - Setup Node.js 20.x
-   - Install dependencies
-   - Install Vercel CLI
-   - Pull Vercel environment configuration (production)
-   - Build production artifacts with Vercel
-   - Deploy to production
+2. **Production Deployment Job** (runs only if quality checks pass):
+   - Uses **Production** GitHub Environment
+   - **Requires approval** from designated reviewers
+   - Uses production Firebase secrets
+   - Deploys to Vercel production
+   - Shows deployment URL in workflow summary
 
 ### What Happens on Push to Dev Branch
 
-1. Same quality checks as main branch
-2. Deploy to preview environment (not production)
+1. **Quality Checks Job:** Same as above
+
+2. **Preview Deployment Job** (runs only if quality checks pass):
+   - Uses **Preview** GitHub Environment
+   - **Automatic deployment** (no approval needed)
+   - Uses development Firebase secrets
+   - Deploys to Vercel preview
+   - Shows deployment URL in workflow summary
 
 ### What Happens on Pull Requests
 
-1. Same quality checks as above
-2. Build preview artifacts
-3. Deploy to unique PR preview environment
-4. Add comment to PR with deployment URL and status
+1. **Quality Checks Job:** Same as above
+
+2. **PR Preview Deployment Job** (runs only if quality checks pass):
+   - Uses **Preview** GitHub Environment
+   - **Automatic deployment** (no approval needed)
+   - Uses development Firebase secrets
+   - Creates unique preview URL for the PR
+   - Adds comment to PR with deployment URL and build info
+   - Updates automatically with new commits to the PR
 
 ## Monitoring Deployments
 
@@ -173,9 +194,12 @@ git push origin main
 **Problem**: GitHub Actions can't access environment variables.
 
 **Solution**:
-- Verify all secrets are added in GitHub Settings → Secrets
-- Check secret names match exactly (they're case-sensitive)
+- Verify all secrets are added to the correct **GitHub Environment** (not repository secrets)
+- Check that **Production** environment has production Firebase secrets
+- Check that **Preview** environment has development Firebase secrets
+- Verify secret names match exactly (they're case-sensitive)
 - Ensure secrets don't have trailing spaces
+- See [GITHUB_ENVIRONMENTS_SETUP.md](./GITHUB_ENVIRONMENTS_SETUP.md) for verification steps
 
 ### "Project not found" Error
 
@@ -186,15 +210,30 @@ git push origin main
 - Create the project in Vercel first (via dashboard or CLI)
 - Re-run `vercel link` locally to get correct IDs
 
-### Deployment Succeeds but App Doesn't Work
+### Production Deployment Waiting for Approval
 
-**Problem**: Environment variables not set in Vercel.
+**Problem**: Production deployment is stuck on "Waiting for approval".
 
 **Solution**:
-1. Go to Vercel Dashboard → Your Project → **Settings** → **Environment Variables**
-2. Add the same environment variables as GitHub secrets
-3. Set them for: **Production**, **Preview**, and **Development**
-4. Redeploy
+1. This is expected behavior for production deployments
+2. Go to **Actions** tab in GitHub
+3. Click on the waiting workflow run
+4. Click **"Review deployments"** button
+5. Select **Production** environment
+6. Click **"Approve and deploy"**
+7. Deployment will proceed automatically
+
+### Deployment Succeeds but App Doesn't Work
+
+**Problem**: Firebase features not working on deployed app.
+
+**Solution**:
+1. Verify correct Firebase project secrets are in the right environment:
+   - **Production** environment should use production Firebase
+   - **Preview** environment should use development Firebase
+2. Check Firebase Console → Authentication → Authorized domains
+3. Add your Vercel URLs to authorized domains
+4. Verify environment variables are pulling from the correct environment in the workflow
 
 ### Duplicate Deployments
 
@@ -280,16 +319,25 @@ Add this step after "Install dependencies":
 
 ## Next Steps
 
-1. ✅ Set up GitHub secrets (see Step 2 above)
-2. ✅ Create Vercel project (see Step 3 above)
-3. ✅ Push workflow to main branch
-4. ✅ Monitor first deployment in GitHub Actions
-5. ✅ Test preview deployments with a PR
-6. ✅ Configure custom domain in Vercel (optional)
-7. ✅ Update Firebase authorized domains with your Vercel URLs
+1. ✅ Set up GitHub Environments (see [GITHUB_ENVIRONMENTS_SETUP.md](./GITHUB_ENVIRONMENTS_SETUP.md))
+2. ✅ Add secrets to Production and Preview environments (see [GITHUB_SECRETS_SETUP.md](./GITHUB_SECRETS_SETUP.md))
+3. ✅ Create separate Firebase projects for production and development
+4. ✅ Create Vercel project (see Step 3 above)
+5. ✅ Push workflow to main branch
+6. ✅ Approve and monitor first production deployment
+7. ✅ Test automatic preview deployments on dev branch
+8. ✅ Test PR preview deployments with a pull request
+9. ✅ Verify production uses production Firebase data
+10. ✅ Verify preview uses development Firebase data
+11. ✅ Configure custom domain in Vercel (optional)
+12. ✅ Update Firebase authorized domains with your Vercel URLs (both projects)
 
 ## References
 
+- [GitHub Environments Setup Guide](./GITHUB_ENVIRONMENTS_SETUP.md) - Complete guide to setting up environments
+- [GitHub Secrets Setup Guide](./GITHUB_SECRETS_SETUP.md) - How to obtain all secret values
+- [GitHub Environments Documentation](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment)
 - [Vercel CLI Documentation](https://vercel.com/docs/cli)
 - [GitHub Actions Documentation](https://docs.github.com/en/actions)
 - [Next.js Deployment Guide](https://nextjs.org/docs/deployment)
+- [Firebase Console](https://console.firebase.google.com/)
