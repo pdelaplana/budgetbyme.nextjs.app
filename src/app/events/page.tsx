@@ -145,10 +145,11 @@ export default function EventsPage() {
                 </h2>
                 <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
                   {events.map((event) => (
-                    <div
+                    <button
                       key={event.id}
+                      type='button'
                       onClick={() => handleEventClick(event)}
-                      className='group relative bg-white border border-gray-200 rounded-lg p-6 hover:border-primary-300 hover:shadow-md transition-all duration-200 cursor-pointer'
+                      className='group relative bg-white border border-gray-200 rounded-lg p-6 hover:border-primary-300 hover:shadow-md transition-all duration-200 text-left w-full'
                     >
                       {/* Action Buttons */}
                       <div className='absolute top-2 right-2 flex space-x-1 z-10'>
@@ -213,7 +214,7 @@ export default function EventsPage() {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>

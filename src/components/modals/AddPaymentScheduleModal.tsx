@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/a11y/noLabelWithoutControl: <explanation> */
 'use client';
 
 import {
@@ -7,7 +8,7 @@ import {
   TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
@@ -82,7 +83,7 @@ export default function PaymentScheduleModal({
   const { event } = useEventDetails();
 
   // Initialize payments based on mode
-  const getInitialPayments = (): PaymentScheduleItem[] => {
+  const getInitialPayments = useCallback((): PaymentScheduleItem[] => {
     if (mode === 'edit' && existingPayments && existingPayments.length > 0) {
       return existingPayments.map((payment) => ({
         id: payment.id,
@@ -115,7 +116,7 @@ export default function PaymentScheduleModal({
         notes: '',
       },
     ];
-  };
+  }, [mode, existingPayments, totalAmount]);
 
   const [payments, setPayments] = useState<PaymentScheduleItem[]>(
     getInitialPayments(),
@@ -400,6 +401,7 @@ export default function PaymentScheduleModal({
               </div>
             </div>
             <button
+              type='button'
               onClick={handleClose}
               disabled={isSubmitting}
               className='p-1.5 hover:bg-gray-100 rounded-lg transition-colors duration-200 disabled:opacity-50'

@@ -1,11 +1,26 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { PaymentStatus } from '@/lib/paymentCalculations';
 import PaymentSummaryCard from './PaymentSummaryCard';
 
+type TestPaymentStatus = PaymentStatus & {
+  totalAmount: number;
+  paidAmount: number;
+  remainingAmount: number;
+  percentagePaid: number;
+  hasPaymentSchedule: boolean;
+  scheduledPaymentsCount: number;
+  completedPaymentsCount: number;
+  upcomingPaymentsCount: number;
+  overduePaymentsCount: number;
+};
+
 const createMockPaymentStatus = (
-  overrides?: Partial<PaymentStatus>,
-): PaymentStatus => ({
+  overrides: Partial<TestPaymentStatus> = {},
+): TestPaymentStatus => ({
+  totalScheduled: 1000,
+  totalPaid: 600,
+  remainingBalance: 400,
   totalAmount: 1000,
   paidAmount: 600,
   remainingAmount: 400,

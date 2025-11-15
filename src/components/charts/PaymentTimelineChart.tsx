@@ -22,6 +22,18 @@ interface PaymentTimelineChartProps {
   data: TimelineDataPoint[];
 }
 
+interface TooltipPayloadEntry {
+  dataKey: string;
+  value: number;
+  color: string;
+}
+
+interface TooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}
+
 export default function PaymentTimelineChart({
   data,
 }: PaymentTimelineChartProps) {
@@ -30,16 +42,16 @@ export default function PaymentTimelineChart({
     return date.toLocaleDateString('en-US', { month: 'short' });
   };
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <div className='bg-white p-4 border border-gray-200 rounded-lg shadow-lg'>
           <p className='font-semibold text-gray-900 mb-2'>
-            {formatMonth(label)}
+            {formatMonth(label || '')}
           </p>
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry) => (
             <div
-              key={index}
+              key={entry.dataKey}
               className='flex items-center justify-between min-w-[120px]'
             >
               <div className='flex items-center'>
@@ -153,8 +165,8 @@ export default function PaymentTimelineChart({
           </tr>
         </thead>
         <tbody>
-          {data.map((item, index) => (
-            <tr key={index}>
+          {data.map((item) => (
+            <tr key={item.date}>
               <td>{formatMonth(item.date)}</td>
               <td>{formatCurrency(item.budgeted)}</td>
               <td>{formatCurrency(item.actual)}</td>

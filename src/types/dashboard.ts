@@ -47,7 +47,7 @@ interface DashboardActions {
   isDropdownOpen: boolean;
   handleCategoryClick: (categoryId: string) => void;
   navigateToEvents: () => void;
-  handleExpenseEdit: (expense: any) => void;
+  handleExpenseEdit: (expense: ExpenseDetail) => void;
   handleExpenseDelete: (expenseId: string) => void;
 }
 
@@ -74,7 +74,12 @@ export interface UseEventDashboardReturn {
   actions: DashboardActions;
 
   // Mutations
-  recalculateEventTotalsMutation: UseMutationResult<any, Error, any, unknown>;
+  recalculateEventTotalsMutation: UseMutationResult<
+    void,
+    Error,
+    { userId: string; eventId: string },
+    unknown
+  >;
   isRecalculatingTotals: boolean;
 
   // Handlers

@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import type React from 'react';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import RootLayout from '@/components/layouts/RootLayout';
 import { useEvents } from '@/contexts/EventsContext';
 import { truncateForMobile } from '@/lib/textUtils';
@@ -19,18 +19,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // Find the current event based on URL params
   const currentEvent = events.find((event) => event.id === eventId);
 
-  const formatEventDate = (date: string) => {
+  const formatEventDate = useCallback((date: string) => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     });
-  };
+  }, []);
 
-  const getAbbreviatedEventName = (name: string) => {
+  const getAbbreviatedEventName = useCallback((name: string) => {
     // For very long event names, show abbreviated version on mobile
     return truncateForMobile(name, 25);
-  };
+  }, []);
 
   // Update the header slot with event information
   useEffect(() => {

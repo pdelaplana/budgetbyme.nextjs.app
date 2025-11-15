@@ -61,10 +61,11 @@ export default function BudgetCategoriesList({
         const _progressBgColor = getProgressBgColor(percentage);
 
         return (
-          <div
+          <button
             key={category.id}
+            type='button'
             onClick={() => handleCategoryClick(category)}
-            className='group p-3 sm:p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-200 cursor-pointer'
+            className='group p-3 sm:p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-200 cursor-pointer w-full text-left'
           >
             <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between'>
               {/* Category Info */}
@@ -127,15 +128,16 @@ export default function BudgetCategoriesList({
                 </div>
               </div>
             </div>
-          </div>
+          </button>
         );
       })}
 
       {/* Add Category Button */}
       {onCreateCategory && (
-        <div
+        <button
+          type='button'
           onClick={onCreateCategory}
-          className='group p-3 sm:p-4 rounded-lg border-2 border-dashed border-gray-300 hover:border-primary-400 hover:bg-primary-50 transition-all duration-200 cursor-pointer'
+          className='group p-3 sm:p-4 rounded-lg border-2 border-dashed border-gray-300 hover:border-primary-400 hover:bg-primary-50 transition-all duration-200 cursor-pointer w-full'
         >
           <div className='flex items-center justify-center'>
             <div className='flex items-center space-x-3 text-gray-500 group-hover:text-primary-600'>
@@ -150,7 +152,7 @@ export default function BudgetCategoriesList({
               </div>
             </div>
           </div>
-        </div>
+        </button>
       )}
 
       {/* Summary Footer */}

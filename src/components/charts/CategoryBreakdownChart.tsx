@@ -44,7 +44,20 @@ export default function CategoryBreakdownChart({
     color: item.color,
   }));
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  interface TooltipProps {
+    active?: boolean;
+    payload?: Array<{
+      payload: {
+        name: string;
+        value: number;
+        spent: number;
+        percentage: number;
+        color: string;
+      };
+    }>;
+  }
+
+  const CustomTooltip = ({ active, payload }: TooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
@@ -82,7 +95,7 @@ export default function CategoryBreakdownChart({
     return null;
   };
 
-  const onPieEnter = (_: any, index: number) => {
+  const onPieEnter = (_data: unknown, index: number) => {
     setActiveIndex(index);
   };
 
@@ -125,7 +138,7 @@ export default function CategoryBreakdownChart({
             >
               {pieData.map((entry, index) => (
                 <Cell
-                  key={`cell-${index}`}
+                  key={entry.name}
                   fill={entry.color}
                   stroke={activeIndex === index ? '#374151' : 'none'}
                   strokeWidth={activeIndex === index ? 2 : 0}
@@ -147,9 +160,10 @@ export default function CategoryBreakdownChart({
       {/* Category Legend with Details - Responsive */}
       <div className='space-y-2 sm:space-y-3'>
         {pieData.map((item, index) => (
-          <div
+          <button
             key={item.name}
-            className='flex items-center justify-between p-2 sm:p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200 cursor-pointer'
+            type='button'
+            className='flex items-center justify-between p-2 sm:p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200 w-full text-left'
             onMouseEnter={() => setActiveIndex(index)}
             onMouseLeave={() => setActiveIndex(-1)}
           >
@@ -178,7 +192,7 @@ export default function CategoryBreakdownChart({
                 %
               </div>
             </div>
-          </div>
+          </button>
         ))}
       </div>
 

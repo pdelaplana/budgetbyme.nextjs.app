@@ -61,6 +61,7 @@ function PaymentsSection({ onGetStarted }: PaymentsSectionProps) {
             {hasMorePayments && (
               <div className='pt-3 border-t border-gray-100'>
                 <button
+                  type='button'
                   onClick={() => {
                     // TODO: Navigate to all payments view
                     console.log('View all payments');
@@ -81,6 +82,8 @@ function PaymentsSection({ onGetStarted }: PaymentsSectionProps) {
                 fill='none'
                 stroke='currentColor'
                 viewBox='0 0 24 24'
+                role='img'
+                aria-label='Payment icon'
               >
                 <path
                   strokeLinecap='round'
@@ -98,6 +101,7 @@ function PaymentsSection({ onGetStarted }: PaymentsSectionProps) {
               event. Start by creating budget categories and adding expenses.
             </p>
             <button
+              type='button'
               onClick={onGetStarted}
               className='inline-flex items-center px-3 py-2 border border-transparent text-xs font-medium rounded text-primary-700 bg-primary-100 hover:bg-primary-200 transition-colors duration-200'
             >

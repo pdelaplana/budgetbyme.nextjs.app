@@ -79,7 +79,7 @@ export const eventToFirestore = (
   }
 
   // Add update timestamp
-  doc.updatedAt = FieldValue.serverTimestamp();
+  doc.updatedAt = Timestamp.now();
 
   // Remove computed properties
   delete doc.spentPercentage;
@@ -143,7 +143,7 @@ export const addCreateMetadata = (
 // Helper to add update metadata
 export const addUpdateMetadata = (
   data: Record<string, unknown>,
-): Record<string, FieldValue | unknown> => ({
+): Record<string, unknown> => ({
   ...data,
   updatedAt: Timestamp.now(),
 });

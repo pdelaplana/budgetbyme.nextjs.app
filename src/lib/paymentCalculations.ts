@@ -35,6 +35,12 @@ export interface ExpenseWithPayments {
   oneOffPayment?: Payment;
 }
 
+export interface PaymentStatus {
+  totalScheduled: number;
+  totalPaid: number;
+  remainingBalance: number;
+}
+
 /**
  * Calculates comprehensive payment status for an expense
  */

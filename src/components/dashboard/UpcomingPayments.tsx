@@ -135,10 +135,16 @@ export default function UpcomingPayments({ payments }: UpcomingPaymentsProps) {
 
             {/* Compact Action Buttons */}
             <div className='flex items-center space-x-1 ml-3'>
-              <button className='px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors duration-200'>
+              <button
+                type='button'
+                className='px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded hover:bg-gray-50 transition-colors duration-200'
+              >
                 Later
               </button>
-              <button className='px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 transition-colors duration-200'>
+              <button
+                type='button'
+                className='px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 transition-colors duration-200'
+              >
                 Paid
               </button>
             </div>
@@ -156,7 +162,10 @@ export default function UpcomingPayments({ payments }: UpcomingPaymentsProps) {
                 {payments.filter((p) => p.daysUntilDue < 0).length} overdue
               </span>
             </div>
-            <button className='text-xs text-danger-700 hover:text-danger-800 font-medium'>
+            <button
+              type='button'
+              className='text-xs text-danger-700 hover:text-danger-800 font-medium'
+            >
               View →
             </button>
           </div>

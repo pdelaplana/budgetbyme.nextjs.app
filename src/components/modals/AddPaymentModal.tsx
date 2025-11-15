@@ -116,6 +116,18 @@ export default function AddPaymentModal({
   const isSubmitting =
     addPaymentMutation.isPending || updatePaymentMutation.isPending;
 
+  const resetForm = React.useCallback(() => {
+    setFormData({
+      name: '',
+      description: '',
+      amount: '',
+      paymentMethod: '',
+      dueDate: '',
+      notes: '',
+    });
+    setErrors({});
+  }, []);
+
   // Pre-populate form when editing
   React.useEffect(() => {
     if (editingPayment && isEditMode) {
@@ -175,18 +187,6 @@ export default function AddPaymentModal({
     return Object.keys(newErrors).length === 0;
   };
 
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      description: '',
-      amount: '',
-      paymentMethod: '',
-      dueDate: '',
-      notes: '',
-    });
-    setErrors({});
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -239,7 +239,6 @@ export default function AddPaymentModal({
           paymentMethod: formData.paymentMethod as PaymentMethod,
           dueDate: new Date(formData.dueDate),
           notes: formData.notes.trim() || undefined,
-          attachments: [], // TODO: Handle file uploads later
         });
       }
 
@@ -292,6 +291,7 @@ export default function AddPaymentModal({
               </div>
             </div>
             <button
+              type='button'
               onClick={handleClose}
               disabled={isSubmitting}
               className='p-1.5 hover:bg-gray-100 rounded-lg transition-colors duration-200 disabled:opacity-50'

@@ -2,11 +2,12 @@
 
 import React from 'react';
 import TabbedCharts from '@/components/dashboard/TabbedCharts';
+import type { BudgetCategory } from '@/types/BudgetCategory';
 import type { Event } from '@/types/Event';
 
 interface BudgetOverviewProps {
   event: Event;
-  categories: any[];
+  categories: BudgetCategory[];
 }
 
 // Generate timeline data based on current event totals and event date
@@ -68,7 +69,7 @@ function BudgetOverview({ event, categories }: BudgetOverviewProps) {
               ? 'on-track'
               : event.status === 'under-budget'
                 ? 'under-budget'
-                : (event.status as any),
+                : event.status || 'on-track',
         }}
         timelineData={generateTimelineData(event)}
         categoryData={transformedCategories}
