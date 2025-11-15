@@ -69,7 +69,7 @@ export default function CategoryErrorBoundary({
     <ErrorBoundary
       fallback={getErrorFallback()}
       onError={handleError}
-      resetKeys={[eventId, categoryId]}
+      resetKeys={categoryId ? [eventId, categoryId] : [eventId]}
       resetOnPropsChange={true}
     >
       {children}

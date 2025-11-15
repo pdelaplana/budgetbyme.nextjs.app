@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ExpenseListItemProps } from './ExpenseListItem';
 import ExpenseListItem from './ExpenseListItem';
 
@@ -35,7 +35,23 @@ describe('ExpenseListItem', () => {
     name: 'Test Expense',
     description: 'A test expense',
     amount: 1000,
-    date: '2025-01-15',
+    currency: { code: 'USD', symbol: '$' },
+    date: new Date('2025-01-15'),
+    notes: '',
+    tags: [],
+    attachments: [],
+    category: {
+      id: 'cat-1',
+      name: 'Test Category',
+      color: '#3B82F6',
+      icon: 'ShoppingBag',
+    },
+    vendor: { name: '', address: '', website: '', email: '' },
+    hasPaymentSchedule: false,
+    _createdDate: new Date(),
+    _createdBy: 'user123',
+    _updatedDate: new Date(),
+    _updatedBy: 'user123',
   };
 
   const mockOnClick = vi.fn();

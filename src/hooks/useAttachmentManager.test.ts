@@ -34,19 +34,23 @@ const mockExpense: Expense = {
   name: 'Test Expense',
   amount: 100,
   currency: { code: 'USD', symbol: '$' },
-  categoryId: 'cat-1',
+  category: {
+    id: 'cat-1',
+    name: 'Test Category',
+    color: '#3B82F6',
+    icon: 'ShoppingBag',
+  },
   tags: [],
+  date: new Date(),
+  description: 'Test expense',
+  notes: '',
+  vendor: { name: '', address: '', website: '', email: '' },
+  hasPaymentSchedule: false,
   _createdDate: new Date(),
-  attachments: [
-    {
-      id: 'attachment-1',
-      name: 'test-file.pdf',
-      url: 'https://example.com/test-file.pdf',
-      type: 'application/pdf',
-      size: 1024,
-      uploadedAt: new Date(),
-    },
-  ],
+  _createdBy: 'user-1',
+  _updatedDate: new Date(),
+  _updatedBy: 'user-1',
+  attachments: ['https://example.com/test-file.pdf'],
 };
 
 describe('useAttachmentManager', () => {
@@ -71,44 +75,40 @@ describe('useAttachmentManager', () => {
 
     expect(result.current.showDeleteConfirm).toBe(false);
     expect(result.current.isOperationInProgress).toBe(false);
-    expect(result.current.pendingDeleteAttachment).toBeNull();
-    expect(result.current.fileInputRef).toBeDefined();
-    expect(result.current.fileInputRefEmpty).toBeDefined();
+    expect(result.current.attachmentToDelete).toBeNull();
+    expect(result.current.primaryFile).toBeNull();
+    expect(result.current.emptyStateFile).toBeNull();
   });
 
   describe('file input handlers', () => {
-    it('should trigger file input click for primary upload', () => {
+    it('should handle primary file change', async () => {
       const { result } = renderHook(() => useAttachmentManager(defaultProps));
 
-      // Mock the file input click
-      const mockClick = vi.fn();
-      Object.defineProperty(result.current.fileInputRef, 'current', {
-        value: { click: mockClick },
-        writable: true,
+      const mockFile = new File(['test'], 'test.pdf', {
+        type: 'application/pdf',
       });
 
-      act(() => {
-        result.current.handleFileUpload();
+      await act(async () => {
+        await result.current.handlePrimaryFileChange(mockFile);
       });
 
-      expect(mockClick).toHaveBeenCalled();
+      expect(result.current.primaryFile).toBe(mockFile);
     });
 
-    it('should trigger file input click for empty state upload', () => {
-      const { result } = renderHook(() => useAttachmentManager(defaultProps));
+    it('should handle empty state file change', async () => {
+      const { result } = renderHook(() =>
+        useAttachmentManager(nullExpenseProps),
+      );
 
-      // Mock the file input click
-      const mockClick = vi.fn();
-      Object.defineProperty(result.current.fileInputRefEmpty, 'current', {
-        value: { click: mockClick },
-        writable: true,
+      const mockFile = new File(['test'], 'test.pdf', {
+        type: 'application/pdf',
       });
 
-      act(() => {
-        result.current.handleFileUploadEmpty();
+      await act(async () => {
+        await result.current.handleEmptyStateFileChange(mockFile);
       });
 
-      expect(mockClick).toHaveBeenCalled();
+      expect(result.current.emptyStateFile).toBe(mockFile);
     });
   });
 
@@ -116,24 +116,24 @@ describe('useAttachmentManager', () => {
     it('should initiate delete confirmation for attachment', () => {
       const { result } = renderHook(() => useAttachmentManager(defaultProps));
 
-      const attachmentToDelete = mockExpense.attachments[0];
+      const attachmentUrl = mockExpense.attachments[0];
 
       act(() => {
-        result.current.handleDeleteAttachment(attachmentToDelete.id);
+        result.current.handleDeleteClick(attachmentUrl);
       });
 
       expect(result.current.showDeleteConfirm).toBe(true);
-      expect(result.current.pendingDeleteAttachment).toBe(
-        attachmentToDelete.id,
-      );
+      expect(result.current.attachmentToDelete).toBe(attachmentUrl);
     });
 
     it('should cancel delete confirmation', () => {
       const { result } = renderHook(() => useAttachmentManager(defaultProps));
 
+      const attachmentUrl = mockExpense.attachments[0];
+
       // First initiate delete
       act(() => {
-        result.current.handleDeleteAttachment('attachment-1');
+        result.current.handleDeleteClick(attachmentUrl);
       });
 
       expect(result.current.showDeleteConfirm).toBe(true);
@@ -144,28 +144,30 @@ describe('useAttachmentManager', () => {
       });
 
       expect(result.current.showDeleteConfirm).toBe(false);
-      expect(result.current.pendingDeleteAttachment).toBeNull();
+      expect(result.current.attachmentToDelete).toBeNull();
     });
 
     it('should confirm delete and call mutation', async () => {
       const { result } = renderHook(() => useAttachmentManager(defaultProps));
 
+      const attachmentUrl = mockExpense.attachments[0];
+
       // First initiate delete
       act(() => {
-        result.current.handleDeleteAttachment('attachment-1');
+        result.current.handleDeleteClick(attachmentUrl);
       });
 
       expect(result.current.showDeleteConfirm).toBe(true);
 
       // Then confirm
       await act(async () => {
-        result.current.handleDeleteConfirm();
+        await result.current.handleDeleteConfirm();
       });
 
       // Should close confirmation and clear pending state
       await waitFor(() => {
         expect(result.current.showDeleteConfirm).toBe(false);
-        expect(result.current.pendingDeleteAttachment).toBeNull();
+        expect(result.current.attachmentToDelete).toBeNull();
       });
     });
 
@@ -173,11 +175,11 @@ describe('useAttachmentManager', () => {
       const { result } = renderHook(() => useAttachmentManager(defaultProps));
 
       act(() => {
-        result.current.handleDeleteAttachment('non-existent');
+        result.current.handleDeleteClick('https://example.com/non-existent.pdf');
       });
 
       expect(result.current.showDeleteConfirm).toBe(true);
-      expect(result.current.pendingDeleteAttachment).toBe('non-existent');
+      expect(result.current.attachmentToDelete).toBe('https://example.com/non-existent.pdf');
     });
   });
 

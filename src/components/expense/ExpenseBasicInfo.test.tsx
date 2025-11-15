@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Expense } from '@/types/Expense';
 import ExpenseBasicInfo from './ExpenseBasicInfo';
 
@@ -8,11 +8,23 @@ const mockExpense: Expense = {
   name: 'Test Expense',
   amount: 1500,
   currency: { code: 'USD', symbol: '$' },
-  categoryId: 'cat-1',
+  category: {
+    id: 'cat-1',
+    name: 'Test Category',
+    color: '#3B82F6',
+    icon: 'ShoppingBag',
+  },
   tags: ['important', 'urgent'],
   description: 'This is a test expense description',
   _createdDate: new Date('2024-01-01'),
   attachments: [],
+  hasPaymentSchedule: false,
+  date: new Date('2024-01-01'),
+  notes: '',
+  vendor: { name: '', address: '', website: '', email: '' },
+  _createdBy: 'user123',
+  _updatedDate: new Date('2024-01-01'),
+  _updatedBy: 'user123',
 };
 
 // Mock the formatters

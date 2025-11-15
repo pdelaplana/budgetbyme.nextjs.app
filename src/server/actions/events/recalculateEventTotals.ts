@@ -9,7 +9,7 @@ export interface RecalculateEventTotalsDto {
   eventId?: string; // If provided, only recalculate this event. If not, recalculate all user's events
 }
 
-interface RecalculationResult {
+export interface RecalculationResult {
   success: boolean;
   eventsProcessed: number;
   errors?: string[];

@@ -5,8 +5,15 @@ import type {
   DashboardState,
   ExpenseDetail,
 } from '@/hooks/dashboard/useDashboardState';
+import type {
+  RecalculateEventTotalsDto,
+  RecalculationResult,
+} from '@/server/actions/events/recalculateEventTotals';
 import type { BudgetCategory } from '@/types/BudgetCategory';
-import type { Category, Event } from '@/types/firebase';
+import type { Event } from '@/types/Event';
+
+// Type alias for compatibility
+type Category = BudgetCategory;
 
 // Modal controls return type based on actual useModalControls implementation
 interface ModalControls {
@@ -75,9 +82,9 @@ export interface UseEventDashboardReturn {
 
   // Mutations
   recalculateEventTotalsMutation: UseMutationResult<
-    void,
+    RecalculationResult,
     Error,
-    { userId: string; eventId: string },
+    RecalculateEventTotalsDto,
     unknown
   >;
   isRecalculatingTotals: boolean;

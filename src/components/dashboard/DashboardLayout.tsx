@@ -19,8 +19,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // Find the current event based on URL params
   const currentEvent = events.find((event) => event.id === eventId);
 
-  const formatEventDate = useCallback((date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
+  const formatEventDate = useCallback((date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

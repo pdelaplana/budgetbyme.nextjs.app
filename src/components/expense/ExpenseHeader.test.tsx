@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Event } from '@/types/Event';
 import type { Expense } from '@/types/Expense';
 import ExpenseHeader from './ExpenseHeader';
@@ -9,27 +9,41 @@ const mockExpense: Expense = {
   name: 'Test Expense',
   amount: 100,
   currency: { code: 'USD', symbol: '$' },
-  categoryId: 'cat-1',
+  category: {
+    id: 'cat-1',
+    name: 'Test Category',
+    color: '#3B82F6',
+    icon: 'ShoppingBag',
+  },
   tags: ['tag1', 'tag2'],
   _createdDate: new Date(),
   attachments: [],
+  hasPaymentSchedule: false,
+  date: new Date('2024-01-01'),
+  description: 'Test expense',
+  notes: '',
+  vendor: { name: '', address: '', website: '', email: '' },
+  _createdBy: 'user123',
+  _updatedDate: new Date(),
+  _updatedBy: 'user123',
 };
 
 const mockEvent: Event = {
   id: 'event-1',
   name: 'Test Event',
+  type: 'wedding',
   description: 'Test Description',
-  startDate: new Date('2024-01-01'),
-  endDate: new Date('2024-01-02'),
+  eventDate: new Date('2024-01-01'),
+  totalBudgetedAmount: 10000,
+  totalScheduledAmount: 5000,
+  totalSpentAmount: 3000,
+  spentPercentage: 30,
+  status: 'on-track',
+  currency: { code: 'USD', symbol: '$' },
   _createdDate: new Date(),
-  categories: [
-    {
-      id: 'cat-1',
-      name: 'Test Category',
-      budgetAmount: 1000,
-      _createdDate: new Date(),
-    },
-  ],
+  _createdBy: 'user123',
+  _updatedDate: new Date(),
+  _updatedBy: 'user123',
 };
 
 describe('ExpenseHeader', () => {

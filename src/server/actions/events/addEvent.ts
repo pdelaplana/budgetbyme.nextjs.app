@@ -5,7 +5,9 @@ import { Timestamp } from 'firebase-admin/firestore';
 import { getCategoryTemplateById } from '@/lib/categoryTemplates';
 import { db } from '../../lib/firebase-admin';
 import { withSentryServerAction } from '../../lib/sentryServerAction';
+import type { Event } from '@/types/Event';
 import type { EventDocument } from '../../types/EventDocument';
+import { eventFromFirestore } from '../../types/converters';
 
 export interface AddEventDto {
   userId: string;
@@ -25,7 +27,7 @@ export interface AddEventDto {
  */
 export const addEvent = withSentryServerAction(
   'addEvent',
-  async (addEventDto: AddEventDto): Promise<string> => {
+  async (addEventDto: AddEventDto): Promise<Event> => {
     if (!addEventDto.userId) throw new Error('User ID is required');
     if (!addEventDto.name?.trim()) throw new Error('Event name is required');
     if (!addEventDto.eventDate) throw new Error('Event date is required');
@@ -74,6 +76,7 @@ export const addEvent = withSentryServerAction(
             : addEventDto.eventDate,
         ),
         totalBudgetedAmount: addEventDto.totalBudgetedAmount,
+        totalScheduledAmount: 0, // Start with zero scheduled
         totalSpentAmount: 0, // Start with zero spent
         status: addEventDto.status, // Default status
         currency: addEventDto.currency,
@@ -146,7 +149,14 @@ export const addEvent = withSentryServerAction(
         },
       });
 
-      return newEventRef.id;
+      // Fetch the created event and convert to Event type
+      const createdEventDoc = await newEventRef.get();
+      if (!createdEventDoc.exists) {
+        throw new Error('Failed to retrieve created event');
+      }
+
+      const eventData = createdEventDoc.data() as EventDocument;
+      return eventFromFirestore(eventData);
     } catch (error) {
       console.error('Error creating event:', error);
 

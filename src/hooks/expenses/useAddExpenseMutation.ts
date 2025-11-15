@@ -63,6 +63,7 @@ export const useAddExpenseMutation = (
           notes: addExpenseDto.notes,
           tags: addExpenseDto.tags,
           attachments: addExpenseDto.attachments || [],
+          hasPaymentSchedule: false, // Default to false for new expenses
           _createdDate: new Date(),
           _createdBy: addExpenseDto.userId,
           _updatedDate: new Date(),

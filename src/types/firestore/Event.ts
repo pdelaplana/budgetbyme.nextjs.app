@@ -30,6 +30,7 @@ export interface EventDocument extends FirestoreEntity {
   description?: string;
   eventDate: Timestamp;
   totalBudgetedAmount: number;
+  totalScheduledAmount: number;
   totalSpentAmount: number;
   status: EventStatus;
   ownerId: string; // Reference to user
@@ -42,6 +43,7 @@ export interface Event extends ClientEntity {
   description?: string;
   eventDate: Date;
   totalBudgetedAmount: number;
+  totalScheduledAmount: number;
   totalSpentAmount: number;
   status: EventStatus;
   ownerId: string;
@@ -60,6 +62,7 @@ export interface CreateEventData extends CreateEntityData {
   description?: string;
   eventDate: Date; // Will be converted to Timestamp
   totalBudgetedAmount: number;
+  totalScheduledAmount?: number;
   totalSpentAmount?: number;
   status?: EventStatus;
   ownerId: string;
@@ -72,6 +75,7 @@ export interface UpdateEventData extends UpdateEntityData {
   description?: string;
   eventDate?: Date;
   totalBudgetedAmount?: number;
+  totalScheduledAmount?: number;
   totalSpentAmount?: number;
   status?: EventStatus;
 }

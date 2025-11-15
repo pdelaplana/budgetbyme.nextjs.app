@@ -10,7 +10,7 @@ interface EventsContextType {
   events: Event[];
   selectedEvent: Event | null;
   setSelectedEvent: (event: Event | null) => void;
-  selectEventById: (eventId: string) => Promise<void>;
+  selectEventById: (eventId: string) => void;
   addEvent: (event: Omit<Event, 'id' | 'createdAt'>) => void;
   updateEvent: (eventId: string, updates: Partial<Event>) => void;
   deleteEvent: (eventId: string) => void;

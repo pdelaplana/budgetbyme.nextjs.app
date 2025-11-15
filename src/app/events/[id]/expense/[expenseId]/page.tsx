@@ -29,10 +29,8 @@ import { useModalState } from '@/hooks/useModalState';
 import { formatCurrency, formatDateTime } from '@/lib/formatters';
 import type { ExpenseWithPayments } from '@/lib/paymentCalculations';
 import { initialTagState, tagReducer } from '@/lib/tagUtils';
-
 // Types
 import type { Expense } from '@/types/Expense';
-import type { Payment } from '@/types/Payment';
 
 export default function ExpenseDetailPage() {
   const router = useRouter();
@@ -158,7 +156,7 @@ export default function ExpenseDetailPage() {
   }, [modalState.actions]);
 
   const handleMarkPaymentAsPaid = useCallback(
-    (payment: Payment) => {
+    (payment: CalculatedPayment) => {
       modalState.actions.openMarkPaymentAsPaid(payment);
     },
     [modalState.actions],

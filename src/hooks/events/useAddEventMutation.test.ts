@@ -33,6 +33,7 @@ const mockEvent: Event = {
   description: 'A beautiful wedding celebration',
   eventDate: new Date('2024-12-25'),
   totalBudgetedAmount: 50000,
+  totalScheduledAmount: 0,
   totalSpentAmount: 0,
   spentPercentage: 0,
   status: 'on-track',

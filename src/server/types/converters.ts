@@ -24,8 +24,8 @@ export const workspaceFromFirestore = (
   return {
     ...doc,
     id: id,
-    createdDate: convertTimestamp(doc.createdDate),
-    updatedDate: convertTimestamp(doc.updatedDate),
+    _createdDate: convertTimestamp(doc._createdDate),
+    _updatedDate: convertTimestamp(doc._updatedDate),
   };
 };
 
@@ -34,16 +34,16 @@ export const workspaceToFirestore = (
 ): UserWorkspaceDocument => {
   return {
     ...userWorkspace,
-    createdDate: convertDate(userWorkspace.createdDate),
-    updatedDate: convertDate(userWorkspace.updatedDate),
+    _createdDate: convertDate(userWorkspace._createdDate),
+    _updatedDate: convertDate(userWorkspace._updatedDate),
   };
 };
 
 // Event converter functions
 export const eventFromFirestore = (doc: EventDocument): Event => {
   const eventDate = convertTimestamp(doc.eventDate);
-  const createdAt = convertTimestamp(doc.createdAt);
-  const updatedAt = convertTimestamp(doc.updatedAt);
+  const _createdDate = convertTimestamp(doc._createdDate);
+  const _updatedDate = convertTimestamp(doc._updatedDate);
 
   const spentPercentage =
     doc.totalBudgetedAmount > 0
@@ -59,8 +59,8 @@ export const eventFromFirestore = (doc: EventDocument): Event => {
   return {
     ...doc,
     eventDate,
-    createdAt,
-    updatedAt,
+    _createdDate,
+    _updatedDate,
     spentPercentage,
     remainingAmount,
     isOverBudget,
@@ -79,7 +79,7 @@ export const eventToFirestore = (
   }
 
   // Add update timestamp
-  doc.updatedAt = Timestamp.now();
+  doc._updatedDate = Timestamp.now();
 
   // Remove computed properties
   delete doc.spentPercentage;
@@ -94,8 +94,8 @@ export const eventToFirestore = (
 export const budgetCategoryFromFirestore = (
   doc: BudgetCategoryDocument,
 ): BudgetCategory => {
-  const createdAt = convertTimestamp(doc.createdAt);
-  const updatedAt = convertTimestamp(doc.updatedAt);
+  const _createdDate = convertTimestamp(doc._createdDate);
+  const _updatedDate = convertTimestamp(doc._updatedDate);
 
   const spentPercentage =
     doc.budgetedAmount > 0 ? (doc.spentAmount / doc.budgetedAmount) * 100 : 0;
@@ -105,8 +105,8 @@ export const budgetCategoryFromFirestore = (
 
   return {
     ...doc,
-    createdAt,
-    updatedAt,
+    _createdDate,
+    _updatedDate,
     spentPercentage,
     remainingAmount,
     isOverBudget,
@@ -119,7 +119,7 @@ export const budgetCategoryToFirestore = (
   const doc: Record<string, unknown> = { ...category };
 
   // Add update timestamp
-  doc.updatedAt = Timestamp.now();
+  doc._updatedDate = Timestamp.now();
 
   // Remove computed properties
   delete doc.remainingAmount;
@@ -135,9 +135,9 @@ export const addCreateMetadata = (
   userId: string,
 ): Record<string, unknown> => ({
   ...data,
-  createdAt: Timestamp.now(),
-  updatedAt: Timestamp.now(),
-  createdBy: userId,
+  _createdDate: Timestamp.now(),
+  _updatedDate: Timestamp.now(),
+  _createdBy: userId,
 });
 
 // Helper to add update metadata
@@ -145,7 +145,7 @@ export const addUpdateMetadata = (
   data: Record<string, unknown>,
 ): Record<string, unknown> => ({
   ...data,
-  updatedAt: Timestamp.now(),
+  _updatedDate: Timestamp.now(),
 });
 
 // Generic helper to get document data
@@ -153,6 +153,6 @@ export const getDocumentData = <T>(
   snapshot: DocumentSnapshot | QueryDocumentSnapshot,
   converter: (data: { id: string; [key: string]: unknown }) => T,
 ): T | null => {
-  if (!snapshot.exists()) return null;
+  if (!snapshot.exists) return null;
   return converter({ id: snapshot.id, ...snapshot.data() });
 };

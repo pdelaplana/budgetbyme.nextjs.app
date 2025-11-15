@@ -78,7 +78,7 @@ function BudgetOverview({ event, categories }: BudgetOverviewProps) {
           totalSpent: event.totalSpentAmount,
           categories: categories.length,
           paymentsDue: 0, // Will be updated when expense system is implemented
-          eventDate: event.eventDate,
+          eventDate: event.eventDate.toISOString(),
         }}
       />
     </div>
