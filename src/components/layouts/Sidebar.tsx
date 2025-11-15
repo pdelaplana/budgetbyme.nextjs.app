@@ -1,5 +1,3 @@
-/** biome-ignore-all lint/a11y/noStaticElementInteractions: <explanation> */
-/** biome-ignore-all lint/a11y/useKeyWithClickEvents: <explanation> */
 'use client';
 
 import {
@@ -66,7 +64,9 @@ export default function Sidebar({
         }`}
       >
         {/* Backdrop */}
-        <div
+        <button
+          type='button'
+          aria-label='Close sidebar backdrop'
           className={`fixed inset-0 bg-gray-600 transition-opacity duration-300 ease-in-out ${
             sidebarOpen ? 'bg-opacity-75' : 'bg-opacity-0'
           }`}

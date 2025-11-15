@@ -107,55 +107,51 @@ export default function AttachmentCard({
   };
 
   return (
-    <div
-      className={`
-        group relative bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200
-        ${disabled || isDeleting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-gray-300'}
-      `}
-      onClick={!disabled && !isDeleting ? handlePreview : undefined}
-      onKeyDown={(e) => {
-        if (!disabled && !isDeleting && (e.key === 'Enter' || e.key === ' ')) {
-          e.preventDefault();
-          handlePreview();
-        }
-      }}
-      role='button'
-      tabIndex={disabled || isDeleting ? -1 : 0}
-      aria-label={`Preview attachment ${originalName}`}
-    >
-      {/* File Icon and Info */}
-      <div className='flex items-start space-x-3'>
-        <div className='flex-shrink-0'>{getFileIcon(filename)}</div>
+    <div className='group relative'>
+      <button
+        type='button'
+        className={`
+          w-full text-left bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200
+          ${disabled || isDeleting ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-gray-300'}
+        `}
+        onClick={!disabled && !isDeleting ? handlePreview : undefined}
+        aria-label={`Preview attachment ${originalName}`}
+        disabled={disabled || isDeleting}
+      >
+        {/* File Icon and Info */}
+        <div className='flex items-start space-x-3'>
+          <div className='flex-shrink-0'>{getFileIcon(filename)}</div>
 
-        <div className='min-w-0 flex-1 pr-20'>
-          <div className='flex items-start justify-between'>
-            <div className='min-w-0 flex-1'>
-              <p
-                className='text-sm font-medium text-gray-900 truncate leading-5'
-                title={originalName}
-              >
-                {originalName}
-              </p>
+          <div className='min-w-0 flex-1 pr-20'>
+            <div className='flex items-start justify-between'>
+              <div className='min-w-0 flex-1'>
+                <p
+                  className='text-sm font-medium text-gray-900 truncate leading-5'
+                  title={originalName}
+                >
+                  {originalName}
+                </p>
 
-              <div className='flex items-center space-x-2 mt-1'>
-                {size && (
-                  <span className='text-xs text-gray-500'>
-                    {formatFileSize(size)}
-                  </span>
-                )}
-                {uploadDate && (
-                  <>
-                    {size && <span className='text-xs text-gray-300'>•</span>}
+                <div className='flex items-center space-x-2 mt-1'>
+                  {size && (
                     <span className='text-xs text-gray-500'>
-                      {formatUploadDate(uploadDate)}
+                      {formatFileSize(size)}
                     </span>
-                  </>
-                )}
+                  )}
+                  {uploadDate && (
+                    <>
+                      {size && <span className='text-xs text-gray-300'>•</span>}
+                      <span className='text-xs text-gray-500'>
+                        {formatUploadDate(uploadDate)}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </button>
 
       {/* Action Buttons */}
       <div

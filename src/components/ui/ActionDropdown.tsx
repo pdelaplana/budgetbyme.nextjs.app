@@ -51,8 +51,10 @@ export default function ActionDropdown({
       {(variant === 'mobile-only' || variant === 'full') && (
         <div className='sm:hidden flex justify-end'>
           <button
+            type='button'
             onClick={() => setShowDropdown(!showDropdown)}
             className='btn-secondary flex items-center justify-center px-3 py-2 min-w-[44px] min-h-[44px]'
+            aria-label='Toggle actions menu'
           >
             <EllipsisVerticalIcon className='h-5 w-5' />
           </button>
@@ -64,6 +66,7 @@ export default function ActionDropdown({
                 {/* Primary action for mobile (if exists) */}
                 {primaryAction && (
                   <button
+                    type='button'
                     onClick={() => {
                       handlePrimaryAction();
                       setShowDropdown(false);
@@ -78,6 +81,7 @@ export default function ActionDropdown({
                 {/* Other options */}
                 {options.map((option) => (
                   <button
+                    type='button'
                     key={option.id}
                     onClick={() => handleOptionClick(option)}
                     className={`flex items-center gap-3 w-full px-4 py-4 text-base transition-colors duration-200 min-h-[48px] ${
@@ -98,17 +102,20 @@ export default function ActionDropdown({
 
       {/* Desktop: Split button (for desktop-split and full variants) */}
       {(variant === 'desktop-split' || variant === 'full') && primaryAction && (
-        <div className='hidden sm:flex'>
+        <div className='hidden sm:flex items-stretch relative'>
           <button
+            type='button'
             onClick={handlePrimaryAction}
             className='btn-secondary flex items-center rounded-r-none border-r-0'
           >
             <primaryAction.icon className='h-4 w-4 mr-2' />
-            {primaryAction.label}
+            <span>{primaryAction.label}</span>
           </button>
           <button
+            type='button'
             onClick={() => setShowDropdown(!showDropdown)}
             className='btn-secondary px-2 rounded-l-none border-l border-gray-300 hover:border-gray-400'
+            aria-label='Toggle actions menu'
           >
             <ChevronDownIcon
               className={`h-4 w-4 transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`}
@@ -117,10 +124,11 @@ export default function ActionDropdown({
 
           {/* Desktop Dropdown Menu */}
           {showDropdown && (
-            <div className='absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-50 origin-top-right'>
+            <div className='absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-50 origin-top-right'>
               <div className='py-1'>
                 {options.map((option) => (
                   <button
+                    type='button'
                     key={option.id}
                     onClick={() => handleOptionClick(option)}
                     className={`flex items-center gap-3 w-full px-4 py-3 text-sm transition-colors duration-200 ${
@@ -141,10 +149,12 @@ export default function ActionDropdown({
 
       {/* Dropdown Backdrop */}
       {showDropdown && (
-        <div
-          className='fixed inset-0 z-40'
+        <button
+          type='button'
+          className='fixed inset-0 z-40 cursor-default focus:outline-none'
           onClick={() => setShowDropdown(false)}
-        />
+          aria-label='Close actions menu'
+        ></button>
       )}
     </div>
   );
