@@ -27,7 +27,10 @@ import { useClearAllPaymentsMutation } from '@/hooks/payments';
 import { useAttachmentManager } from '@/hooks/useAttachmentManager';
 import { useModalState } from '@/hooks/useModalState';
 import { formatCurrency, formatDateTime } from '@/lib/formatters';
-import type { ExpenseWithPayments } from '@/lib/paymentCalculations';
+import type {
+  Payment as CalculatedPayment,
+  ExpenseWithPayments,
+} from '@/lib/paymentCalculations';
 import { initialTagState, tagReducer } from '@/lib/tagUtils';
 // Types
 import type { Expense } from '@/types/Expense';

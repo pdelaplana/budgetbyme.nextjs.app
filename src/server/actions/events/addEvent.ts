@@ -3,11 +3,11 @@
 import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
 import { getCategoryTemplateById } from '@/lib/categoryTemplates';
+import type { Event } from '@/types/Event';
 import { db } from '../../lib/firebase-admin';
 import { withSentryServerAction } from '../../lib/sentryServerAction';
-import type { Event } from '@/types/Event';
-import type { EventDocument } from '../../types/EventDocument';
 import { eventFromFirestore } from '../../types/converters';
+import type { EventDocument } from '../../types/EventDocument';
 
 export interface AddEventDto {
   userId: string;

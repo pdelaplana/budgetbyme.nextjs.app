@@ -12,9 +12,9 @@ import {
 import React from 'react';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import {
+  type Payment as CalculatedPayment,
   calculatePaymentStatus,
   type ExpenseWithPayments,
-  type Payment as CalculatedPayment,
 } from '@/lib/paymentCalculations';
 import PaymentSummaryCard from './PaymentSummaryCard';
 

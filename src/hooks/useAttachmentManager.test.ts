@@ -175,11 +175,15 @@ describe('useAttachmentManager', () => {
       const { result } = renderHook(() => useAttachmentManager(defaultProps));
 
       act(() => {
-        result.current.handleDeleteClick('https://example.com/non-existent.pdf');
+        result.current.handleDeleteClick(
+          'https://example.com/non-existent.pdf',
+        );
       });
 
       expect(result.current.showDeleteConfirm).toBe(true);
-      expect(result.current.attachmentToDelete).toBe('https://example.com/non-existent.pdf');
+      expect(result.current.attachmentToDelete).toBe(
+        'https://example.com/non-existent.pdf',
+      );
     });
   });
 
