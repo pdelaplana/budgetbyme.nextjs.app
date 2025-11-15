@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/a11y/noLabelWithoutControl: <explanation> */
 'use client';
 
 import {
@@ -493,10 +492,15 @@ export default function PaymentScheduleModal({
                   </div>
 
                   <div className='space-y-4 mb-4'>
-                    {/* Payment Name */}
                     <div>
-                      <label className='form-label'>Payment Name</label>
+                      <label
+                        className='form-label'
+                        htmlFor={`payment-name-${payment.id}`}
+                      >
+                        Payment Name
+                      </label>
                       <input
+                        id={`payment-name-${payment.id}`}
                         type='text'
                         value={payment.name}
                         onChange={(e) =>
@@ -518,10 +522,15 @@ export default function PaymentScheduleModal({
                       )}
                     </div>
 
-                    {/* Description */}
                     <div>
-                      <label className='form-label'>Description</label>
+                      <label
+                        className='form-label'
+                        htmlFor={`payment-description-${payment.id}`}
+                      >
+                        Description
+                      </label>
                       <input
+                        id={`payment-description-${payment.id}`}
                         type='text'
                         value={payment.description}
                         onChange={(e) =>
@@ -543,15 +552,20 @@ export default function PaymentScheduleModal({
                       )}
                     </div>
 
-                    {/* Amount, Payment Method, Due Date Row */}
                     <div className='grid grid-cols-1 lg:grid-cols-3 gap-4'>
                       <div>
-                        <label className='form-label'>Amount</label>
+                        <label
+                          className='form-label'
+                          htmlFor={`payment-amount-${payment.id}`}
+                        >
+                          Amount
+                        </label>
                         <div className='relative'>
                           <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
                             <span className='text-gray-500 sm:text-sm'>$</span>
                           </div>
                           <input
+                            id={`payment-amount-${payment.id}`}
                             type='text'
                             value={payment.amount}
                             onChange={(e) =>
@@ -635,21 +649,30 @@ export default function PaymentScheduleModal({
                         )}
                       </div>
                     </div>
-                  </div>
 
-                  {/* Notes */}
-                  <div>
-                    <label className='form-label'>Notes (Optional)</label>
-                    <input
-                      type='text'
-                      value={payment.notes}
-                      onChange={(e) =>
-                        handlePaymentChange(payment.id, 'notes', e.target.value)
-                      }
-                      placeholder='e.g., 30 days before event'
-                      className='form-input'
-                      disabled={isSubmitting}
-                    />
+                    <div>
+                      <label
+                        className='form-label'
+                        htmlFor={`payment-notes-${payment.id}`}
+                      >
+                        Notes (Optional)
+                      </label>
+                      <input
+                        id={`payment-notes-${payment.id}`}
+                        type='text'
+                        value={payment.notes}
+                        onChange={(e) =>
+                          handlePaymentChange(
+                            payment.id,
+                            'notes',
+                            e.target.value,
+                          )
+                        }
+                        placeholder='e.g., 30 days before event'
+                        className='form-input'
+                        disabled={isSubmitting}
+                      />
+                    </div>
                   </div>
                 </div>
               ))}

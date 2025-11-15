@@ -118,6 +118,13 @@ export default function FileUpload({
     }
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick();
+    }
+  };
+
   const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation();
     onFileRemove();
@@ -135,6 +142,8 @@ export default function FileUpload({
         onChange={handleFileInputChange}
         className='hidden'
         disabled={disabled}
+        aria-label={label}
+        title={label}
       />
 
       {/* Loading Overlay */}
@@ -150,20 +159,23 @@ export default function FileUpload({
       )}
 
       {!file ? (
-        <div
+        <button
+          type='button'
           onClick={handleClick}
+          onKeyDown={handleKeyDown}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`
-            mt-1 border-2 border-dashed rounded-lg p-6 cursor-pointer transition-all duration-200
-            ${
-              isDragOver
-                ? 'border-primary-500 bg-primary-50'
-                : 'border-gray-300 hover:border-gray-400'
-            }
-            ${disabled || isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}
-          `}
+          className={`mt-1 border-2 border-dashed rounded-lg p-6 cursor-pointer transition-all duration-200 w-full ${
+            isDragOver
+              ? 'border-primary-500 bg-primary-50'
+              : 'border-gray-300 hover:border-gray-400'
+          } ${
+            disabled || isLoading
+              ? 'opacity-50 cursor-not-allowed'
+              : 'hover:bg-gray-50'
+          }`}
+          disabled={disabled || isLoading}
         >
           <div className='text-center'>
             <ArrowUpTrayIcon className='mx-auto h-8 w-8 text-gray-400' />
@@ -179,7 +191,7 @@ export default function FileUpload({
               {description} (max {maxSize}MB)
             </p>
           </div>
-        </div>
+        </button>
       ) : (
         <div className='mt-1 p-4 border border-gray-200 rounded-lg bg-gray-50'>
           <div className='flex items-center justify-between'>
