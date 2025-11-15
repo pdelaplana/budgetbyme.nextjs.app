@@ -22,7 +22,7 @@ export const useAddExpenseMutation = (
       eventId: string;
       addExpenseDto: AddExpenseDto;
     }) => {
-      const { userId, eventId, addExpenseDto } = params;
+      const { addExpenseDto } = params;
       return addExpense(addExpenseDto);
     },
 
