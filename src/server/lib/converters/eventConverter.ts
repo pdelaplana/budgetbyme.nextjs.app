@@ -48,9 +48,17 @@ export const eventConverter: DocumentConverter<EventDocument, Event> = {
         ? Math.round((rest.totalSpentAmount / totalBudgetedAmount) * 100)
         : 0;
 
-    const currency = rest.currency
-      ? (CurrencyImplementation.fromCode(rest.currency) as Currency)
-      : CurrencyImplementation.AUD;
+    const currencyImpl =
+      (rest.currency
+        ? CurrencyImplementation.fromCode(rest.currency)
+        : undefined) || CurrencyImplementation.AUD;
+
+    // Convert CurrencyImplementation to plain object for Next.js serialization
+    const currency: Currency = {
+      code: currencyImpl.code,
+      symbol: currencyImpl.symbol,
+    };
+
     return {
       ...rest,
       id: id,

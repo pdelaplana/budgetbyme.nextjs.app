@@ -51,8 +51,14 @@ export const eventFromFirestore = (id: string, doc: EventDocument): Event => {
       : 0;
 
   // Convert currency code string to Currency object
-  const currency =
+  const currencyImpl =
     CurrencyImplementation.fromCode(doc.currency) || CurrencyImplementation.USD;
+
+  // Convert CurrencyImplementation to plain object for Next.js serialization
+  const currency = {
+    code: currencyImpl.code,
+    symbol: currencyImpl.symbol,
+  };
 
   return {
     id,
