@@ -7,7 +7,9 @@ import { getStorage } from 'firebase-admin/storage';
 async function getServiceAccountCredentials() {
   // Priority 1: Check for environment variables (Vercel deployment)
   if (process.env.FIREBASE_ADMIN_CREDENTIALS) {
-    console.log('🔄 Firebase Admin: Using credentials from environment variable');
+    console.log(
+      '🔄 Firebase Admin: Using credentials from environment variable',
+    );
     try {
       return JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
     } catch (error) {
@@ -46,10 +48,7 @@ async function getServiceAccountCredentials() {
       console.log('📄 Firebase Admin: Credentials path:', credentialsPath);
       return credentialsPath;
     } catch (error) {
-      console.warn(
-        '⚠️ Firebase Admin: Local credentials file not found',
-        error,
-      );
+      console.warn('⚠️ Firebase Admin: Local credentials file not found', error);
     }
   }
 
