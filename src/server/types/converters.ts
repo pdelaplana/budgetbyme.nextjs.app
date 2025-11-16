@@ -47,7 +47,7 @@ export const eventFromFirestore = (id: string, doc: EventDocument): Event => {
 
   const spentPercentage =
     doc.totalBudgetedAmount > 0
-      ? (doc.totalSpentAmount / doc.totalBudgetedAmount) * 100
+      ? Math.round((doc.totalSpentAmount / doc.totalBudgetedAmount) * 100)
       : 0;
 
   // Convert currency code string to Currency object
@@ -110,7 +110,9 @@ export const budgetCategoryFromFirestore = (
   const _updatedDate = convertTimestamp(doc._updatedDate);
 
   const spentPercentage =
-    doc.budgetedAmount > 0 ? (doc.spentAmount / doc.budgetedAmount) * 100 : 0;
+    doc.budgetedAmount > 0
+      ? Math.round((doc.spentAmount / doc.budgetedAmount) * 100)
+      : 0;
 
   const remainingAmount = doc.budgetedAmount - doc.spentAmount;
   const isOverBudget = doc.spentAmount > doc.budgetedAmount;

@@ -110,6 +110,26 @@ formatDateTime(new Date('2024-12-25T09:00:00'))  // "Dec 25, 2024, 9:00 AM"
 - Activity logs
 - Audit trails
 
+### Percentage Formatting
+
+#### `formatPercentage(value: number): string`
+Formats percentage values rounded to the nearest integer.
+
+```typescript
+import { formatPercentage } from '@/lib/formatters';
+
+formatPercentage(45.1)   // "45%"
+formatPercentage(45.5)   // "46%"
+formatPercentage(99.8)   // "100%"
+formatPercentage(0)      // "0%"
+```
+
+**Use cases:**
+- Budget vs actual percentages
+- Category breakdown displays
+- Progress indicators
+- Spending statistics
+
 ## Usage Guidelines
 
 ### Import Pattern
@@ -117,7 +137,7 @@ Always import from the centralized utility library:
 
 ```typescript
 // ✅ Correct
-import { formatCurrency, formatDate } from '@/lib/formatters';
+import { formatCurrency, formatDate, formatPercentage } from '@/lib/formatters';
 
 // ❌ Avoid creating local formatting functions
 const formatCurrency = (amount) => { /* ... */ };
@@ -128,8 +148,9 @@ All formatter functions handle edge cases gracefully:
 
 ```typescript
 formatCurrency(NaN)        // "$0"
-formatCurrency(null)       // "$0" 
+formatCurrency(null)       // "$0"
 formatCurrency(undefined)  // "$0"
+formatPercentage(NaN)      // "0%"
 sanitizeCurrencyInput('')  // 0
 ```
 
@@ -173,7 +194,7 @@ When adding new utility functions:
 ## Future Enhancements
 
 Planned utility additions:
-- Number formatting (percentages, decimals)
+- Number formatting (decimals, thousands separators)
 - Validation utilities (email, phone, etc.)
 - Text processing utilities
 - Array/object manipulation helpers

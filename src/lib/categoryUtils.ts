@@ -72,7 +72,7 @@ export function transformCategoryForExpenseModal(
   const budgetedAmount = category.budgetedAmount ?? 0;
   const spentAmount = category.spentAmount ?? 0;
   const spentPercentage =
-    budgetedAmount > 0 ? (spentAmount / budgetedAmount) * 100 : 0;
+    budgetedAmount > 0 ? Math.round((spentAmount / budgetedAmount) * 100) : 0;
   const remainingAmount = budgetedAmount - spentAmount;
   const isOverBudget = spentAmount > budgetedAmount;
 

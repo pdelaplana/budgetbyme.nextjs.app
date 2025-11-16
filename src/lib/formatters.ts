@@ -50,3 +50,8 @@ export const sanitizeCurrencyInput = (value: string): number => {
   const parsed = parseFloat(sanitized);
   return Number.isNaN(parsed) ? 0 : parsed;
 };
+
+export const formatPercentage = (value: number): string => {
+  const validValue = Number.isNaN(value) || value == null ? 0 : value;
+  return `${Math.round(validValue)}%`;
+};

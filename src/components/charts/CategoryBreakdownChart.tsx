@@ -83,8 +83,8 @@ export default function CategoryBreakdownChart({
               <span className='text-sm text-gray-600'>Percentage:</span>
               <span className='text-sm font-medium'>
                 {Number.isNaN(data.percentage)
-                  ? '0.0'
-                  : data.percentage.toFixed(1)}
+                  ? '0'
+                  : Math.round(data.percentage)}
                 %
               </span>
             </div>
@@ -187,8 +187,8 @@ export default function CategoryBreakdownChart({
               </div>
               <div className='text-xs text-gray-500'>
                 {Number.isNaN(item.percentage)
-                  ? '0.0'
-                  : item.percentage.toFixed(1)}
+                  ? '0'
+                  : Math.round(item.percentage)}
                 %
               </div>
             </div>
@@ -239,8 +239,8 @@ export default function CategoryBreakdownChart({
               <td>{formatCurrency(item.spent)}</td>
               <td>
                 {Number.isNaN(pieData[index].percentage)
-                  ? '0.0'
-                  : pieData[index].percentage.toFixed(1)}
+                  ? '0'
+                  : Math.round(pieData[index].percentage)}
                 %
               </td>
             </tr>

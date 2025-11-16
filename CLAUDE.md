@@ -127,6 +127,9 @@ Centralized formatting utilities for consistent data display across the applicat
 - `formatDateLong(dateValue: Date)` - Long date format (e.g., "Friday, March 15, 2024")
 - `formatDateTime(dateValue: Date)` - Date with time (e.g., "Mar 15, 2024, 2:30 PM")
 
+**Percentage Formatting:**
+- `formatPercentage(value: number)` - Formats percentages rounded to nearest integer (e.g., "45%", "100%")
+
 **Usage Guidelines:**
 - Always import from `@/lib/formatters` instead of creating local formatting functions
 - Use `formatCurrency` for display purposes, `sanitizeCurrencyInput` for form processing
