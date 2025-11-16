@@ -4,6 +4,7 @@ import {
   Timestamp,
 } from 'firebase-admin/firestore';
 import type { BudgetCategory } from '@/types/BudgetCategory';
+import { CurrencyImplementation } from '@/types/currencies';
 import type { Event } from '@/types/Event';
 import type { UserWorkspace } from '@/types/UserWorkspace';
 import type { BudgetCategoryDocument } from './BudgetCategoryDocument';
@@ -50,7 +51,6 @@ export const eventFromFirestore = (id: string, doc: EventDocument): Event => {
       : 0;
 
   // Convert currency code string to Currency object
-  const { CurrencyImplementation } = require('@/types/currencies');
   const currency =
     CurrencyImplementation.fromCode(doc.currency) || CurrencyImplementation.USD;
 

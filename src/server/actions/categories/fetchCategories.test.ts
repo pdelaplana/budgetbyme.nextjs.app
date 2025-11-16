@@ -125,13 +125,19 @@ describe('fetchCategories', () => {
       expect(result[0]).toEqual({
         id: 'category789',
         name: 'Venue & Reception',
+        description: 'Wedding venue and reception costs',
         budgetedAmount: 5000,
+        scheduledAmount: 4800,
         spentAmount: 1200,
         color: '#059669',
+        icon: 'home',
         _createdDate: new Date('2023-11-01'),
         _createdBy: 'user123',
         _updatedDate: new Date('2023-11-01'),
         _updatedBy: 'user123',
+        spentPercentage: 24, // 1200 / 5000 * 100
+        remainingAmount: 3800, // 5000 - 1200
+        isOverBudget: false,
       });
     });
 
@@ -213,15 +219,41 @@ describe('fetchCategories', () => {
 
   describe('Firestore operations', () => {
     it('should use correct Firestore path structure', async () => {
-      mockGet.mockResolvedValueOnce({ exists: true }); // Event exists
-      mockGet.mockResolvedValueOnce({ empty: true, docs: [] }); // No categories
+      const workspacesDocSpy = vi.fn();
+      const eventsCollectionSpy = vi.fn();
+      const eventDocSpy = vi.fn();
+      const categoriesCollectionSpy = vi.fn();
+
+      workspacesDocSpy.mockReturnValue({
+        collection: eventsCollectionSpy,
+      });
+
+      eventsCollectionSpy.mockReturnValue({
+        doc: eventDocSpy,
+      });
+
+      eventDocSpy.mockReturnValue({
+        get: vi.fn().mockResolvedValue({ exists: true }),
+        collection: categoriesCollectionSpy,
+      });
+
+      categoriesCollectionSpy.mockReturnValue({
+        orderBy: vi.fn().mockReturnValue({
+          get: vi.fn().mockResolvedValue({ empty: true, docs: [] }),
+        }),
+      });
+
+      vi.mocked(db.collection).mockReturnValue({
+        doc: workspacesDocSpy,
+      } as any);
 
       await fetchCategories(mockUserId, mockEventId);
 
       expect(db.collection).toHaveBeenCalledWith('workspaces');
-      expect(mockDoc).toHaveBeenCalledWith(mockUserId);
-      expect(mockCollection).toHaveBeenCalledWith('categories');
-      expect(mockOrderBy).toHaveBeenCalledWith('_createdDate', 'asc');
+      expect(workspacesDocSpy).toHaveBeenCalledWith(mockUserId);
+      expect(eventsCollectionSpy).toHaveBeenCalledWith('events');
+      expect(eventDocSpy).toHaveBeenCalledWith(mockEventId);
+      expect(categoriesCollectionSpy).toHaveBeenCalledWith('categories');
     });
   });
 });

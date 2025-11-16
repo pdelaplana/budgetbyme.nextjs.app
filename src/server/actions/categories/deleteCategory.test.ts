@@ -185,12 +185,45 @@ describe('deleteCategory', () => {
     });
 
     it('should handle errors during expense dependency check', async () => {
-      mockGet.mockResolvedValueOnce({
-        exists: true,
-        data: () => mockCategoryData,
-      }); // Category exists
+      // Clear previous mocks and set up fresh ones for this test
+      vi.clearAllMocks();
+
       const expenseCheckError = new Error('Failed to check expenses');
-      mockGet.mockRejectedValueOnce(expenseCheckError); // Expense check fails
+      const categoryGetSpy = vi
+        .fn()
+        .mockResolvedValue({ exists: true, data: () => mockCategoryData });
+      const expensesGetSpy = vi.fn().mockRejectedValue(expenseCheckError);
+
+      // Mock the Firestore path for categories and expenses
+      const collectionSpy = vi.fn().mockImplementation((name: string) => {
+        if (name === 'categories') {
+          return {
+            doc: vi.fn().mockReturnValue({
+              get: categoryGetSpy,
+              delete: mockDelete,
+            }),
+          };
+        } else if (name === 'expenses') {
+          return {
+            where: vi.fn().mockReturnValue({
+              limit: vi.fn().mockReturnValue({
+                get: expensesGetSpy,
+              }),
+            }),
+          };
+        }
+        return {};
+      });
+
+      (db.collection as any).mockReturnValue({
+        doc: vi.fn().mockReturnValue({
+          collection: vi.fn().mockReturnValue({
+            doc: vi.fn().mockReturnValue({
+              collection: collectionSpy,
+            }),
+          }),
+        }),
+      });
 
       await expect(
         deleteCategory(mockUserId, mockEventId, mockCategoryId),
@@ -199,25 +232,123 @@ describe('deleteCategory', () => {
   });
 
   describe('Firestore operations', () => {
-    beforeEach(() => {
-      mockGet.mockResolvedValueOnce({
-        exists: true,
-        data: () => mockCategoryData,
-      }); // Category exists
-      mockGet.mockResolvedValueOnce({ empty: true }); // No expenses with this category
-    });
-
     it('should use correct Firestore path structure for category deletion', async () => {
+      const workspacesDocSpy = vi.fn();
+      const eventsCollectionSpy = vi.fn();
+      const eventDocSpy = vi.fn();
+      const categoryDocSpy = vi.fn();
+
+      workspacesDocSpy.mockReturnValue({
+        collection: eventsCollectionSpy,
+      });
+
+      eventsCollectionSpy.mockImplementation((name: string) => {
+        if (name === 'events') {
+          return { doc: eventDocSpy };
+        }
+        return { doc: vi.fn() };
+      });
+
+      eventDocSpy.mockReturnValue({
+        collection: vi.fn().mockImplementation((name: string) => {
+          if (name === 'categories') {
+            return {
+              doc: categoryDocSpy,
+            };
+          } else if (name === 'expenses') {
+            return {
+              where: mockWhere,
+            };
+          }
+          return {};
+        }),
+      });
+
+      categoryDocSpy.mockReturnValue({
+        get: vi
+          .fn()
+          .mockResolvedValue({ exists: true, data: () => mockCategoryData }),
+        delete: mockDelete,
+      });
+
+      mockWhere.mockReturnValue({
+        limit: mockLimit,
+      });
+
+      mockLimit.mockReturnValue({
+        get: vi.fn().mockResolvedValue({ empty: true }),
+      });
+
+      vi.mocked(db.collection).mockReturnValue({
+        doc: workspacesDocSpy,
+      } as any);
+
       await deleteCategory(mockUserId, mockEventId, mockCategoryId);
 
       expect(db.collection).toHaveBeenCalledWith('workspaces');
+      expect(workspacesDocSpy).toHaveBeenCalledWith(mockUserId);
+      expect(eventsCollectionSpy).toHaveBeenCalledWith('events');
+      expect(eventDocSpy).toHaveBeenCalledWith(mockEventId);
     });
 
     it('should use correct Firestore path structure for expense check', async () => {
+      // Use same setup as previous test
+      const workspacesDocSpy = vi.fn();
+      const eventsCollectionSpy = vi.fn();
+      const eventDocSpy = vi.fn();
+      const categoryDocSpy = vi.fn();
+      const expensesWhereSpy = vi.fn();
+      const expensesLimitSpy = vi.fn();
+
+      const collectionSpy = vi.fn().mockImplementation((name: string) => {
+        if (name === 'categories') {
+          return { doc: categoryDocSpy };
+        } else if (name === 'expenses') {
+          return { where: expensesWhereSpy };
+        }
+        return {};
+      });
+
+      workspacesDocSpy.mockReturnValue({
+        collection: eventsCollectionSpy,
+      });
+
+      eventsCollectionSpy.mockReturnValue({
+        doc: eventDocSpy,
+      });
+
+      eventDocSpy.mockReturnValue({
+        collection: collectionSpy,
+      });
+
+      categoryDocSpy.mockReturnValue({
+        get: vi
+          .fn()
+          .mockResolvedValue({ exists: true, data: () => mockCategoryData }),
+        delete: mockDelete,
+      });
+
+      expensesWhereSpy.mockReturnValue({
+        limit: expensesLimitSpy,
+      });
+
+      expensesLimitSpy.mockReturnValue({
+        get: vi.fn().mockResolvedValue({ empty: true }),
+      });
+
+      vi.mocked(db.collection).mockReturnValue({
+        doc: workspacesDocSpy,
+      } as any);
+
       await deleteCategory(mockUserId, mockEventId, mockCategoryId);
 
-      expect(mockCollection).toHaveBeenCalledWith('categories');
-      expect(mockCollection).toHaveBeenCalledWith('expenses');
+      expect(collectionSpy).toHaveBeenCalledWith('categories');
+      expect(collectionSpy).toHaveBeenCalledWith('expenses');
+      expect(expensesWhereSpy).toHaveBeenCalledWith(
+        'category.id',
+        '==',
+        mockCategoryId,
+      );
     });
   });
 });

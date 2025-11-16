@@ -28,6 +28,11 @@ describe('useModalState', () => {
     expect(result.current.state.editExpense.isOpen).toBe(false);
     expect(result.current.state.actionDropdown.isOpen).toBe(false);
     expect(result.current.state.confirmDialogs).toEqual({
+      deleteAttachment: {
+        isOpen: false,
+        isLoading: false,
+        attachmentUrl: null,
+      },
       deletePayments: { isOpen: false, isLoading: false },
       deleteExpense: { isOpen: false, isLoading: false },
     });

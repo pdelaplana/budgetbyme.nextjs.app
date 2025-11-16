@@ -7,6 +7,40 @@ describe('useCategoryPageState', () => {
     const { result } = renderHook(() => useCategoryPageState());
 
     expect(result.current.state).toEqual({
+      errors: {
+        categoryDelete: {
+          canRetry: true,
+          error: null,
+          errorType: null,
+          hasError: false,
+          lastRetryAt: null,
+          retryCount: 0,
+        },
+        categoryLoad: {
+          canRetry: true,
+          error: null,
+          errorType: null,
+          hasError: false,
+          lastRetryAt: null,
+          retryCount: 0,
+        },
+        categoryUpdate: {
+          canRetry: true,
+          error: null,
+          errorType: null,
+          hasError: false,
+          lastRetryAt: null,
+          retryCount: 0,
+        },
+        expenseLoad: {
+          canRetry: true,
+          error: null,
+          errorType: null,
+          hasError: false,
+          lastRetryAt: null,
+          retryCount: 0,
+        },
+      },
       modals: {
         showAddExpense: false,
         showAddCategoryModal: false,
@@ -15,6 +49,7 @@ describe('useCategoryPageState', () => {
       },
       operations: {
         isDeletingCategory: false,
+        isRetrying: false,
       },
     });
   });

@@ -333,7 +333,7 @@ describe('useAddEventMutation', () => {
 
       await result.current.addEvent(mockEventDto);
 
-      expect(onSuccess).toHaveBeenCalledWith(mockEvent);
+      expect(onSuccess).toHaveBeenCalledWith(mockEvent.id);
     });
 
     it('should call onError callback when event addition fails', async () => {

@@ -77,6 +77,7 @@ describe('eventConverter', () => {
           description: 'A beautiful wedding celebration',
           eventDate: expect.any(Object), // Timestamp object
           totalBudgetedAmount: 50000, // Note the correct spelling
+          totalScheduledAmount: 0,
           totalSpentAmount: 35000,
           status: 'on-track',
           currency: 'USD',
@@ -222,6 +223,7 @@ describe('eventConverter', () => {
         description: 'A beautiful wedding celebration',
         eventDate: eventDate, // Converted from Timestamp
         totalBudgetedAmount: 50000, // Note the correct spelling
+        totalScheduledAmount: 0,
         totalSpentAmount: 35000,
         spentPercentage: 70, // Calculated: (35000 / 50000) * 100
         status: 'on-track',
