@@ -7,18 +7,19 @@ import { useExpensePageOptimizations } from './useExpensePageOptimizations';
 const mockEvent: Event = {
   id: 'event-1',
   name: 'Test Event',
+  type: 'wedding',
   description: 'Test Description',
-  startDate: new Date('2024-01-01'),
-  endDate: new Date('2024-01-02'),
+  eventDate: new Date('2024-01-01'),
+  totalBudgetedAmount: 10000,
+  totalScheduledAmount: 0,
+  totalSpentAmount: 0,
+  spentPercentage: 0,
+  status: 'on-track',
+  currency: { code: 'USD', symbol: '$' },
   _createdDate: new Date(),
-  categories: [
-    {
-      id: 'cat-1',
-      name: 'Category 1',
-      budgetAmount: 1000,
-      _createdDate: new Date(),
-    },
-  ],
+  _createdBy: 'user123',
+  _updatedDate: new Date(),
+  _updatedBy: 'user123',
 };
 
 const mockExpense: Expense = {
@@ -45,6 +46,9 @@ const mockExpense: Expense = {
   },
   hasPaymentSchedule: false,
   _createdDate: new Date(),
+  _createdBy: 'user123',
+  _updatedDate: new Date(),
+  _updatedBy: 'user123',
 };
 
 const mockExpenseWithPayments = {
@@ -52,19 +56,29 @@ const mockExpenseWithPayments = {
   paymentSchedule: [
     {
       id: 'payment-1',
+      name: 'Payment 1',
+      description: 'First payment',
       amount: 50,
       dueDate: new Date(),
-      paid: true,
-      name: 'Payment 1',
+      isPaid: true,
+      paymentMethod: 'credit-card' as const,
       _createdDate: new Date(),
+      _createdBy: 'user123',
+      _updatedDate: new Date(),
+      _updatedBy: 'user123',
     },
     {
       id: 'payment-2',
+      name: 'Payment 2',
+      description: 'Second payment',
       amount: 50,
       dueDate: new Date(),
-      paid: false,
-      name: 'Payment 2',
+      isPaid: false,
+      paymentMethod: 'credit-card' as const,
       _createdDate: new Date(),
+      _createdBy: 'user123',
+      _updatedDate: new Date(),
+      _updatedBy: 'user123',
     },
   ],
 };
@@ -150,12 +164,15 @@ describe('useExpensePageOptimizations', () => {
       );
 
       expect(result.current.paymentStatus).toBeDefined();
-      expect(typeof result.current.paymentStatus.totalScheduled).toBe('number');
-      expect(typeof result.current.paymentStatus.totalPaid).toBe('number');
-      expect(typeof result.current.paymentStatus.remainingBalance).toBe(
+      expect(result.current.paymentStatus).not.toBeNull();
+      expect(typeof result.current.paymentStatus?.totalScheduled).toBe(
         'number',
       );
-      expect(typeof result.current.paymentStatus.progressPercentage).toBe(
+      expect(typeof result.current.paymentStatus?.totalPaid).toBe('number');
+      expect(typeof result.current.paymentStatus?.remainingBalance).toBe(
+        'number',
+      );
+      expect(typeof result.current.paymentStatus?.progressPercentage).toBe(
         'number',
       );
     });
@@ -166,14 +183,15 @@ describe('useExpensePageOptimizations', () => {
       );
 
       expect(result.current.paymentStatus).toBeDefined();
-      expect(result.current.paymentStatus.totalScheduled).toBe(
+      expect(result.current.paymentStatus).not.toBeNull();
+      expect(result.current.paymentStatus?.totalScheduled).toBe(
         mockExpense.amount,
       );
-      expect(result.current.paymentStatus.totalPaid).toBe(0);
-      expect(result.current.paymentStatus.remainingBalance).toBe(
+      expect(result.current.paymentStatus?.totalPaid).toBe(0);
+      expect(result.current.paymentStatus?.remainingBalance).toBe(
         mockExpense.amount,
       );
-      expect(result.current.paymentStatus.progressPercentage).toBe(0);
+      expect(result.current.paymentStatus?.progressPercentage).toBe(0);
     });
 
     it('should handle null expense gracefully', () => {

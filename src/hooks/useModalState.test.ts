@@ -1,16 +1,14 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import type { Payment } from '@/types/Payment';
+import type { Payment } from '@/lib/paymentCalculations';
 import { useModalState } from './useModalState';
 
 const mockPayment: Payment = {
   id: 'payment-1',
-  name: 'Test Payment',
-  description: 'Test Description',
   amount: 100,
-  dueDate: new Date(),
-  paid: false,
-  _createdDate: new Date(),
+  dueDate: new Date().toISOString(),
+  isPaid: false,
+  description: 'Test Description',
 };
 
 describe('useModalState', () => {

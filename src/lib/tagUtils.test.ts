@@ -172,7 +172,6 @@ describe('tagUtils', () => {
       const newState = tagReducer(initialTagState, action);
 
       expect(newState.newTag).toBe('new input');
-      expect(newState.error).toBeUndefined();
     });
 
     it('should handle TOGGLE_EDITING action', () => {
@@ -195,7 +194,6 @@ describe('tagUtils', () => {
 
       expect(newState.isEditing).toBe(false);
       expect(newState.newTag).toBe('');
-      expect(newState.error).toBeUndefined();
     });
 
     it('should sanitize input when setting new tag', () => {

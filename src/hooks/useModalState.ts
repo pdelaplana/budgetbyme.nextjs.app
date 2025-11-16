@@ -1,5 +1,5 @@
 import { useCallback, useReducer } from 'react';
-import type { Payment } from '@/types/Payment';
+import type { Payment as CalculatedPayment } from '@/lib/paymentCalculations';
 
 // Modal state interfaces
 export interface PaymentScheduleModalState {
@@ -10,7 +10,7 @@ export interface PaymentScheduleModalState {
 export interface MarkAsPaidModalState {
   isOpen: boolean;
   paymentId?: string | null;
-  selectedPayment?: Payment | null;
+  selectedPayment?: CalculatedPayment | null;
 }
 
 export interface ConfirmDialogState {
@@ -44,7 +44,7 @@ type ModalAction =
   // Mark as Paid Modals
   | { type: 'OPEN_MARK_AS_PAID' }
   | { type: 'CLOSE_MARK_AS_PAID' }
-  | { type: 'OPEN_MARK_PAYMENT_AS_PAID'; payment: Payment }
+  | { type: 'OPEN_MARK_PAYMENT_AS_PAID'; payment: CalculatedPayment }
   | { type: 'CLOSE_MARK_PAYMENT_AS_PAID' }
 
   // Edit Expense Modal
@@ -342,7 +342,7 @@ export function useModalState() {
     }, []),
 
     // Mark Payment as Paid (Individual Payment)
-    openMarkPaymentAsPaid: useCallback((payment: Payment) => {
+    openMarkPaymentAsPaid: useCallback((payment: CalculatedPayment) => {
       dispatch({ type: 'OPEN_MARK_PAYMENT_AS_PAID', payment });
     }, []),
     closeMarkPaymentAsPaid: useCallback(() => {

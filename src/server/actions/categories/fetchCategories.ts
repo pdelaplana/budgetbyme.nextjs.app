@@ -5,6 +5,7 @@ import type { BudgetCategory } from '../../../types/BudgetCategory';
 import { db } from '../../lib/firebase-admin';
 import { withSentryServerAction } from '../../lib/sentryServerAction';
 import type { BudgetCategoryDocument } from '../../types/BudgetCategoryDocument';
+import { budgetCategoryFromFirestore } from '../../types/converters';
 
 /**
  * Server action to fetch all budget categories for an event
@@ -67,21 +68,7 @@ export const fetchCategories = withSentryServerAction(
       const categories: BudgetCategory[] = categoriesSnapshot.docs.map(
         (doc) => {
           const data = doc.data() as BudgetCategoryDocument;
-
-          return {
-            id: doc.id,
-            name: data.name,
-            description: data.description,
-            budgetedAmount: data.budgetedAmount,
-            scheduledAmount: data.scheduledAmount || 0, // Default to 0 for existing categories
-            spentAmount: data.spentAmount,
-            color: data.color,
-            icon: data.icon || '🎉', // Default icon for existing categories
-            _createdDate: data._createdDate.toDate(),
-            _createdBy: data._createdBy,
-            _updatedDate: data._updatedDate.toDate(),
-            _updatedBy: data._updatedBy,
-          };
+          return budgetCategoryFromFirestore(doc.id, data);
         },
       );
 

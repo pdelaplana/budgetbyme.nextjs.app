@@ -156,7 +156,7 @@ export const addEvent = withSentryServerAction(
       }
 
       const eventData = createdEventDoc.data() as EventDocument;
-      return eventFromFirestore(eventData);
+      return eventFromFirestore(createdEventDoc.id, eventData);
     } catch (error) {
       console.error('Error creating event:', error);
 

@@ -378,7 +378,6 @@ export default function ExpenseDetailPage() {
         onClose={modalState.actions.closeMarkPaymentAsPaid}
         expenseId={expenseId}
         expenseName={
-          modalState.state.markPaymentAsPaid.selectedPayment?.name ||
           modalState.state.markPaymentAsPaid.selectedPayment?.description ||
           'Payment'
         }

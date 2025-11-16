@@ -39,6 +39,10 @@ export interface ExpenseModalCategoryData {
   _createdBy: string;
   _updatedDate: Date;
   _updatedBy: string;
+  // Computed properties
+  spentPercentage: number;
+  remainingAmount: number;
+  isOverBudget: boolean;
 }
 
 /**
@@ -65,19 +69,30 @@ export function transformCategoryForModal(
 export function transformCategoryForExpenseModal(
   category: Category,
 ): ExpenseModalCategoryData {
+  const budgetedAmount = category.budgetedAmount ?? 0;
+  const spentAmount = category.spentAmount ?? 0;
+  const spentPercentage =
+    budgetedAmount > 0 ? (spentAmount / budgetedAmount) * 100 : 0;
+  const remainingAmount = budgetedAmount - spentAmount;
+  const isOverBudget = spentAmount > budgetedAmount;
+
   return {
     id: category.id,
     name: category.name,
     description: category.description || '',
-    budgetedAmount: category.budgetedAmount ?? 0,
+    budgetedAmount,
     scheduledAmount: category.scheduledAmount ?? 0,
-    spentAmount: category.spentAmount ?? 0,
+    spentAmount,
     color: category.color || '#059669',
     icon: category.icon || '🎉',
     _createdDate: new Date(),
     _createdBy: '',
     _updatedDate: new Date(),
     _updatedBy: '',
+    // Computed properties
+    spentPercentage,
+    remainingAmount,
+    isOverBudget,
   };
 }
 

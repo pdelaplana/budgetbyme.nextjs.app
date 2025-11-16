@@ -112,6 +112,10 @@ export function useAddCategoryMutation(
             _createdBy: variables.userId,
             _updatedDate: new Date(),
             _updatedBy: variables.userId,
+            // Computed properties
+            spentPercentage: 0, // New category, nothing spent yet
+            remainingAmount: variables.addCategoryDto.budgetedAmount,
+            isOverBudget: false,
           };
           return [...oldData, newCategory];
         },

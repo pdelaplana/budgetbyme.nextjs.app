@@ -122,7 +122,7 @@ describe('ExpenseListItem', () => {
   it('handles missing description gracefully', () => {
     const expenseWithoutDescription = {
       ...mockExpense,
-      description: undefined,
+      description: '',
     };
     render(
       <ExpenseListItem

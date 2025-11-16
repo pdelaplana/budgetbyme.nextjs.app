@@ -3,12 +3,11 @@ import {
   type QueryDocumentSnapshot,
   Timestamp,
 } from 'firebase-admin/firestore';
+import type { BudgetCategory } from '@/types/BudgetCategory';
+import type { Event } from '@/types/Event';
 import type { UserWorkspace } from '@/types/UserWorkspace';
-import type {
-  BudgetCategory,
-  BudgetCategoryDocument,
-} from '../../types/firestore/BudgetCategory';
-import type { Event, EventDocument } from '../../types/firestore/Event';
+import type { BudgetCategoryDocument } from './BudgetCategoryDocument';
+import type { EventDocument } from './EventDocument';
 import type { UserWorkspaceDocument } from './UserWorkspaceDocument';
 
 // Utility functions for converting between Firestore and client types
@@ -40,7 +39,7 @@ export const workspaceToFirestore = (
 };
 
 // Event converter functions
-export const eventFromFirestore = (doc: EventDocument): Event => {
+export const eventFromFirestore = (id: string, doc: EventDocument): Event => {
   const eventDate = convertTimestamp(doc.eventDate);
   const _createdDate = convertTimestamp(doc._createdDate);
   const _updatedDate = convertTimestamp(doc._updatedDate);
@@ -50,21 +49,27 @@ export const eventFromFirestore = (doc: EventDocument): Event => {
       ? (doc.totalSpentAmount / doc.totalBudgetedAmount) * 100
       : 0;
 
-  const remainingAmount = doc.totalBudgetedAmount - doc.totalSpentAmount;
-  const isOverBudget = doc.totalSpentAmount > doc.totalBudgetedAmount;
-  const daysUntilEvent = Math.ceil(
-    (eventDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-  );
+  // Convert currency code string to Currency object
+  const { CurrencyImplementation } = require('@/types/currencies');
+  const currency =
+    CurrencyImplementation.fromCode(doc.currency) || CurrencyImplementation.USD;
 
   return {
-    ...doc,
+    id,
+    name: doc.name,
+    type: doc.type as Event['type'],
+    description: doc.description,
     eventDate,
-    _createdDate,
-    _updatedDate,
+    totalBudgetedAmount: doc.totalBudgetedAmount,
+    totalScheduledAmount: doc.totalScheduledAmount,
+    totalSpentAmount: doc.totalSpentAmount,
     spentPercentage,
-    remainingAmount,
-    isOverBudget,
-    daysUntilEvent,
+    status: doc.status as Event['status'],
+    currency,
+    _createdDate,
+    _createdBy: doc._createdBy,
+    _updatedDate,
+    _updatedBy: doc._updatedBy,
   };
 };
 
@@ -92,6 +97,7 @@ export const eventToFirestore = (
 
 // Budget category converter functions
 export const budgetCategoryFromFirestore = (
+  id: string,
   doc: BudgetCategoryDocument,
 ): BudgetCategory => {
   const _createdDate = convertTimestamp(doc._createdDate);
@@ -104,9 +110,18 @@ export const budgetCategoryFromFirestore = (
   const isOverBudget = doc.spentAmount > doc.budgetedAmount;
 
   return {
-    ...doc,
+    id,
+    name: doc.name,
+    description: doc.description,
+    budgetedAmount: doc.budgetedAmount,
+    scheduledAmount: doc.scheduledAmount,
+    spentAmount: doc.spentAmount,
+    color: doc.color,
+    icon: doc.icon,
     _createdDate,
+    _createdBy: doc._createdBy,
     _updatedDate,
+    _updatedBy: doc._updatedBy,
     spentPercentage,
     remainingAmount,
     isOverBudget,
@@ -154,5 +169,7 @@ export const getDocumentData = <T>(
   converter: (data: { id: string; [key: string]: unknown }) => T,
 ): T | null => {
   if (!snapshot.exists) return null;
-  return converter({ id: snapshot.id, ...snapshot.data() });
+  const data = snapshot.data();
+  if (!data) return null;
+  return converter({ id: snapshot.id, ...data });
 };

@@ -194,104 +194,54 @@ describe('useAttachmentManager', () => {
       return file;
     };
 
-    const createMockFileList = (files: File[]): FileList => {
-      const fileList = {
-        length: files.length,
-        item: (index: number) => files[index] || null,
-        [Symbol.iterator]: function* () {
-          for (let i = 0; i < files.length; i++) {
-            yield files[i];
-          }
-        },
-      };
-
-      files.forEach((file, index) => {
-        (fileList as any)[index] = file;
-      });
-
-      return fileList as FileList;
-    };
-
     it('should handle primary file upload', async () => {
       const { result } = renderHook(() => useAttachmentManager(defaultProps));
 
       const mockFile = createMockFile('test.pdf', 'application/pdf', 1024);
-      const mockFileList = createMockFileList([mockFile]);
-
-      const mockEvent = {
-        target: {
-          files: mockFileList,
-          value: '',
-        },
-      } as React.ChangeEvent<HTMLInputElement>;
 
       await act(async () => {
-        await result.current.handlePrimaryFileChange(mockEvent);
+        await result.current.handlePrimaryFileChange(mockFile);
       });
 
-      // File input should be cleared
-      expect(mockEvent.target.value).toBe('');
+      expect(result.current.primaryFile).toBe(mockFile);
     });
 
     it('should handle empty state file upload', async () => {
-      const { result } = renderHook(() => useAttachmentManager(defaultProps));
+      const { result } = renderHook(() =>
+        useAttachmentManager(nullExpenseProps),
+      );
 
       const mockFile = createMockFile('test.pdf', 'application/pdf', 1024);
-      const mockFileList = createMockFileList([mockFile]);
-
-      const mockEvent = {
-        target: {
-          files: mockFileList,
-          value: '',
-        },
-      } as React.ChangeEvent<HTMLInputElement>;
 
       await act(async () => {
-        await result.current.handleEmptyFileChange(mockEvent);
+        await result.current.handleEmptyStateFileChange(mockFile);
       });
 
-      // File input should be cleared
-      expect(mockEvent.target.value).toBe('');
+      expect(result.current.emptyStateFile).toBe(mockFile);
     });
 
     it('should handle file upload with no files selected', async () => {
       const { result } = renderHook(() => useAttachmentManager(defaultProps));
 
-      const mockEvent = {
-        target: {
-          files: createMockFileList([]),
-        },
-      } as React.ChangeEvent<HTMLInputElement>;
-
       await act(async () => {
-        await result.current.handlePrimaryFileChange(mockEvent);
+        await result.current.handlePrimaryFileChange(null);
       });
 
       // Should handle gracefully without errors
       expect(result.current.isOperationInProgress).toBe(false);
+      expect(result.current.primaryFile).toBeNull();
     });
 
-    it('should handle multiple files selection', async () => {
+    it('should handle single file selection (API only accepts one file)', async () => {
       const { result } = renderHook(() => useAttachmentManager(defaultProps));
 
-      const mockFiles = [
-        createMockFile('test1.pdf', 'application/pdf', 1024),
-        createMockFile('test2.jpg', 'image/jpeg', 2048),
-      ];
-      const mockFileList = createMockFileList(mockFiles);
-
-      const mockEvent = {
-        target: {
-          files: mockFileList,
-          value: '',
-        },
-      } as React.ChangeEvent<HTMLInputElement>;
+      const mockFile = createMockFile('test1.pdf', 'application/pdf', 1024);
 
       await act(async () => {
-        await result.current.handlePrimaryFileChange(mockEvent);
+        await result.current.handlePrimaryFileChange(mockFile);
       });
 
-      expect(mockEvent.target.value).toBe('');
+      expect(result.current.primaryFile).toBe(mockFile);
     });
   });
 
@@ -306,14 +256,7 @@ describe('useAttachmentManager', () => {
         ...mockExpense,
         attachments: [
           ...mockExpense.attachments,
-          {
-            id: 'attachment-2',
-            name: 'new-file.jpg',
-            url: 'https://example.com/new-file.jpg',
-            type: 'image/jpeg',
-            size: 2048,
-            uploadedAt: new Date(),
-          },
+          'https://example.com/new-file.jpg',
         ],
       };
 
@@ -348,14 +291,8 @@ describe('useAttachmentManager', () => {
       // For now, we test that the hook doesn't crash with invalid inputs
       const { result } = renderHook(() => useAttachmentManager(defaultProps));
 
-      const mockEvent = {
-        target: {
-          files: null,
-        },
-      } as any;
-
       await act(async () => {
-        await result.current.handlePrimaryFileChange(mockEvent);
+        await result.current.handlePrimaryFileChange(null);
       });
 
       // Should handle gracefully
