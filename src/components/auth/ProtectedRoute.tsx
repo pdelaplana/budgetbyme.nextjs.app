@@ -27,12 +27,11 @@ export default function ProtectedRoute({
   // Show minimal loading state while checking authentication
   if (loading) {
     return (
-      <div className='min-h-screen bg-slate-100'>
+      <div className='min-h-[60vh] flex items-center justify-center'>
         <LoadingSpinner
           title='Authenticating...'
           message='Verifying your credentials'
-          className='min-h-screen flex items-center justify-center'
-          noPadding={true}
+          size='md'
         />
       </div>
     );

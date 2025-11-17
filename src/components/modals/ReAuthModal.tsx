@@ -149,6 +149,7 @@ export default function ReAuthModal({
                     onClick={handleClose}
                     className='text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg p-1'
                     disabled={isAuthenticating}
+                    aria-label='Close dialog'
                   >
                     <XMarkIcon className='w-5 h-5' />
                   </button>
