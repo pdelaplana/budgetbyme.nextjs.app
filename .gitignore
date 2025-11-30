@@ -41,3 +41,4 @@ next-env.d.ts
 # secrets
 /.secrets/
 .claude/settings.local.json
+/.claude
