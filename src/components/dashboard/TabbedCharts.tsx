@@ -25,6 +25,7 @@ interface TimelineDataPoint {
   date: string;
   budgeted: number;
   actual: number;
+  expenses: { name: string; amount: number }[];
 }
 
 interface TabbedChartsProps {

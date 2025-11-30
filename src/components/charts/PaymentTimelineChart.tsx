@@ -16,6 +16,7 @@ interface TimelineDataPoint {
   date: string;
   budgeted: number;
   actual: number;
+  expenses: { name: string; amount: number }[];
 }
 
 interface PaymentTimelineChartProps {
@@ -26,6 +27,7 @@ interface TooltipPayloadEntry {
   dataKey: string;
   value: number;
   color: string;
+  payload: TimelineDataPoint;
 }
 
 interface TooltipProps {
@@ -44,30 +46,70 @@ export default function PaymentTimelineChart({
 
   const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     if (active && payload && payload.length) {
+      // Get the data object from the first payload entry
+      const data = payload[0].payload as TimelineDataPoint;
+      const expenses = data.expenses || [];
+      const displayedExpenses = expenses.slice(0, 5);
+      const remainingCount = expenses.length - 5;
+
       return (
-        <div className='bg-white p-4 border border-gray-200 rounded-lg shadow-lg'>
+        <div className='bg-white p-4 border border-gray-200 rounded-lg shadow-lg max-w-xs'>
           <p className='font-semibold text-gray-900 mb-2'>
             {formatMonth(label || '')}
           </p>
-          {payload.map((entry) => (
-            <div
-              key={entry.dataKey}
-              className='flex items-center justify-between min-w-[120px]'
-            >
-              <div className='flex items-center'>
-                <div
-                  className='w-3 h-3 rounded-full mr-2'
-                  style={{ backgroundColor: entry.color }}
-                />
-                <span className='text-sm text-gray-600'>
-                  {entry.dataKey === 'budgeted' ? 'Budgeted' : 'Actual'}:
+
+          {/* Standard Chart Data */}
+          <div className='mb-3 border-b border-gray-100 pb-2'>
+            {payload.map((entry) => (
+              <div
+                key={entry.dataKey}
+                className='flex items-center justify-between min-w-[120px] mb-1 last:mb-0'
+              >
+                <div className='flex items-center'>
+                  <div
+                    className='w-3 h-3 rounded-full mr-2'
+                    style={{ backgroundColor: entry.color }}
+                  />
+                  <span className='text-sm text-gray-600'>
+                    {entry.dataKey === 'budgeted' ? 'Budgeted' : 'Actual'}:
+                  </span>
+                </div>
+                <span className='text-sm font-medium text-gray-900'>
+                  {formatCurrency(entry.value)}
                 </span>
               </div>
-              <span className='text-sm font-medium text-gray-900'>
-                {formatCurrency(entry.value)}
-              </span>
+            ))}
+          </div>
+
+          {/* Expenses List */}
+          {expenses.length > 0 && (
+            <div>
+              <p className='text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wider'>
+                Budgeted Items
+              </p>
+              <div className='space-y-1'>
+                {displayedExpenses.map((expense, index) => (
+                  <div
+                    key={`${expense.name}-${index}`}
+                    className='flex justify-between text-xs'
+                  >
+                    <span className='text-gray-600 truncate mr-2 max-w-[140px]'>
+                      {expense.name}
+                    </span>
+                    <span className='text-gray-900 font-medium'>
+                      {formatCurrency(expense.amount)}
+                    </span>
+                  </div>
+                ))}
+                {remainingCount > 0 && (
+                  <p className='text-xs text-gray-400 italic mt-1'>
+                    + {remainingCount} more item
+                    {remainingCount !== 1 ? 's' : ''}
+                  </p>
+                )}
+              </div>
             </div>
-          ))}
+          )}
         </div>
       );
     }

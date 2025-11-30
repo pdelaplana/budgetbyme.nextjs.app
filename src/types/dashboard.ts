@@ -11,6 +11,7 @@ import type {
 } from '@/server/actions/events/recalculateEventTotals';
 import type { BudgetCategory } from '@/types/BudgetCategory';
 import type { Event } from '@/types/Event';
+import type { Expense } from '@/types/Expense';
 
 // Type alias for compatibility
 type Category = BudgetCategory;
@@ -64,6 +65,7 @@ export interface UseEventDashboardReturn {
   eventId: string;
   currentEvent: Event | null;
   categories: Category[];
+  expenses: Expense[];
   events: Event[];
 
   // Loading states
