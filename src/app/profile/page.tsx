@@ -180,18 +180,30 @@ export default function ProfilePage() {
                     Password
                   </h3>
                   <p className='text-xs sm:text-sm text-gray-500'>
-                    Change your password to keep your account secure
+                    {user?.providerData.some(
+                      (p) => p.providerId === 'google.com',
+                    ) &&
+                    !user?.providerData.some((p) => p.providerId === 'password')
+                      ? 'Your account is managed by Google. Please manage your password through your Google Account.'
+                      : 'Change your password to keep your account secure'}
                   </p>
                 </div>
                 <div className='flex-shrink-0 sm:ml-4'>
-                  <button
-                    type='button'
-                    onClick={() => setShowChangePassword(true)}
-                    className='btn-secondary profile-action-button'
-                  >
-                    <KeyIcon className='h-4 w-4 mr-2' />
-                    Change Password
-                  </button>
+                  {!(
+                    user?.providerData.some(
+                      (p) => p.providerId === 'google.com',
+                    ) &&
+                    !user?.providerData.some((p) => p.providerId === 'password')
+                  ) && (
+                    <button
+                      type='button'
+                      onClick={() => setShowChangePassword(true)}
+                      className='btn-secondary profile-action-button'
+                    >
+                      <KeyIcon className='h-4 w-4 mr-2' />
+                      Change Password
+                    </button>
+                  )}
                 </div>
               </div>
 
