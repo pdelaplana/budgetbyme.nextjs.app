@@ -5,8 +5,16 @@ import type {
   DashboardState,
   ExpenseDetail,
 } from '@/hooks/dashboard/useDashboardState';
+import type {
+  RecalculateEventTotalsDto,
+  RecalculationResult,
+} from '@/server/actions/events/recalculateEventTotals';
 import type { BudgetCategory } from '@/types/BudgetCategory';
-import type { Category, Event } from '@/types/firebase';
+import type { Event } from '@/types/Event';
+import type { Expense } from '@/types/Expense';
+
+// Type alias for compatibility
+type Category = BudgetCategory;
 
 // Modal controls return type based on actual useModalControls implementation
 interface ModalControls {
@@ -47,7 +55,7 @@ interface DashboardActions {
   isDropdownOpen: boolean;
   handleCategoryClick: (categoryId: string) => void;
   navigateToEvents: () => void;
-  handleExpenseEdit: (expense: any) => void;
+  handleExpenseEdit: (expense: ExpenseDetail) => void;
   handleExpenseDelete: (expenseId: string) => void;
 }
 
@@ -57,6 +65,7 @@ export interface UseEventDashboardReturn {
   eventId: string;
   currentEvent: Event | null;
   categories: Category[];
+  expenses: Expense[];
   events: Event[];
 
   // Loading states
@@ -74,7 +83,12 @@ export interface UseEventDashboardReturn {
   actions: DashboardActions;
 
   // Mutations
-  recalculateEventTotalsMutation: UseMutationResult<any, Error, any, unknown>;
+  recalculateEventTotalsMutation: UseMutationResult<
+    RecalculationResult,
+    Error,
+    RecalculateEventTotalsDto,
+    unknown
+  >;
   isRecalculatingTotals: boolean;
 
   // Handlers

@@ -93,6 +93,7 @@ export function useAttachmentManager({
       expense?.attachments,
       updateExpenseMutation,
       fileUploadState.actions,
+      expense,
     ],
   );
 
@@ -136,6 +137,7 @@ export function useAttachmentManager({
       expense?.attachments,
       updateExpenseMutation,
       fileUploadState.actions,
+      expense,
     ],
   );
 
@@ -146,7 +148,7 @@ export function useAttachmentManager({
         try {
           await uploadAttachment(file);
           fileUploadState.actions.clearPrimaryFile();
-        } catch (error) {
+        } catch (_error) {
           // Error handling is done in uploadAttachment
           fileUploadState.actions.clearPrimaryFile();
         }
@@ -168,7 +170,7 @@ export function useAttachmentManager({
         try {
           await uploadAttachment(file);
           fileUploadState.actions.clearEmptyStateFile();
-        } catch (error) {
+        } catch (_error) {
           // Error handling is done in uploadAttachment
           fileUploadState.actions.clearEmptyStateFile();
         }
@@ -199,7 +201,7 @@ export function useAttachmentManager({
     try {
       await deleteAttachment(fileUploadState.state.attachmentToDelete);
       // Success handling is done in deleteAttachment
-    } catch (error) {
+    } catch (_error) {
       // Error handling is done in deleteAttachment
     }
   }, [fileUploadState.state.attachmentToDelete, deleteAttachment]);

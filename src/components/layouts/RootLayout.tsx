@@ -7,6 +7,7 @@ import { useState } from 'react';
 import Sidebar from '@/components/layouts/Sidebar';
 import AddOrEditEventModal from '@/components/modals/AddOrEditEventModal';
 import { useEvents } from '@/contexts/EventsContext';
+import type { Event } from '@/types/Event';
 
 interface RootLayoutProps {
   children: React.ReactNode;
@@ -18,7 +19,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
   const { addEvent } = useEvents();
   const pathname = usePathname();
 
-  const handleAddEvent = (eventData: any) => {
+  const _handleAddEvent = (eventData: Omit<Event, 'id' | 'createdAt'>) => {
     addEvent(eventData);
     setShowAddEventModal(false);
   };
@@ -63,6 +64,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <div className='flex h-14 sm:h-16 justify-between items-center px-3 sm:px-6 lg:px-8'>
             <button
               type='button'
+              aria-label='Open sidebar menu'
               className='text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500 transition-all duration-200 p-1 hover:bg-gray-100 rounded-lg'
               onClick={() => setSidebarOpen(true)}
             >
@@ -96,7 +98,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
             </div>
 
             <div className='ml-2 sm:ml-4 flex items-center'>
-              <button className='bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500'>
+              <button
+                type='button'
+                aria-label='Open user menu'
+                className='bg-white p-1 rounded-full text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500'
+              >
                 <UserCircleIcon className='h-6 w-6 sm:h-8 sm:w-8' />
               </button>
             </div>

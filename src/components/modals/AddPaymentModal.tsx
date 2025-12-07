@@ -116,6 +116,18 @@ export default function AddPaymentModal({
   const isSubmitting =
     addPaymentMutation.isPending || updatePaymentMutation.isPending;
 
+  const resetForm = React.useCallback(() => {
+    setFormData({
+      name: '',
+      description: '',
+      amount: '',
+      paymentMethod: '',
+      dueDate: '',
+      notes: '',
+    });
+    setErrors({});
+  }, []);
+
   // Pre-populate form when editing
   React.useEffect(() => {
     if (editingPayment && isEditMode) {
@@ -130,7 +142,7 @@ export default function AddPaymentModal({
     } else if (!isOpen) {
       resetForm();
     }
-  }, [editingPayment, isEditMode, isOpen]);
+  }, [editingPayment, isEditMode, isOpen, resetForm]);
 
   const handleInputChange = (
     field: keyof AddPaymentFormData,
@@ -156,7 +168,10 @@ export default function AddPaymentModal({
 
     if (!formData.amount.trim()) {
       newErrors.amount = 'Amount is required';
-    } else if (isNaN(Number(formData.amount)) || Number(formData.amount) <= 0) {
+    } else if (
+      Number.isNaN(Number(formData.amount)) ||
+      Number(formData.amount) <= 0
+    ) {
       newErrors.amount = 'Please enter a valid amount';
     }
 
@@ -170,18 +185,6 @@ export default function AddPaymentModal({
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      description: '',
-      amount: '',
-      paymentMethod: '',
-      dueDate: '',
-      notes: '',
-    });
-    setErrors({});
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -236,7 +239,6 @@ export default function AddPaymentModal({
           paymentMethod: formData.paymentMethod as PaymentMethod,
           dueDate: new Date(formData.dueDate),
           notes: formData.notes.trim() || undefined,
-          attachments: [], // TODO: Handle file uploads later
         });
       }
 
@@ -289,6 +291,7 @@ export default function AddPaymentModal({
               </div>
             </div>
             <button
+              type='button'
               onClick={handleClose}
               disabled={isSubmitting}
               className='p-1.5 hover:bg-gray-100 rounded-lg transition-colors duration-200 disabled:opacity-50'

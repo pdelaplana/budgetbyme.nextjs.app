@@ -1,0 +1,9 @@
+
+> budgetbyme@0.1.0 biome:check
+> biome check .
+
+The number of diagnostics exceeds the limit allowed. Use --max-diagnostics to increase it.
+Diagnostics not shown: 117.
+Checked 280 files in 299ms. No fixes applied.
+Found 77 errors.
+Found 60 warnings.

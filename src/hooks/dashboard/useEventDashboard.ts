@@ -7,6 +7,7 @@ import { useEvents } from '@/contexts/EventsContext';
 import { useDeleteEventMutation } from '@/hooks/events';
 import { useRecalculateEventTotalsMutation } from '@/hooks/events/useRecalculateEventTotalsMutation';
 import type { UseEventDashboardReturn } from '@/types/dashboard';
+import type { Expense } from '@/types/Expense';
 import { useDashboardActions } from './useDashboardActions';
 import { useDashboardState } from './useDashboardState';
 import { useModalControls } from './useModalControls';
@@ -23,6 +24,7 @@ export function useEventDashboard(): UseEventDashboardReturn {
     isEventLoading,
     eventError,
     categories,
+    expenses,
   } = useEventDetails();
 
   const { state, dispatch } = useDashboardState();
@@ -103,6 +105,7 @@ export function useEventDashboard(): UseEventDashboardReturn {
     eventId,
     currentEvent,
     categories,
+    expenses,
     events,
 
     // Loading states

@@ -2,7 +2,6 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
-import { addToEventTotals } from '../../lib/eventAggregation';
 import { db } from '../../lib/firebase-admin';
 import { withSentryServerAction } from '../../lib/sentryServerAction';
 import type { ExpenseDocument } from '../../types/ExpenseDocument';

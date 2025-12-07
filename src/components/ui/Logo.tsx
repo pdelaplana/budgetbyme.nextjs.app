@@ -1,7 +1,5 @@
 'use client';
 
-import React from 'react';
-
 interface LogoProps {
   variant?: 'full' | 'icon-only';
   size?: 'sm' | 'md' | 'lg';
@@ -52,6 +50,8 @@ export default function Logo({
         height={config.height}
         viewBox={`0 0 ${config.width} ${config.height}`}
         className='flex-shrink-0'
+        role='img'
+        aria-label='BudgetByMe logo'
       >
         {/* Green circle background */}
         <circle

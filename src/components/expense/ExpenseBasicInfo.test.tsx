@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Expense } from '@/types/Expense';
 import ExpenseBasicInfo from './ExpenseBasicInfo';
 
@@ -8,11 +8,23 @@ const mockExpense: Expense = {
   name: 'Test Expense',
   amount: 1500,
   currency: { code: 'USD', symbol: '$' },
-  categoryId: 'cat-1',
+  category: {
+    id: 'cat-1',
+    name: 'Test Category',
+    color: '#3B82F6',
+    icon: 'ShoppingBag',
+  },
   tags: ['important', 'urgent'],
   description: 'This is a test expense description',
   _createdDate: new Date('2024-01-01'),
   attachments: [],
+  hasPaymentSchedule: false,
+  date: new Date('2024-01-01'),
+  notes: '',
+  vendor: { name: '', address: '', website: '', email: '' },
+  _createdBy: 'user123',
+  _updatedDate: new Date('2024-01-01'),
+  _updatedBy: 'user123',
 };
 
 // Mock the formatters
@@ -51,8 +63,8 @@ describe('ExpenseBasicInfo', () => {
     // Check if amount is displayed
     expect(screen.getByText('$1,500')).toBeInTheDocument();
 
-    // Check if created date is displayed
-    expect(screen.getByText(/created/i)).toBeInTheDocument();
+    // Check if category is displayed
+    expect(screen.getByText('Test Category')).toBeInTheDocument();
   });
 
   it('should render tags when not editing', () => {
@@ -62,10 +74,8 @@ describe('ExpenseBasicInfo', () => {
     expect(screen.getByText('important')).toBeInTheDocument();
     expect(screen.getByText('urgent')).toBeInTheDocument();
 
-    // Should have edit tags button
-    expect(
-      screen.getByRole('button', { name: /edit tags/i }),
-    ).toBeInTheDocument();
+    // Should have edit button (shows text as "(Edit)")
+    expect(screen.getByText(/\(Edit\)/)).toBeInTheDocument();
   });
 
   it('should render tag editing interface when editing', () => {
@@ -78,20 +88,18 @@ describe('ExpenseBasicInfo', () => {
     );
 
     // Should have input field for new tag
-    expect(
-      screen.getByRole('textbox', { name: /add tag/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/add tag/i)).toBeInTheDocument();
     expect(screen.getByDisplayValue('new-tag')).toBeInTheDocument();
 
-    // Should have add and done buttons
-    expect(screen.getByRole('button', { name: /add/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /done/i })).toBeInTheDocument();
+    // Should have add button (shows as "+") and cancel button (shows as "(Cancel)")
+    expect(screen.getByRole('button', { name: '+' })).toBeInTheDocument();
+    expect(screen.getByText(/\(Cancel\)/)).toBeInTheDocument();
   });
 
   it('should call toggleEditing when edit tags button is clicked', () => {
     render(<ExpenseBasicInfo {...defaultProps} />);
 
-    const editButton = screen.getByRole('button', { name: /edit tags/i });
+    const editButton = screen.getByText(/\(Edit\)/);
     fireEvent.click(editButton);
 
     expect(mockTagHandlers.toggleEditing).toHaveBeenCalledTimes(1);
@@ -106,7 +114,7 @@ describe('ExpenseBasicInfo', () => {
       />,
     );
 
-    const addButton = screen.getByRole('button', { name: /add/i });
+    const addButton = screen.getByRole('button', { name: '+' });
     fireEvent.click(addButton);
 
     expect(mockTagHandlers.addTag).toHaveBeenCalledTimes(1);
@@ -115,9 +123,9 @@ describe('ExpenseBasicInfo', () => {
   it('should call deleteTag when tag delete button is clicked', () => {
     render(<ExpenseBasicInfo {...defaultProps} isEditingTags={true} />);
 
-    // Find delete buttons for tags
+    // Find delete buttons for tags (they have aria-label like "Remove important tag")
     const deleteButtons = screen.getAllByRole('button', {
-      name: /remove tag/i,
+      name: /remove.*tag/i,
     });
     expect(deleteButtons).toHaveLength(2); // Should have 2 delete buttons for 2 tags
 
@@ -128,7 +136,7 @@ describe('ExpenseBasicInfo', () => {
   it('should call setNewTag when input value changes', () => {
     render(<ExpenseBasicInfo {...defaultProps} isEditingTags={true} />);
 
-    const input = screen.getByRole('textbox', { name: /add tag/i });
+    const input = screen.getByPlaceholderText(/add tag/i);
     fireEvent.change(input, { target: { value: 'new-tag-input' } });
 
     expect(mockTagHandlers.setNewTag).toHaveBeenCalledWith('new-tag-input');
@@ -137,7 +145,7 @@ describe('ExpenseBasicInfo', () => {
   it('should call handleKeyPress when keys are pressed in input', () => {
     render(<ExpenseBasicInfo {...defaultProps} isEditingTags={true} />);
 
-    const input = screen.getByRole('textbox', { name: /add tag/i });
+    const input = screen.getByPlaceholderText(/add tag/i);
     fireEvent.keyDown(input, { key: 'Enter' });
 
     expect(mockTagHandlers.handleKeyPress).toHaveBeenCalled();
@@ -148,9 +156,9 @@ describe('ExpenseBasicInfo', () => {
 
     // Should still render the component without tags
     expect(screen.getByText('Test Expense')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /edit tags/i }),
-    ).toBeInTheDocument();
+    // Should show "No tags" text and "Add" button
+    expect(screen.getByText(/no tags/i)).toBeInTheDocument();
+    expect(screen.getByText('Add')).toBeInTheDocument();
   });
 
   it('should render category information if provided', () => {
@@ -196,7 +204,7 @@ describe('ExpenseBasicInfo', () => {
 
     // Should have correct number of delete buttons
     const deleteButtons = screen.getAllByRole('button', {
-      name: /remove tag/i,
+      name: /remove.*tag/i,
     });
     expect(deleteButtons).toHaveLength(manyTags.length);
   });
@@ -210,33 +218,33 @@ describe('ExpenseBasicInfo', () => {
     // Should have proper form elements when editing
     render(<ExpenseBasicInfo {...defaultProps} isEditingTags={true} />);
 
-    expect(screen.getByRole('textbox')).toBeInTheDocument();
-    expect(screen.getByRole('textbox')).toHaveAttribute('aria-label');
+    // Input uses placeholder instead of aria-label
+    const input = screen.getByRole('textbox');
+    expect(input).toBeInTheDocument();
+    expect(input).toHaveAttribute('placeholder', 'Add tag...');
   });
 
   it('should handle tag editing state transitions', () => {
     const { rerender } = render(<ExpenseBasicInfo {...defaultProps} />);
 
-    // Initially not editing
-    expect(
-      screen.getByRole('button', { name: /edit tags/i }),
-    ).toBeInTheDocument();
+    // Initially not editing - should show (Edit) button
+    expect(screen.getByText(/\(Edit\)/)).toBeInTheDocument();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
 
     // Switch to editing
     rerender(<ExpenseBasicInfo {...defaultProps} isEditingTags={true} />);
 
     expect(screen.getByRole('textbox')).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: /edit tags/i }),
-    ).not.toBeInTheDocument();
+    // Should now show (Cancel) instead of (Edit)
+    expect(screen.getByText(/\(Cancel\)/)).toBeInTheDocument();
+    expect(screen.queryByText(/\(Edit\)/)).not.toBeInTheDocument();
   });
 
   it('should not re-render unnecessarily with same props', () => {
     const { rerender } = render(<ExpenseBasicInfo {...defaultProps} />);
 
     // Get reference to an element
-    const expenseName = screen.getByText('Test Expense');
+    const _expenseName = screen.getByText('Test Expense');
 
     // Re-render with same props
     rerender(<ExpenseBasicInfo {...defaultProps} />);

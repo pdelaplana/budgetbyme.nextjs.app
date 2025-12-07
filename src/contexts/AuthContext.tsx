@@ -124,7 +124,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signInWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const userCredential = await signInWithPopup(auth, provider);
+
+      if (userCredential.user) {
+        await setupUserWorkspace({
+          userId: userCredential.user.uid,
+          email: userCredential.user.email || '',
+          name: userCredential.user.displayName || 'User',
+          preferences: {
+            language: 'en',
+            currency: CurrencyImplementation.USD.code,
+          },
+        });
+      }
     } catch (error) {
       console.error('Google sign in error:', error);
       throw error;

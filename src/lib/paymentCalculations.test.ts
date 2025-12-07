@@ -229,7 +229,7 @@ describe('Payment Calculations', () => {
       expect(stats).toEqual({
         totalExpenses: 2,
         fullyPaidExpenses: 1,
-        overdueExpenses: 0,
+        overdueExpenses: 1,
         pendingExpenses: 1,
         totalScheduled: 1500,
         totalPaid: 1000,

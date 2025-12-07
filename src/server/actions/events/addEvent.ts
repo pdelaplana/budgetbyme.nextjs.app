@@ -2,8 +2,11 @@
 
 import * as Sentry from '@sentry/nextjs';
 import { Timestamp } from 'firebase-admin/firestore';
+import { getCategoryTemplateById } from '@/lib/categoryTemplates';
+import type { Event } from '@/types/Event';
 import { db } from '../../lib/firebase-admin';
 import { withSentryServerAction } from '../../lib/sentryServerAction';
+import { eventFromFirestore } from '../../types/converters';
 import type { EventDocument } from '../../types/EventDocument';
 
 export interface AddEventDto {
@@ -15,6 +18,7 @@ export interface AddEventDto {
   totalBudgetedAmount: number;
   currency: string;
   status?: string;
+  selectedCategoryTemplates?: string[]; // Optional category template IDs
 }
 
 /**
@@ -23,7 +27,7 @@ export interface AddEventDto {
  */
 export const addEvent = withSentryServerAction(
   'addEvent',
-  async (addEventDto: AddEventDto): Promise<string> => {
+  async (addEventDto: AddEventDto): Promise<Event> => {
     if (!addEventDto.userId) throw new Error('User ID is required');
     if (!addEventDto.name?.trim()) throw new Error('Event name is required');
     if (!addEventDto.eventDate) throw new Error('Event date is required');
@@ -72,6 +76,7 @@ export const addEvent = withSentryServerAction(
             : addEventDto.eventDate,
         ),
         totalBudgetedAmount: addEventDto.totalBudgetedAmount,
+        totalScheduledAmount: 0, // Start with zero scheduled
         totalSpentAmount: 0, // Start with zero spent
         status: addEventDto.status, // Default status
         currency: addEventDto.currency,
@@ -83,6 +88,54 @@ export const addEvent = withSentryServerAction(
 
       // Save to Firestore
       await newEventRef.set(newEventDocument);
+
+      // Create selected categories if provided
+      if (
+        addEventDto.selectedCategoryTemplates &&
+        addEventDto.selectedCategoryTemplates.length > 0
+      ) {
+        // Use batch write for atomic operation
+        const batch = db.batch();
+        const categoriesCollectionRef = newEventRef.collection('categories');
+
+        for (const templateId of addEventDto.selectedCategoryTemplates) {
+          const template = getCategoryTemplateById(templateId);
+
+          if (template) {
+            const categoryRef = categoriesCollectionRef.doc(); // Auto-generate ID
+            const categoryData = {
+              name: template.name,
+              description: template.description,
+              icon: template.icon,
+              color: template.color,
+              budgetedAmount: 0, // Start with $0 as specified
+              scheduledAmount: 0,
+              spentAmount: 0,
+              _createdDate: now,
+              _createdBy: addEventDto.userId,
+              _updatedDate: now,
+              _updatedBy: addEventDto.userId,
+            };
+
+            batch.set(categoryRef, categoryData);
+          }
+        }
+
+        // Commit all category creates atomically
+        await batch.commit();
+
+        // Add breadcrumb for category creation
+        Sentry.addBreadcrumb({
+          category: 'event.create',
+          message: 'Categories created from templates',
+          level: 'info',
+          data: {
+            userId: addEventDto.userId,
+            eventId: newEventRef.id,
+            categoryCount: addEventDto.selectedCategoryTemplates.length,
+          },
+        });
+      }
 
       // Add breadcrumb for successful event creation
       Sentry.addBreadcrumb({
@@ -96,7 +149,14 @@ export const addEvent = withSentryServerAction(
         },
       });
 
-      return newEventRef.id;
+      // Fetch the created event and convert to Event type
+      const createdEventDoc = await newEventRef.get();
+      if (!createdEventDoc.exists) {
+        throw new Error('Failed to retrieve created event');
+      }
+
+      const eventData = createdEventDoc.data() as EventDocument;
+      return eventFromFirestore(createdEventDoc.id, eventData);
     } catch (error) {
       console.error('Error creating event:', error);
 

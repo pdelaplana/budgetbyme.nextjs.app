@@ -8,4 +8,8 @@ export interface BudgetCategory extends Entity {
   spentAmount: number; // Total amount actually paid for expenses in this category
   color: string;
   icon: string;
+  // Computed properties
+  spentPercentage: number;
+  remainingAmount: number;
+  isOverBudget: boolean;
 }

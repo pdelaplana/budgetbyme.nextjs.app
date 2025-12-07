@@ -35,6 +35,12 @@ export interface ExpenseWithPayments {
   oneOffPayment?: Payment;
 }
 
+export interface PaymentStatus {
+  totalScheduled: number;
+  totalPaid: number;
+  remainingBalance: number;
+}
+
 /**
  * Calculates comprehensive payment status for an expense
  */
@@ -94,7 +100,7 @@ export function calculatePaymentStatus(
 
   // Categorize payments by due date
   const today = new Date();
-  today.setHours(23, 59, 59, 999); // End of today for comparison
+  today.setHours(0, 0, 0, 0); // Start of today for comparison
 
   const overduePayments = unpaidPayments.filter(
     (p) => new Date(p.dueDate) < today,

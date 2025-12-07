@@ -49,6 +49,8 @@ export function useExpensePageOptimizations({
     expense?.category.id,
     expense?.name,
     eventId,
+    currentEvent,
+    expense,
   ]);
 
   // Memoized category ID for navigation

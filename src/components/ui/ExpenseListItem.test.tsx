@@ -1,12 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ExpenseListItemProps } from './ExpenseListItem';
 import ExpenseListItem from './ExpenseListItem';
 
 // Mock the formatters
 vi.mock('@/lib/formatters', () => ({
   formatCurrency: (amount: number) => `$${amount.toFixed(0)}`,
-  formatDate: (date: string | Date) => 'Jan 15, 2025',
+  formatDate: (_date: string | Date) => 'Jan 15, 2025',
 }));
 
 // Mock the payment calculations
@@ -35,7 +35,23 @@ describe('ExpenseListItem', () => {
     name: 'Test Expense',
     description: 'A test expense',
     amount: 1000,
-    date: '2025-01-15',
+    currency: { code: 'USD', symbol: '$' },
+    date: new Date('2025-01-15'),
+    notes: '',
+    tags: [],
+    attachments: [],
+    category: {
+      id: 'cat-1',
+      name: 'Test Category',
+      color: '#3B82F6',
+      icon: 'ShoppingBag',
+    },
+    vendor: { name: '', address: '', website: '', email: '' },
+    hasPaymentSchedule: false,
+    _createdDate: new Date(),
+    _createdBy: 'user123',
+    _updatedDate: new Date(),
+    _updatedBy: 'user123',
   };
 
   const mockOnClick = vi.fn();
@@ -106,7 +122,7 @@ describe('ExpenseListItem', () => {
   it('handles missing description gracefully', () => {
     const expenseWithoutDescription = {
       ...mockExpense,
-      description: undefined,
+      description: '',
     };
     render(
       <ExpenseListItem

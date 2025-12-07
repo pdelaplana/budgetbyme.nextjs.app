@@ -22,7 +22,7 @@ export const useAddExpenseMutation = (
       eventId: string;
       addExpenseDto: AddExpenseDto;
     }) => {
-      const { userId, eventId, addExpenseDto } = params;
+      const { addExpenseDto } = params;
       return addExpense(addExpenseDto);
     },
 
@@ -63,6 +63,7 @@ export const useAddExpenseMutation = (
           notes: addExpenseDto.notes,
           tags: addExpenseDto.tags,
           attachments: addExpenseDto.attachments || [],
+          hasPaymentSchedule: false, // Default to false for new expenses
           _createdDate: new Date(),
           _createdBy: addExpenseDto.userId,
           _updatedDate: new Date(),

@@ -1,10 +1,6 @@
 'use client';
 
-import {
-  ArrowPathIcon,
-  ExclamationTriangleIcon,
-} from '@heroicons/react/24/outline';
-import React from 'react';
+import { ArrowPathIcon } from '@heroicons/react/24/outline';
 
 export interface ErrorRecoveryCardProps {
   title: string;

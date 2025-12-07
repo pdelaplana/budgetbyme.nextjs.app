@@ -5,23 +5,54 @@ import { getFunctions } from 'firebase-admin/functions';
 import { getStorage } from 'firebase-admin/storage';
 
 async function getServiceAccountCredentials() {
-  // For local development, you can still use the local file
+  // Priority 1: Check for environment variables (Vercel deployment)
+  if (process.env.FIREBASE_ADMIN_CREDENTIALS) {
+    console.log(
+      '🔄 Firebase Admin: Using credentials from environment variable',
+    );
+    try {
+      return JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
+    } catch (error) {
+      console.error(
+        '❌ Firebase Admin: Failed to parse FIREBASE_ADMIN_CREDENTIALS',
+        error,
+      );
+      throw new Error(
+        'Invalid FIREBASE_ADMIN_CREDENTIALS environment variable',
+      );
+    }
+  }
+
+  // Priority 2: Check for individual environment variables (alternative format)
+  if (
+    process.env.FIREBASE_ADMIN_CLIENT_EMAIL &&
+    process.env.FIREBASE_ADMIN_PRIVATE_KEY &&
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+  ) {
+    console.log(
+      '🔄 Firebase Admin: Using credentials from individual environment variables',
+    );
+    return {
+      type: 'service_account',
+      project_id: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+      client_email: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+      private_key: process.env.FIREBASE_ADMIN_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    };
+  }
+
+  // Priority 3: Local development file
   if (process.env.NODE_ENV === 'development') {
     console.log('🔄 Firebase Admin: Using local credentials for development');
-    // Ensure the local credentials file exists
     try {
       const credentialsPath = `${process.cwd()}/.secrets/firebase-adminsdk.json`;
       console.log('📄 Firebase Admin: Credentials path:', credentialsPath);
       return credentialsPath;
     } catch (error) {
-      console.warn(
-        '⚠️ Firebase Admin: Local credentials file not found, falling back to Secret Manager',
-        error,
-      );
+      console.warn('⚠️ Firebase Admin: Local credentials file not found', error);
     }
   }
 
-  // For production, fetch from Secret Manager
+  // Priority 4: Google Secret Manager (Google Cloud deployment)
   try {
     console.log('🔄 Firebase Admin: Fetching credentials from Secret Manager');
     // Import Secret Manager only when needed

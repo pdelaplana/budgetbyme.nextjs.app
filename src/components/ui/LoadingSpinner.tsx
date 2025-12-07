@@ -1,7 +1,5 @@
 'use client';
 
-import React from 'react';
-
 interface LoadingSpinnerProps {
   title?: string;
   message?: string;

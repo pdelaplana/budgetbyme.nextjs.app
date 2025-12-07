@@ -20,6 +20,7 @@ export default function EventDashboardPage() {
     // Data
     currentEvent,
     categories,
+    expenses,
     events,
 
     // Loading states
@@ -98,7 +99,11 @@ export default function EventDashboardPage() {
       />
 
       {/* Charts Section - Responsive */}
-      <BudgetOverview event={currentEvent} categories={categories} />
+      <BudgetOverview
+        event={currentEvent}
+        categories={categories}
+        expenses={expenses}
+      />
 
       {/* Upcoming Payments Widget - Compact */}
       <PaymentsSection onGetStarted={stableHandlers.onGetStarted} />

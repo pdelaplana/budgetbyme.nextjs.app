@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronRightIcon, HomeIcon } from '@heroicons/react/24/outline';
+import { ChevronRightIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import type React from 'react';
 
@@ -22,7 +22,8 @@ export default function Breadcrumbs({
 }: BreadcrumbsProps) {
   const router = useRouter();
 
-  const handleClick = (href: string) => {
+  const handleClick = (href?: string) => {
+    if (!href) return;
     router.push(href);
   };
 
@@ -34,7 +35,7 @@ export default function Breadcrumbs({
           const IconComponent = item.icon;
 
           return (
-            <li key={index} className='flex items-center'>
+            <li key={item.label} className='flex items-center'>
               {/* Separator (except for first item) */}
               {index > 0 && (
                 <ChevronRightIcon className='h-4 w-4 text-gray-400 mx-2 flex-shrink-0' />
@@ -46,9 +47,10 @@ export default function Breadcrumbs({
                   <IconComponent className='h-4 w-4 text-gray-500 mr-1.5 flex-shrink-0' />
                 )}
 
-                {item.href && !isLast ? (
+                {item.href ? (
                   <button
-                    onClick={() => handleClick(item.href!)}
+                    type='button'
+                    onClick={() => handleClick(item.href)}
                     className='text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors duration-200 truncate max-w-32 sm:max-w-none'
                     title={item.label}
                   >

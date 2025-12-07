@@ -2,15 +2,12 @@
 
 import {
   CalendarDaysIcon,
-  CalendarIcon,
   CheckCircleIcon,
-  CurrencyDollarIcon,
-  DocumentTextIcon,
   PlusIcon,
   TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
@@ -85,7 +82,7 @@ export default function PaymentScheduleModal({
   const { event } = useEventDetails();
 
   // Initialize payments based on mode
-  const getInitialPayments = (): PaymentScheduleItem[] => {
+  const getInitialPayments = useCallback((): PaymentScheduleItem[] => {
     if (mode === 'edit' && existingPayments && existingPayments.length > 0) {
       return existingPayments.map((payment) => ({
         id: payment.id,
@@ -118,7 +115,7 @@ export default function PaymentScheduleModal({
         notes: '',
       },
     ];
-  };
+  }, [mode, existingPayments, totalAmount]);
 
   const [payments, setPayments] = useState<PaymentScheduleItem[]>(
     getInitialPayments(),
@@ -165,7 +162,7 @@ export default function PaymentScheduleModal({
       setPayments(getInitialPayments());
       setErrors({});
     }
-  }, [isOpen, existingPayments, mode, totalAmount]);
+  }, [isOpen, getInitialPayments]);
 
   const handlePaymentChange = (
     paymentId: string,
@@ -241,7 +238,10 @@ export default function PaymentScheduleModal({
       if (!payment.amount.trim()) {
         paymentErrors.amount = 'Amount is required';
         hasErrors = true;
-      } else if (isNaN(Number(payment.amount)) || Number(payment.amount) <= 0) {
+      } else if (
+        Number.isNaN(Number(payment.amount)) ||
+        Number(payment.amount) <= 0
+      ) {
         paymentErrors.amount = 'Please enter a valid amount';
         hasErrors = true;
       }
@@ -400,6 +400,7 @@ export default function PaymentScheduleModal({
               </div>
             </div>
             <button
+              type='button'
               onClick={handleClose}
               disabled={isSubmitting}
               className='p-1.5 hover:bg-gray-100 rounded-lg transition-colors duration-200 disabled:opacity-50'
@@ -491,10 +492,15 @@ export default function PaymentScheduleModal({
                   </div>
 
                   <div className='space-y-4 mb-4'>
-                    {/* Payment Name */}
                     <div>
-                      <label className='form-label'>Payment Name</label>
+                      <label
+                        className='form-label'
+                        htmlFor={`payment-name-${payment.id}`}
+                      >
+                        Payment Name
+                      </label>
                       <input
+                        id={`payment-name-${payment.id}`}
                         type='text'
                         value={payment.name}
                         onChange={(e) =>
@@ -516,10 +522,15 @@ export default function PaymentScheduleModal({
                       )}
                     </div>
 
-                    {/* Description */}
                     <div>
-                      <label className='form-label'>Description</label>
+                      <label
+                        className='form-label'
+                        htmlFor={`payment-description-${payment.id}`}
+                      >
+                        Description
+                      </label>
                       <input
+                        id={`payment-description-${payment.id}`}
                         type='text'
                         value={payment.description}
                         onChange={(e) =>
@@ -541,15 +552,20 @@ export default function PaymentScheduleModal({
                       )}
                     </div>
 
-                    {/* Amount, Payment Method, Due Date Row */}
                     <div className='grid grid-cols-1 lg:grid-cols-3 gap-4'>
                       <div>
-                        <label className='form-label'>Amount</label>
+                        <label
+                          className='form-label'
+                          htmlFor={`payment-amount-${payment.id}`}
+                        >
+                          Amount
+                        </label>
                         <div className='relative'>
                           <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
                             <span className='text-gray-500 sm:text-sm'>$</span>
                           </div>
                           <input
+                            id={`payment-amount-${payment.id}`}
                             type='text'
                             value={payment.amount}
                             onChange={(e) =>
@@ -633,21 +649,30 @@ export default function PaymentScheduleModal({
                         )}
                       </div>
                     </div>
-                  </div>
 
-                  {/* Notes */}
-                  <div>
-                    <label className='form-label'>Notes (Optional)</label>
-                    <input
-                      type='text'
-                      value={payment.notes}
-                      onChange={(e) =>
-                        handlePaymentChange(payment.id, 'notes', e.target.value)
-                      }
-                      placeholder='e.g., 30 days before event'
-                      className='form-input'
-                      disabled={isSubmitting}
-                    />
+                    <div>
+                      <label
+                        className='form-label'
+                        htmlFor={`payment-notes-${payment.id}`}
+                      >
+                        Notes (Optional)
+                      </label>
+                      <input
+                        id={`payment-notes-${payment.id}`}
+                        type='text'
+                        value={payment.notes}
+                        onChange={(e) =>
+                          handlePaymentChange(
+                            payment.id,
+                            'notes',
+                            e.target.value,
+                          )
+                        }
+                        placeholder='e.g., 30 days before event'
+                        className='form-input'
+                        disabled={isSubmitting}
+                      />
+                    </div>
                   </div>
                 </div>
               ))}

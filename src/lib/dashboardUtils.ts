@@ -1,4 +1,4 @@
-import type { Event } from '@/types/firebase';
+import type { Event } from '@/types/Event';
 
 /**
  * Dashboard state validation utilities for determining component render states

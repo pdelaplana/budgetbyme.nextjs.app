@@ -1,5 +1,4 @@
 import { useRouter } from 'next/navigation';
-import type { DashboardAction } from './useDashboardState';
 import type { ModalControlsProps } from './useModalControls';
 
 export interface DashboardActionsProps extends ModalControlsProps {

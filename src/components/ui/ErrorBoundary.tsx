@@ -55,7 +55,7 @@ export default class ErrorBoundary extends Component<
     // Reset error state when resetKeys change
     if (hasError && resetKeys && prevProps.resetKeys) {
       const hasResetKeyChanged = resetKeys.some(
-        (key, idx) => prevProps.resetKeys![idx] !== key,
+        (key, idx) => prevProps.resetKeys?.[idx] !== key,
       );
 
       if (hasResetKeyChanged) {
@@ -134,7 +134,7 @@ function ErrorFallback({ error, onRetry, errorId }: ErrorFallbackProps) {
           </summary>
           <pre className='mt-2 text-xs bg-gray-100 p-2 rounded overflow-auto'>
             {error.message}
-            {error.stack && '\n\nStack trace:\n' + error.stack}
+            {error.stack && `\n\nStack trace:\n${error.stack}`}
           </pre>
           <p className='text-xs text-gray-400 mt-1'>Error ID: {errorId}</p>
         </details>

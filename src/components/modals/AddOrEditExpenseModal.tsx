@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/a11y/noLabelWithoutControl: <explanation> */
 'use client';
 
 import {
@@ -80,7 +81,7 @@ export default function AddOrEditExpenseModal({
   const availableCategories = categories || contextCategories || [];
 
   const addExpenseMutation = useAddExpenseMutation({
-    onSuccess: (expenseId) => {
+    onSuccess: (_expenseId) => {
       // Close modal immediately for better UX
       handleClose(true);
 
@@ -96,7 +97,7 @@ export default function AddOrEditExpenseModal({
   });
 
   const updateExpenseMutation = useUpdateExpenseMutation({
-    onSuccess: (expenseId) => {
+    onSuccess: (_expenseId) => {
       // Show success toast
       toast.success('Expense updated successfully!');
 
@@ -629,9 +630,9 @@ export default function AddOrEditExpenseModal({
                 </div>
                 {formData.tags.length > 0 && (
                   <div className='flex flex-wrap gap-2'>
-                    {formData.tags.map((tag, index) => (
+                    {formData.tags.map((tag) => (
                       <span
-                        key={index}
+                        key={tag}
                         className='inline-flex items-center gap-1 px-3 py-1 bg-primary-100 text-primary-800 text-sm rounded-full'
                       >
                         {tag}

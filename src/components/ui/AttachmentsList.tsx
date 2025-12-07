@@ -32,7 +32,6 @@ interface AttachmentsListProps {
 
 export default function AttachmentsList({
   attachments,
-  expenseId,
   canDelete = true,
   canAdd = true,
   onAttachmentAdd,

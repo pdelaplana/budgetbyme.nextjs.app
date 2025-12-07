@@ -12,15 +12,15 @@ import {
 import React from 'react';
 import { formatCurrency, formatDate } from '@/lib/formatters';
 import {
+  type Payment as CalculatedPayment,
   calculatePaymentStatus,
   type ExpenseWithPayments,
 } from '@/lib/paymentCalculations';
-import type { Payment } from '@/types/Payment';
 import PaymentSummaryCard from './PaymentSummaryCard';
 
 interface PaymentScheduleSectionProps {
   expense: ExpenseWithPayments;
-  onMarkPaymentAsPaid: (payment: Payment) => void;
+  onMarkPaymentAsPaid: (payment: CalculatedPayment) => void;
   onDeleteAllPayments: () => void;
   onEditSchedule: () => void;
   onCreateSchedule: () => void;
@@ -40,23 +40,18 @@ const PaymentScheduleSection = React.memo<PaymentScheduleSectionProps>(
     const paymentStatus = calculatePaymentStatus(expense);
     const { hasPayments, allPayments } = paymentStatus;
 
-    const getPaymentStatus = (payment: Payment) => {
+    const getPaymentStatus = (payment: CalculatedPayment) => {
       if (payment.isPaid) {
         return {
           icon: CheckCircleIcon,
-          text: payment.paidDate
-            ? `Paid ${formatDate(payment.paidDate)}`
-            : 'Paid',
+          text: 'Paid',
           className: 'text-success-600',
           bgClassName: 'bg-success-50',
           borderClassName: 'border-success-200',
         };
       } else {
         const today = new Date();
-        const dueDate =
-          payment.dueDate instanceof Date
-            ? payment.dueDate
-            : new Date(payment.dueDate);
+        const dueDate = new Date(payment.dueDate);
         const daysUntilDue = Math.ceil(
           (dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
         );
@@ -136,7 +131,7 @@ const PaymentScheduleSection = React.memo<PaymentScheduleSectionProps>(
               </div>
 
               <div className='space-y-3'>
-                {allPayments.map((payment: Payment) => {
+                {allPayments.map((payment) => {
                   const status = getPaymentStatus(payment);
                   const StatusIcon = status.icon;
 
@@ -152,31 +147,13 @@ const PaymentScheduleSection = React.memo<PaymentScheduleSectionProps>(
                           />
                           <div className='flex-1'>
                             <h5 className='font-semibold text-gray-900'>
-                              {payment.name || payment.description}
+                              {payment.description || 'Payment'}
                             </h5>
-                            {payment.name && payment.description && (
-                              <p className='text-sm text-gray-600 mt-1'>
-                                {payment.description}
-                              </p>
-                            )}
                             <p
                               className={`text-sm ${status.className} font-medium mt-1`}
                             >
                               {status.text}
                             </p>
-                            {payment.notes && (
-                              <p className='text-sm text-gray-600 mt-1'>
-                                {payment.notes}
-                              </p>
-                            )}
-                            {payment.paymentMethod && (
-                              <p className='text-sm text-gray-600 mt-1'>
-                                Payment method:{' '}
-                                <span className='font-medium'>
-                                  {payment.paymentMethod}
-                                </span>
-                              </p>
-                            )}
                           </div>
                         </div>
                         <div className='text-right'>

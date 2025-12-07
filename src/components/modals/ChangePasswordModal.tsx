@@ -137,7 +137,7 @@ export default function ChangePasswordModal({
 
           // Fallback for unknown Firebase errors
           default:
-            if (error.message && error.message.includes('auth/')) {
+            if (error.message?.includes('auth/')) {
               errorMessage =
                 'Authentication error occurred. Please try signing out and back in.';
             } else if (error.message) {
@@ -209,7 +209,7 @@ export default function ChangePasswordModal({
   if (isSuccess) {
     return (
       <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as='div' className='relative z-50' onClose={() => {}}>
+        <Dialog as='div' className='relative z-50' onClose={() => undefined}>
           <Transition.Child
             as={Fragment}
             enter='ease-out duration-300'
@@ -292,8 +292,11 @@ export default function ChangePasswordModal({
                     </Dialog.Title>
                   </div>
                   <button
+                    type='button'
                     onClick={handleClose}
                     className='text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-lg p-1'
+                    aria-label='Close change password modal'
+                    title='Close'
                   >
                     <XMarkIcon className='w-5 h-5' />
                   </button>
@@ -304,11 +307,15 @@ export default function ChangePasswordModal({
                   <div className='space-y-5'>
                     {/* Current Password */}
                     <div>
-                      <label className='block text-sm font-medium text-gray-700 mb-2'>
+                      <label
+                        htmlFor='current-password'
+                        className='block text-sm font-medium text-gray-700 mb-2'
+                      >
                         Current Password
                       </label>
                       <div className='relative'>
                         <input
+                          id='current-password'
                           type={showCurrentPassword ? 'text' : 'password'}
                           value={currentPassword}
                           onChange={(e) => setCurrentPassword(e.target.value)}
@@ -335,15 +342,15 @@ export default function ChangePasswordModal({
                           {errors.currentPassword}
                         </p>
                       )}
-                    </div>
-
-                    {/* New Password */}
-                    <div>
-                      <label className='block text-sm font-medium text-gray-700 mb-2'>
+                      <label
+                        htmlFor='new-password'
+                        className='block text-sm font-medium text-gray-700 mb-2'
+                      >
                         New Password
                       </label>
                       <div className='relative'>
                         <input
+                          id='new-password'
                           type={showNewPassword ? 'text' : 'password'}
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
@@ -392,15 +399,16 @@ export default function ChangePasswordModal({
                           {errors.newPassword}
                         </p>
                       )}
-                    </div>
 
-                    {/* Confirm Password */}
-                    <div>
-                      <label className='block text-sm font-medium text-gray-700 mb-2'>
+                      <label
+                        htmlFor='confirm-password'
+                        className='block text-sm font-medium text-gray-700 mb-2'
+                      >
                         Confirm New Password
                       </label>
                       <div className='relative'>
                         <input
+                          id='confirm-password'
                           type={showConfirmPassword ? 'text' : 'password'}
                           value={confirmPassword}
                           onChange={(e) => setConfirmPassword(e.target.value)}

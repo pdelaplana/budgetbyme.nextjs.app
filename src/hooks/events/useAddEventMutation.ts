@@ -6,7 +6,7 @@ import type { Event } from '@/types/Event';
 
 export interface UseAddEventMutationOptions {
   onSuccess?: (
-    id: string,
+    event: Event,
     variables: { userId: string; addEventDTO: AddEventDto },
   ) => void;
   onError?: (
@@ -82,7 +82,7 @@ export function useAddEventMutation(options?: UseAddEventMutationOptions) {
 
       return addEvent(addEventDTO);
     },
-    onSuccess: (id, variables) => {
+    onSuccess: (event, variables) => {
       // Invalidate and refetch queries that are affected by the mutation
       queryClient.invalidateQueries({
         queryKey: ['fetchEvents', variables.userId],
@@ -95,7 +95,7 @@ export function useAddEventMutation(options?: UseAddEventMutationOptions) {
 
       // Call custom success handler if provided
       if (options?.onSuccess) {
-        options.onSuccess(id, variables);
+        options.onSuccess(event, variables);
       }
     },
     onError: (error, variables) => {
@@ -139,9 +139,9 @@ export function useAddEventWithCallback(
   onError?: (error: string) => void,
 ) {
   const mutation = useAddEventMutation({
-    onSuccess: (id) => {
+    onSuccess: (event) => {
       if (onSuccess) {
-        onSuccess(id);
+        onSuccess(event.id);
       }
     },
     onError: (error) => {

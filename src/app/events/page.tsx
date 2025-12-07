@@ -46,7 +46,7 @@ export default function EventsPage() {
     },
   });
 
-  const handleEventClick = (event: any) => {
+  const handleEventClick = (event: Event) => {
     // Set the selected event in context before navigating
     setSelectedEvent(event);
     router.push(`/events/${event.id}/dashboard`);
@@ -67,7 +67,7 @@ export default function EventsPage() {
         userId: user.uid,
         eventId: eventToDelete.id,
       });
-    } catch (error) {
+    } catch (_error) {
       // Error handling is managed in the mutation callbacks
     }
   };
@@ -99,7 +99,11 @@ export default function EventsPage() {
               <p className='text-gray-600 mb-4'>
                 {error || 'Something went wrong while loading your events.'}
               </p>
-              <button onClick={() => refetch()} className='btn-primary'>
+              <button
+                type='button'
+                onClick={() => refetch()}
+                className='btn-primary'
+              >
                 Try Again
               </button>
             </div>
@@ -141,10 +145,11 @@ export default function EventsPage() {
                 </h2>
                 <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
                   {events.map((event) => (
-                    <div
+                    <button
                       key={event.id}
+                      type='button'
                       onClick={() => handleEventClick(event)}
-                      className='group relative bg-white border border-gray-200 rounded-lg p-6 hover:border-primary-300 hover:shadow-md transition-all duration-200 cursor-pointer'
+                      className='group relative bg-white border border-gray-200 rounded-lg p-6 hover:border-primary-300 hover:shadow-md transition-all duration-200 text-left w-full'
                     >
                       {/* Action Buttons */}
                       <div className='absolute top-2 right-2 flex space-x-1 z-10'>
@@ -209,7 +214,7 @@ export default function EventsPage() {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -217,6 +222,7 @@ export default function EventsPage() {
               {/* Create New Event */}
               <div className='pt-8 border-t border-gray-200'>
                 <button
+                  type='button'
                   onClick={() => setShowAddEvent(true)}
                   className='inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-primary-700 bg-primary-100 hover:bg-primary-200 transition-colors duration-200'
                 >
@@ -279,6 +285,7 @@ export default function EventsPage() {
               {/* Create Event Button */}
               <div className='space-y-4'>
                 <button
+                  type='button'
                   onClick={() => setShowAddEvent(true)}
                   className='inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors duration-200 shadow-sm'
                 >

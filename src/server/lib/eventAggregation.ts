@@ -125,10 +125,7 @@ export async function updateEventTotals(
               (sum: number, payment: any) => sum + (payment.amount || 0),
               0,
             );
-        } else if (
-          expenseData.oneOffPayment &&
-          expenseData.oneOffPayment.isPaid
-        ) {
+        } else if (expenseData.oneOffPayment?.isPaid) {
           // Single paid payment
           expenseSpentAmount = expenseData.oneOffPayment.amount || 0;
         }
@@ -277,7 +274,10 @@ export async function addToEventTotals(
       throw new Error('Event not found');
     }
 
-    const currentData = eventDoc.data()!;
+    const currentData = eventDoc.data();
+    if (!currentData) {
+      throw new Error('Event data is missing');
+    }
 
     // Calculate new totals
     const totalBudgetedAmount =
@@ -386,20 +386,20 @@ export async function subtractFromEventTotals(
       throw new Error('Event not found');
     }
 
-    const currentData = eventDoc.data()!;
+    const currentData = eventDoc.data();
 
     // Calculate new totals (ensure no negative values)
     const totalBudgetedAmount = Math.max(
       0,
-      (currentData.totalBudgetedAmount || 0) - (amounts.budgeted || 0),
+      (currentData?.totalBudgetedAmount || 0) - (amounts.budgeted || 0),
     );
     const totalScheduledAmount = Math.max(
       0,
-      (currentData.totalScheduledAmount || 0) - (amounts.scheduled || 0),
+      (currentData?.totalScheduledAmount || 0) - (amounts.scheduled || 0),
     );
     const totalSpentAmount = Math.max(
       0,
-      (currentData.totalSpentAmount || 0) - (amounts.spent || 0),
+      (currentData?.totalSpentAmount || 0) - (amounts.spent || 0),
     );
 
     // Calculate derived values

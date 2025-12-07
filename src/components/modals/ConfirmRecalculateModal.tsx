@@ -34,10 +34,14 @@ export default function ConfirmRecalculateModal({
               </h3>
             </div>
             <button
+              type='button'
               onClick={onClose}
               disabled={isLoading}
               className='text-gray-400 hover:text-gray-600 disabled:opacity-50'
+              aria-label='Close modal'
+              title='Close modal'
             >
+              <span className='sr-only'>Close</span>
               <XMarkIcon className='h-5 w-5' />
             </button>
           </div>
@@ -74,6 +78,7 @@ export default function ConfirmRecalculateModal({
                     fill='none'
                     viewBox='0 0 24 24'
                   >
+                    <title>Loading</title>
                     <circle
                       className='opacity-25'
                       cx='12'

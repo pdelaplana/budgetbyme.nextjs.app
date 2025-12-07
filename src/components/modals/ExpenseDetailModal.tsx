@@ -14,7 +14,6 @@ import {
   TrashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import React from 'react';
 import {
   formatCurrency,
   formatDateLong,
@@ -105,6 +104,7 @@ export default function ExpenseDetailModal({
               </div>
             </div>
             <button
+              type='button'
               onClick={onClose}
               className='p-1.5 hover:bg-gray-100 rounded-lg transition-colors duration-200'
               aria-label='Close modal'
@@ -139,18 +139,18 @@ export default function ExpenseDetailModal({
 
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
                 <div>
-                  <label className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
+                  <p className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
                     Expense Name
-                  </label>
+                  </p>
                   <p className='mt-1 text-base font-medium text-gray-900'>
                     {expense.name}
                   </p>
                 </div>
 
                 <div>
-                  <label className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
+                  <p className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
                     Category
-                  </label>
+                  </p>
                   <div className='mt-1 flex items-center'>
                     <div
                       className='w-3 h-3 rounded-full mr-2'
@@ -163,9 +163,9 @@ export default function ExpenseDetailModal({
                 </div>
 
                 <div>
-                  <label className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
+                  <p className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
                     Date
-                  </label>
+                  </p>
                   <div className='mt-1 flex items-center'>
                     <CalendarIcon className='h-4 w-4 text-gray-400 mr-2' />
                     <p className='text-base text-gray-900'>
@@ -175,9 +175,9 @@ export default function ExpenseDetailModal({
                 </div>
 
                 <div>
-                  <label className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
+                  <p className='text-sm font-medium text-gray-500 uppercase tracking-wide'>
                     Amount
-                  </label>
+                  </p>
                   <p className='mt-1 text-base font-semibold text-gray-900'>
                     {formatCurrency(expense.amount)}
                   </p>
@@ -206,9 +206,9 @@ export default function ExpenseDetailModal({
                   Tags
                 </h3>
                 <div className='flex flex-wrap gap-2'>
-                  {expense.tags.map((tag, index) => (
+                  {expense.tags.map((tag) => (
                     <span
-                      key={index}
+                      key={tag}
                       className='px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded-full'
                     >
                       {tag}
@@ -228,7 +228,10 @@ export default function ExpenseDetailModal({
                 <div className='flex items-center justify-center p-4 border-2 border-dashed border-gray-300 rounded-lg'>
                   <div className='text-center'>
                     <PhotoIcon className='h-12 w-12 text-gray-400 mx-auto mb-2' />
-                    <button className='text-primary-600 hover:text-primary-700 font-medium'>
+                    <button
+                      type='button'
+                      className='text-primary-600 hover:text-primary-700 font-medium'
+                    >
                       View Receipt
                     </button>
                     <p className='text-xs text-gray-500 mt-1'>
@@ -331,21 +334,21 @@ export default function ExpenseDetailModal({
 
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm'>
                 <div>
-                  <label className='font-medium text-gray-500 uppercase tracking-wide'>
+                  <p className='font-medium text-gray-500 uppercase tracking-wide'>
                     Created
-                  </label>
+                  </p>
                   <p className='mt-1 text-gray-900'>
-                    {formatDateTime(expense.createdAt)}
+                    {formatDateTime(new Date(expense.createdAt))}
                   </p>
                 </div>
 
                 {expense.updatedAt && (
                   <div>
-                    <label className='font-medium text-gray-500 uppercase tracking-wide'>
+                    <p className='font-medium text-gray-500 uppercase tracking-wide'>
                       Last Updated
-                    </label>
+                    </p>
                     <p className='mt-1 text-gray-900'>
-                      {formatDateTime(expense.updatedAt)}
+                      {formatDateTime(new Date(expense.updatedAt))}
                     </p>
                   </div>
                 )}

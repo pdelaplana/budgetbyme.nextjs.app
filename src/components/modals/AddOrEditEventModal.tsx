@@ -8,8 +8,9 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import type React from 'react';
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import CategorySelector from '@/components/ui/CategorySelector';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAddEventMutation, useUpdateEventMutation } from '@/hooks/events';
 import { sanitizeCurrencyInput } from '@/lib/formatters';
@@ -56,6 +57,9 @@ export default function AddOrEditEventModal({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedCategoryTemplates, setSelectedCategoryTemplates] = useState<
+    string[]
+  >([]);
 
   const { user } = useAuth();
   const { mutateAsync: addMutateAsync, isPending: isAddPending } =
@@ -93,6 +97,7 @@ export default function AddOrEditEventModal({
       });
       setErrors({});
       setIsSubmitting(false);
+      setSelectedCategoryTemplates([]);
     }
   }, [isOpen]);
 
@@ -158,8 +163,6 @@ export default function AddOrEditEventModal({
     setIsSubmitting(true);
 
     try {
-      let eventId: string;
-
       if (isEditMode && editingEvent) {
         // Update existing event
         const updateEventDTO = {
@@ -174,7 +177,7 @@ export default function AddOrEditEventModal({
           status: 'on-track',
         };
 
-        eventId = await updateMutateAsync(updateEventDTO);
+        await updateMutateAsync(updateEventDTO);
       } else {
         // Create new event
         const addEventDTO = {
@@ -186,9 +189,10 @@ export default function AddOrEditEventModal({
           totalBudgetedAmount: Number(formData.totalBudget),
           currency: 'AUD',
           status: 'on-track',
+          selectedCategoryTemplates, // Pass selected category templates
         };
 
-        eventId = await addMutateAsync({
+        await addMutateAsync({
           userId: user.uid,
           addEventDTO,
         });
@@ -353,6 +357,15 @@ export default function AddOrEditEventModal({
                 <p className='mt-1 text-sm text-red-600'>{errors.type}</p>
               )}
             </div>
+
+            {/* Category Selection - Only show when creating new event */}
+            {!isEditMode && (
+              <CategorySelector
+                eventType={formData.type}
+                selectedCategories={selectedCategoryTemplates}
+                onSelectionChange={setSelectedCategoryTemplates}
+              />
+            )}
 
             {/* Event Date and Budget Row */}
             <div className='grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6'>

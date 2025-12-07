@@ -5,6 +5,7 @@ import {
   formatDate,
   formatDateLong,
   formatDateTime,
+  formatPercentage,
   sanitizeCurrencyInput,
 } from './formatters';
 
@@ -181,6 +182,47 @@ describe('formatters', () => {
     });
   });
 
+  describe('formatPercentage', () => {
+    it('should format positive percentages rounded to nearest integer', () => {
+      expect(formatPercentage(45.1)).toBe('45%');
+      expect(formatPercentage(45.5)).toBe('46%');
+      expect(formatPercentage(45.9)).toBe('46%');
+      expect(formatPercentage(0)).toBe('0%');
+      expect(formatPercentage(100)).toBe('100%');
+    });
+
+    it('should handle decimal percentages correctly', () => {
+      expect(formatPercentage(33.33)).toBe('33%');
+      expect(formatPercentage(66.67)).toBe('67%');
+      expect(formatPercentage(99.4)).toBe('99%');
+      expect(formatPercentage(99.5)).toBe('100%');
+    });
+
+    it('should handle negative percentages', () => {
+      expect(formatPercentage(-10)).toBe('-10%');
+      expect(formatPercentage(-5.5)).toBe('-5%'); // Math.round(-5.5) = -5
+      expect(formatPercentage(-5.6)).toBe('-6%');
+    });
+
+    it('should handle edge cases and invalid inputs', () => {
+      expect(formatPercentage(NaN)).toBe('0%');
+      expect(formatPercentage(null as any)).toBe('0%');
+      expect(formatPercentage(undefined as any)).toBe('0%');
+    });
+
+    it('should handle very large percentages', () => {
+      expect(formatPercentage(250)).toBe('250%');
+      expect(formatPercentage(1000.7)).toBe('1001%');
+    });
+
+    it('should handle very small percentages', () => {
+      expect(formatPercentage(0.1)).toBe('0%');
+      expect(formatPercentage(0.4)).toBe('0%');
+      expect(formatPercentage(0.5)).toBe('1%');
+      expect(formatPercentage(0.9)).toBe('1%');
+    });
+  });
+
   describe('integration tests', () => {
     it('should work together for a complete currency workflow', () => {
       // Simulate user input -> sanitize -> format -> display
@@ -199,6 +241,16 @@ describe('formatters', () => {
 
       expect(sanitized).toBe(0);
       expect(formatted).toBe('$0');
+    });
+
+    it('should work for percentage calculations', () => {
+      // Simulate budget calculation workflow
+      const totalBudget = 1000;
+      const totalSpent = 456.78;
+      const percentage = (totalSpent / totalBudget) * 100;
+      const formatted = formatPercentage(percentage);
+
+      expect(formatted).toBe('46%'); // 45.678 rounds to 46
     });
   });
 });

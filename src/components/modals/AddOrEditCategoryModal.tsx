@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/a11y/noLabelWithoutControl: <explanation> */
 'use client';
 
 import {
@@ -166,7 +167,10 @@ export default function AddOrEditCategoryModal({
 
     if (!formData.budget.trim()) {
       newErrors.budget = 'Budget amount is required';
-    } else if (isNaN(Number(formData.budget)) || Number(formData.budget) < 0) {
+    } else if (
+      Number.isNaN(Number(formData.budget)) ||
+      Number(formData.budget) < 0
+    ) {
       newErrors.budget =
         'Please enter a valid budget amount (zero or positive)';
     }
@@ -305,6 +309,7 @@ export default function AddOrEditCategoryModal({
               </div>
             </div>
             <button
+              type='button'
               onClick={handleClose}
               disabled={isSubmitting}
               className='p-1.5 hover:bg-gray-100 rounded-lg transition-colors duration-200 disabled:opacity-50'

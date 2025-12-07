@@ -1,14 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import {
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-} from 'recharts';
+import { useState } from 'react';
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { formatCurrency } from '@/lib/formatters';
 
 interface CategoryData {
@@ -51,7 +44,20 @@ export default function CategoryBreakdownChart({
     color: item.color,
   }));
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  interface TooltipProps {
+    active?: boolean;
+    payload?: Array<{
+      payload: {
+        name: string;
+        value: number;
+        spent: number;
+        percentage: number;
+        color: string;
+      };
+    }>;
+  }
+
+  const CustomTooltip = ({ active, payload }: TooltipProps) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
@@ -76,7 +82,10 @@ export default function CategoryBreakdownChart({
             <div className='flex justify-between pt-1 border-t border-gray-200'>
               <span className='text-sm text-gray-600'>Percentage:</span>
               <span className='text-sm font-medium'>
-                {isNaN(data.percentage) ? '0.0' : data.percentage.toFixed(1)}%
+                {Number.isNaN(data.percentage)
+                  ? '0'
+                  : Math.round(data.percentage)}
+                %
               </span>
             </div>
           </div>
@@ -86,7 +95,7 @@ export default function CategoryBreakdownChart({
     return null;
   };
 
-  const onPieEnter = (_: any, index: number) => {
+  const onPieEnter = (_data: unknown, index: number) => {
     setActiveIndex(index);
   };
 
@@ -129,7 +138,7 @@ export default function CategoryBreakdownChart({
             >
               {pieData.map((entry, index) => (
                 <Cell
-                  key={`cell-${index}`}
+                  key={entry.name}
                   fill={entry.color}
                   stroke={activeIndex === index ? '#374151' : 'none'}
                   strokeWidth={activeIndex === index ? 2 : 0}
@@ -151,9 +160,10 @@ export default function CategoryBreakdownChart({
       {/* Category Legend with Details - Responsive */}
       <div className='space-y-2 sm:space-y-3'>
         {pieData.map((item, index) => (
-          <div
+          <button
             key={item.name}
-            className='flex items-center justify-between p-2 sm:p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200 cursor-pointer'
+            type='button'
+            className='flex items-center justify-between p-2 sm:p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-200 w-full text-left'
             onMouseEnter={() => setActiveIndex(index)}
             onMouseLeave={() => setActiveIndex(-1)}
           >
@@ -176,10 +186,13 @@ export default function CategoryBreakdownChart({
                 {formatCurrency(item.value)}
               </div>
               <div className='text-xs text-gray-500'>
-                {isNaN(item.percentage) ? '0.0' : item.percentage.toFixed(1)}%
+                {Number.isNaN(item.percentage)
+                  ? '0'
+                  : Math.round(item.percentage)}
+                %
               </div>
             </div>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -225,9 +238,9 @@ export default function CategoryBreakdownChart({
               <td>{formatCurrency(item.budgeted)}</td>
               <td>{formatCurrency(item.spent)}</td>
               <td>
-                {isNaN(pieData[index].percentage)
-                  ? '0.0'
-                  : pieData[index].percentage.toFixed(1)}
+                {Number.isNaN(pieData[index].percentage)
+                  ? '0'
+                  : Math.round(pieData[index].percentage)}
                 %
               </td>
             </tr>

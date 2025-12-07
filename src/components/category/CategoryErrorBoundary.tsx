@@ -69,7 +69,7 @@ export default function CategoryErrorBoundary({
     <ErrorBoundary
       fallback={getErrorFallback()}
       onError={handleError}
-      resetKeys={[eventId, categoryId]}
+      resetKeys={categoryId ? [eventId, categoryId] : [eventId]}
       resetOnPropsChange={true}
     >
       {children}
@@ -79,8 +79,8 @@ export default function CategoryErrorBoundary({
 
 // Page-level error fallback
 function CategoryPageError({
-  eventId,
-  categoryId,
+  eventId: _eventId,
+  categoryId: _categoryId,
   onNavigateBack,
 }: {
   eventId: string;
@@ -128,6 +128,8 @@ function CategorySectionError({ onRetry }: { onRetry: () => void }) {
           fill='none'
           stroke='currentColor'
           viewBox='0 0 24 24'
+          role='img'
+          aria-label='Error icon'
         >
           <path
             strokeLinecap='round'
@@ -162,6 +164,8 @@ function CategoryComponentError() {
           fill='none'
           stroke='currentColor'
           viewBox='0 0 24 24'
+          role='img'
+          aria-label='Warning icon'
         >
           <path
             strokeLinecap='round'

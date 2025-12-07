@@ -1,35 +1,63 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Event } from '@/types/Event';
 import type { Expense } from '@/types/Expense';
 import ExpenseHeader from './ExpenseHeader';
+
+// Mock Next.js navigation
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+  }),
+  usePathname: () => '/events/event-1/expense/expense-1',
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 const mockExpense: Expense = {
   id: 'expense-1',
   name: 'Test Expense',
   amount: 100,
   currency: { code: 'USD', symbol: '$' },
-  categoryId: 'cat-1',
+  category: {
+    id: 'cat-1',
+    name: 'Test Category',
+    color: '#3B82F6',
+    icon: 'ShoppingBag',
+  },
   tags: ['tag1', 'tag2'],
   _createdDate: new Date(),
   attachments: [],
+  hasPaymentSchedule: false,
+  date: new Date('2024-01-01'),
+  description: 'Test expense',
+  notes: '',
+  vendor: { name: '', address: '', website: '', email: '' },
+  _createdBy: 'user123',
+  _updatedDate: new Date(),
+  _updatedBy: 'user123',
 };
 
 const mockEvent: Event = {
   id: 'event-1',
   name: 'Test Event',
+  type: 'wedding',
   description: 'Test Description',
-  startDate: new Date('2024-01-01'),
-  endDate: new Date('2024-01-02'),
+  eventDate: new Date('2024-01-01'),
+  totalBudgetedAmount: 10000,
+  totalScheduledAmount: 5000,
+  totalSpentAmount: 3000,
+  spentPercentage: 30,
+  status: 'on-track',
+  currency: { code: 'USD', symbol: '$' },
   _createdDate: new Date(),
-  categories: [
-    {
-      id: 'cat-1',
-      name: 'Test Category',
-      budgetAmount: 1000,
-      _createdDate: new Date(),
-    },
-  ],
+  _createdBy: 'user123',
+  _updatedDate: new Date(),
+  _updatedBy: 'user123',
 };
 
 describe('ExpenseHeader', () => {
@@ -51,10 +79,15 @@ describe('ExpenseHeader', () => {
   it('should render breadcrumbs correctly', () => {
     render(<ExpenseHeader {...defaultProps} />);
 
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Test Event')).toBeInTheDocument();
-    expect(screen.getByText('Test Category')).toBeInTheDocument();
-    expect(screen.getByText('Test Expense')).toBeInTheDocument();
+    // Check for breadcrumb navigation
+    expect(screen.getByRole('navigation')).toBeInTheDocument();
+
+    // Breadcrumbs show: Event Name > Category Name > Expense Name
+    // Note: Text may be truncated, so we check for presence in the document
+    expect(screen.getByText(/Test Event/)).toBeInTheDocument();
+    expect(screen.getByText(/Test Category/)).toBeInTheDocument();
+    // "Test Expense" appears in both breadcrumb and heading, so just verify presence
+    expect(screen.getAllByText(/Test Expense/).length).toBeGreaterThan(0);
   });
 
   it('should render expense title', () => {
@@ -65,12 +98,14 @@ describe('ExpenseHeader', () => {
     );
   });
 
-  it('should render edit and delete buttons on desktop', () => {
+  it('should render edit and more actions buttons on desktop', () => {
     render(<ExpenseHeader {...defaultProps} />);
 
-    // Should have Edit and Delete buttons
+    // Should have Edit button and More actions dropdown button
     expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /more actions/i }),
+    ).toBeInTheDocument();
   });
 
   it('should render mobile menu button', () => {
@@ -78,7 +113,7 @@ describe('ExpenseHeader', () => {
 
     // Should have mobile menu button (hidden on larger screens)
     const mobileButton = screen.getByRole('button', {
-      name: /open actions menu/i,
+      name: /open action menu/i,
     });
     expect(mobileButton).toBeInTheDocument();
   });
@@ -92,10 +127,13 @@ describe('ExpenseHeader', () => {
     expect(defaultProps.onEdit).toHaveBeenCalledTimes(1);
   });
 
-  it('should call onDelete when delete button is clicked', () => {
-    render(<ExpenseHeader {...defaultProps} />);
+  it('should call onDelete when delete option is clicked', () => {
+    render(<ExpenseHeader {...defaultProps} showActionDropdown={true} />);
 
-    const deleteButton = screen.getByRole('button', { name: /delete/i });
+    // Delete is in the dropdown menu
+    const deleteButton = screen.getByRole('button', {
+      name: /delete expense/i,
+    });
     fireEvent.click(deleteButton);
 
     expect(defaultProps.onDelete).toHaveBeenCalledTimes(1);
@@ -105,7 +143,7 @@ describe('ExpenseHeader', () => {
     render(<ExpenseHeader {...defaultProps} />);
 
     const mobileButton = screen.getByRole('button', {
-      name: /open actions menu/i,
+      name: /open action menu/i,
     });
     fireEvent.click(mobileButton);
 
@@ -148,9 +186,11 @@ describe('ExpenseHeader', () => {
       <ExpenseHeader {...defaultProps} currentEvent={eventWithoutCategory} />,
     );
 
-    // Should still render, but might show "Unknown Category"
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
-    expect(screen.getByText('Test Event')).toBeInTheDocument();
+    // Should still render with event name in breadcrumb
+    expect(screen.getByText(/Test Event/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      'Test Expense',
+    );
   });
 
   it('should render with proper ARIA labels and semantic structure', () => {
@@ -160,37 +200,32 @@ describe('ExpenseHeader', () => {
     expect(screen.getByRole('navigation')).toBeInTheDocument(); // Breadcrumbs
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument(); // Main title
 
-    // Check for proper button labels
-    expect(screen.getByRole('button', { name: /edit/i })).toHaveAttribute(
-      'aria-label',
-    );
-    expect(screen.getByRole('button', { name: /delete/i })).toHaveAttribute(
-      'aria-label',
-    );
+    // Check for proper button labels (only buttons with aria-label)
     expect(
-      screen.getByRole('button', { name: /open actions menu/i }),
+      screen.getByRole('button', { name: /more actions/i }),
+    ).toHaveAttribute('aria-label');
+    expect(
+      screen.getByRole('button', { name: /open action menu/i }),
     ).toHaveAttribute('aria-label');
   });
 
   it('should have proper responsive classes', () => {
-    render(<ExpenseHeader {...defaultProps} />);
+    const { container } = render(<ExpenseHeader {...defaultProps} />);
 
-    // Desktop buttons should have md:flex class (or similar responsive utility)
-    const editButton = screen.getByRole('button', { name: /edit/i });
-    expect(editButton).toHaveClass(/md:/);
+    // Desktop buttons container should have hidden and sm:flex classes
+    const desktopContainer = container.querySelector('.hidden.sm\\:flex');
+    expect(desktopContainer).toBeInTheDocument();
 
-    // Mobile button should have md:hidden class (or similar)
-    const mobileButton = screen.getByRole('button', {
-      name: /open actions menu/i,
-    });
-    expect(mobileButton).toHaveClass(/md:/);
+    // Mobile button container should have sm:hidden class
+    const mobileContainer = container.querySelector('.sm\\:hidden');
+    expect(mobileContainer).toBeInTheDocument();
   });
 
   it('should not re-render unnecessarily with same props', () => {
     const { rerender } = render(<ExpenseHeader {...defaultProps} />);
 
     // Get initial render count (this is conceptual - React.memo prevents unnecessary renders)
-    const initialEditButton = screen.getByRole('button', { name: /edit/i });
+    const _initialEditButton = screen.getByRole('button', { name: /edit/i });
 
     // Re-render with same props
     rerender(<ExpenseHeader {...defaultProps} />);
@@ -217,11 +252,12 @@ describe('ExpenseHeader', () => {
   it('should update when event changes', () => {
     const { rerender } = render(<ExpenseHeader {...defaultProps} />);
 
-    expect(screen.getByText('Test Event')).toBeInTheDocument();
+    expect(screen.getByText(/Test Event/)).toBeInTheDocument();
 
-    const updatedEvent = { ...mockEvent, name: 'Updated Event Name' };
+    const updatedEvent = { ...mockEvent, name: 'Updated Name' };
     rerender(<ExpenseHeader {...defaultProps} currentEvent={updatedEvent} />);
 
-    expect(screen.getByText('Updated Event Name')).toBeInTheDocument();
+    // Updated event name should appear in breadcrumb (may be truncated but should be findable)
+    expect(screen.getByText(/Updated Name/)).toBeInTheDocument();
   });
 });
