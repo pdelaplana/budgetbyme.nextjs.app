@@ -4,14 +4,17 @@
 import {
   BuildingOfficeIcon,
   CalendarIcon,
+  CheckCircleIcon,
   CurrencyDollarIcon,
   DocumentTextIcon,
+  ExclamationTriangleIcon,
   GlobeAltIcon,
   MapPinIcon,
   TagIcon,
+  XCircleIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
@@ -41,6 +44,7 @@ interface AddOrEditExpenseModalProps {
   isOpen: boolean;
   onClose: () => void;
   categories?: BudgetCategory[];
+  defaultCategoryId?: string; // Pre-select this category when opening the modal
   editingExpense?: {
     id: string;
     name: string;
@@ -70,6 +74,7 @@ export default function AddOrEditExpenseModal({
   isOpen,
   onClose,
   categories,
+  defaultCategoryId,
   editingExpense,
   isEditMode = false,
 }: AddOrEditExpenseModalProps) {
@@ -135,7 +140,7 @@ export default function AddOrEditExpenseModal({
   const isSubmitting =
     addExpenseMutation.isPending || updateExpenseMutation.isPending;
 
-  // Pre-populate form when editing
+  // Pre-populate form when editing or opening with default category
   React.useEffect(() => {
     if (editingExpense && isEditMode) {
       setFormData({
@@ -151,6 +156,22 @@ export default function AddOrEditExpenseModal({
         vendorAddress: editingExpense.vendor?.address || '',
         vendorWebsite: editingExpense.vendor?.website || '',
         vendorEmail: editingExpense.vendor?.email || '',
+      });
+    } else if (isOpen && !isEditMode) {
+      // When opening for a new expense, set default category if provided
+      setFormData({
+        name: '',
+        amount: '',
+        currency: 'USD',
+        categoryId: defaultCategoryId || '',
+        date: new Date().toISOString().split('T')[0],
+        description: '',
+        notes: '',
+        tags: [],
+        vendorName: '',
+        vendorAddress: '',
+        vendorWebsite: '',
+        vendorEmail: '',
       });
     } else if (!isOpen) {
       // Reset form when modal closes
@@ -171,7 +192,50 @@ export default function AddOrEditExpenseModal({
       setErrors({});
       setTagInput('');
     }
-  }, [editingExpense, isEditMode, isOpen]);
+    // Use empty string as default to keep dependency array size consistent
+  }, [editingExpense, isEditMode, isOpen, defaultCategoryId ?? '']);
+
+  // Calculate remaining budget after adding this expense
+  const budgetInfo = useMemo(() => {
+    // Only calculate for new expenses (not edit mode)
+    if (isEditMode) return null;
+
+    // Need both category and amount to calculate
+    if (!formData.categoryId || !formData.amount) return null;
+
+    const selectedCategory = availableCategories.find(
+      (cat) => cat.id === formData.categoryId,
+    );
+    if (!selectedCategory) return null;
+
+    const enteredAmount = Number(formData.amount) || 0;
+    const currentRemaining = selectedCategory.remainingAmount || 0;
+    const projectedRemaining = currentRemaining - enteredAmount;
+
+    // Determine status based on projected remaining
+    let status: 'healthy' | 'warning' | 'danger';
+    if (projectedRemaining < 0) {
+      status = 'danger'; // Over budget
+    } else if (enteredAmount / currentRemaining > 0.8) {
+      status = 'warning'; // Using >80% of remaining budget
+    } else {
+      status = 'healthy'; // Good budget health
+    }
+
+    return {
+      categoryName: selectedCategory.name,
+      currentRemaining,
+      enteredAmount,
+      projectedRemaining,
+      status,
+    };
+  }, [
+    formData.categoryId,
+    formData.amount,
+    availableCategories,
+    isEditMode,
+  ]);
+
 
   const handleInputChange = (field: keyof ExpenseFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -472,6 +536,77 @@ export default function AddOrEditExpenseModal({
                 )}
               </div>
             </div>
+
+            {/* Remaining Budget Display */}
+            {budgetInfo && (
+              <div
+                className={`p-4 rounded-lg border-l-4 ${
+                  budgetInfo.status === 'healthy'
+                    ? 'bg-green-50 border-green-500'
+                    : budgetInfo.status === 'warning'
+                      ? 'bg-yellow-50 border-yellow-500'
+                      : 'bg-red-50 border-red-500'
+                }`}
+              >
+                <div className='flex items-start gap-3'>
+                  <div className='flex-shrink-0 mt-0.5'>
+                    {budgetInfo.status === 'healthy' ? (
+                      <CheckCircleIcon className='h-5 w-5 text-green-600' />
+                    ) : budgetInfo.status === 'warning' ? (
+                      <ExclamationTriangleIcon className='h-5 w-5 text-yellow-600' />
+                    ) : (
+                      <XCircleIcon className='h-5 w-5 text-red-600' />
+                    )}
+                  </div>
+                  <div className='flex-1 min-w-0'>
+                    <h4
+                      className={`text-sm font-medium ${
+                        budgetInfo.status === 'healthy'
+                          ? 'text-green-800'
+                          : budgetInfo.status === 'warning'
+                            ? 'text-yellow-800'
+                            : 'text-red-800'
+                      }`}
+                    >
+                      {budgetInfo.status === 'healthy'
+                        ? 'Budget Available'
+                        : budgetInfo.status === 'warning'
+                          ? 'Budget Running Low'
+                          : 'Over Budget'}
+                    </h4>
+                    <div
+                      className={`mt-1 text-sm ${
+                        budgetInfo.status === 'healthy'
+                          ? 'text-green-700'
+                          : budgetInfo.status === 'warning'
+                            ? 'text-yellow-700'
+                            : 'text-red-700'
+                      }`}
+                    >
+                      <p>
+                        <span className='font-medium'>
+                          {budgetInfo.categoryName}
+                        </span>{' '}
+                        currently has{' '}
+                        <span className='font-semibold'>
+                          ${budgetInfo.currentRemaining.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>{' '}
+                        remaining.
+                      </p>
+                      <p className='mt-1'>
+                        After adding this ${budgetInfo.enteredAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{' '}
+                        expense, you'll have{' '}
+                        <span className='font-semibold'>
+                          ${Math.abs(budgetInfo.projectedRemaining).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          {budgetInfo.projectedRemaining < 0 ? ' over budget' : ' remaining'}
+                        </span>
+                        .
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Date */}
             <div>
