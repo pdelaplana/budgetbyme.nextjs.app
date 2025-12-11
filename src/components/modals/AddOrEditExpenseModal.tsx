@@ -193,7 +193,7 @@ export default function AddOrEditExpenseModal({
       setTagInput('');
     }
     // Use empty string as default to keep dependency array size consistent
-  }, [editingExpense, isEditMode, isOpen, defaultCategoryId ?? '']);
+  }, [editingExpense, isEditMode, isOpen, defaultCategoryId]);
 
   // Calculate remaining budget after adding this expense
   const budgetInfo = useMemo(() => {
@@ -229,13 +229,7 @@ export default function AddOrEditExpenseModal({
       projectedRemaining,
       status,
     };
-  }, [
-    formData.categoryId,
-    formData.amount,
-    availableCategories,
-    isEditMode,
-  ]);
-
+  }, [formData.categoryId, formData.amount, availableCategories, isEditMode]);
 
   const handleInputChange = (field: keyof ExpenseFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -589,16 +583,32 @@ export default function AddOrEditExpenseModal({
                         </span>{' '}
                         currently has{' '}
                         <span className='font-semibold'>
-                          ${budgetInfo.currentRemaining.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          $
+                          {budgetInfo.currentRemaining.toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
                         </span>{' '}
                         remaining.
                       </p>
                       <p className='mt-1'>
-                        After adding this ${budgetInfo.enteredAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{' '}
+                        After adding this $
+                        {budgetInfo.enteredAmount.toLocaleString('en-US', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}{' '}
                         expense, you'll have{' '}
                         <span className='font-semibold'>
-                          ${Math.abs(budgetInfo.projectedRemaining).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          {budgetInfo.projectedRemaining < 0 ? ' over budget' : ' remaining'}
+                          $
+                          {Math.abs(
+                            budgetInfo.projectedRemaining,
+                          ).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                          {budgetInfo.projectedRemaining < 0
+                            ? ' over budget'
+                            : ' remaining'}
                         </span>
                         .
                       </p>
