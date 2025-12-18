@@ -114,6 +114,10 @@ export const useMarkPaymentAsPaidMutation = (
                 return {
                   ...cat,
                   spentAmount: (cat.spentAmount || 0) + amountToAdd,
+                  scheduledAmount: Math.max(
+                    0,
+                    (cat.scheduledAmount || 0) - amountToAdd,
+                  ),
                 };
               }
               return cat;
@@ -131,6 +135,10 @@ export const useMarkPaymentAsPaidMutation = (
               return {
                 ...evt,
                 totalSpentAmount: (evt.totalSpentAmount || 0) + amountToAdd,
+                totalScheduledAmount: Math.max(
+                  0,
+                  (evt.totalScheduledAmount || 0) - amountToAdd,
+                ),
               };
             }
             return evt;

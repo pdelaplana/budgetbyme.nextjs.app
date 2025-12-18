@@ -125,15 +125,20 @@ export const createSinglePayment = withSentryServerAction(
         }
         const newSpentAmount =
           (categoryData.spentAmount || 0) + paymentData.amount;
+        const newScheduledAmount = Math.max(
+          0,
+          (categoryData.scheduledAmount || 0) - paymentData.amount,
+        );
 
         batch.update(categoryRef, {
           spentAmount: newSpentAmount,
+          scheduledAmount: newScheduledAmount,
           _updatedDate: now,
           _updatedBy: userId,
         });
       }
 
-      // Update event totalSpentAmount
+      // Update event totalSpentAmount and totalScheduledAmount
       const eventRef = db
         .collection('workspaces')
         .doc(userId)
@@ -148,9 +153,14 @@ export const createSinglePayment = withSentryServerAction(
         }
         const newTotalSpentAmount =
           (eventData.totalSpentAmount || 0) + paymentData.amount;
+        const newTotalScheduledAmount = Math.max(
+          0,
+          (eventData.totalScheduledAmount || 0) - paymentData.amount,
+        );
 
         batch.update(eventRef, {
           totalSpentAmount: newTotalSpentAmount,
+          totalScheduledAmount: newTotalScheduledAmount,
           _updatedDate: now,
           _updatedBy: userId,
         });
