@@ -4,6 +4,7 @@ import {
   updateExpense,
 } from '@/server/actions/expenses/updateExpense';
 import type { BudgetCategory } from '@/types/BudgetCategory';
+import type { Event as AppEvent } from '@/types/Event';
 import type { Expense } from '@/types/Expense';
 
 interface UseUpdateExpenseMutationOptions {
@@ -29,6 +30,7 @@ export const useUpdateExpenseMutation = (
         queryKey: ['expenses', userId, eventId],
       });
       await queryClient.cancelQueries({ queryKey: ['categories', eventId] });
+      await queryClient.cancelQueries({ queryKey: ['fetchEvents', userId] });
 
       // Snapshot the previous values
       const previousExpenses = queryClient.getQueryData<Expense[]>([
@@ -152,8 +154,39 @@ export const useUpdateExpenseMutation = (
         );
       }
 
+      // Optimistically update events list (update totalScheduledAmount)
+      const previousEvents = queryClient.getQueryData<AppEvent[]>([
+        'fetchEvents',
+        userId,
+      ]);
+      if (previousEvents && currentExpense) {
+        const oldAmount = currentExpense.amount;
+        const newAmount = updateExpenseDto.amount ?? oldAmount;
+        const amountDifference = newAmount - oldAmount;
+
+        if (amountDifference !== 0) {
+          const updatedEvents = previousEvents.map((event) => {
+            if (event.id === eventId) {
+              return {
+                ...event,
+                totalScheduledAmount: Math.max(
+                  0,
+                  (event.totalScheduledAmount || 0) + amountDifference,
+                ),
+              };
+            }
+            return event;
+          });
+
+          queryClient.setQueryData<AppEvent[]>(
+            ['fetchEvents', userId],
+            updatedEvents,
+          );
+        }
+      }
+
       // Return a context object with the snapshotted values
-      return { previousExpenses, previousCategories };
+      return { previousExpenses, previousCategories, previousEvents };
     },
 
     onError: (error, { userId, eventId }, context) => {
@@ -170,6 +203,12 @@ export const useUpdateExpenseMutation = (
           context.previousCategories,
         );
       }
+      if (context?.previousEvents) {
+        queryClient.setQueryData(
+          ['fetchEvents', userId],
+          context.previousEvents,
+        );
+      }
 
       console.error('Failed to update expense:', error);
       options?.onError?.(error);
@@ -181,6 +220,7 @@ export const useUpdateExpenseMutation = (
         queryKey: ['expenses', userId, eventId],
       });
       queryClient.invalidateQueries({ queryKey: ['categories', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['fetchEvents', userId] });
 
       options?.onSuccess?.(expenseId);
     },

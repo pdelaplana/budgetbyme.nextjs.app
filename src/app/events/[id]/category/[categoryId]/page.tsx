@@ -291,6 +291,7 @@ export default function CategoryPage() {
           <AddOrEditExpenseModal
             isOpen={state.modals.showAddExpense}
             onClose={actions.hideAddExpense}
+            defaultCategoryId={categoryId}
             categories={
               category ? [transformCategoryForExpenseModal(category)] : []
             }

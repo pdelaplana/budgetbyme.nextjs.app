@@ -4,6 +4,7 @@ import {
   addExpense,
 } from '@/server/actions/expenses/addExpense';
 import type { BudgetCategory } from '@/types/BudgetCategory';
+import type { Event as AppEvent } from '@/types/Event';
 import type { Expense } from '@/types/Expense';
 
 interface UseAddExpenseMutationOptions {
@@ -32,6 +33,7 @@ export const useAddExpenseMutation = (
         queryKey: ['expenses', userId, eventId],
       });
       await queryClient.cancelQueries({ queryKey: ['categories', eventId] });
+      await queryClient.cancelQueries({ queryKey: ['fetchEvents', userId] });
 
       // Snapshot the previous values
       const previousExpenses = queryClient.getQueryData<Expense[]>([
@@ -95,8 +97,31 @@ export const useAddExpenseMutation = (
         );
       }
 
+      // Optimistically update events list (update totalScheduledAmount)
+      const previousEvents = queryClient.getQueryData<AppEvent[]>([
+        'fetchEvents',
+        userId,
+      ]);
+      if (previousEvents) {
+        const updatedEvents = previousEvents.map((event) => {
+          if (event.id === eventId) {
+            return {
+              ...event,
+              totalScheduledAmount:
+                (event.totalScheduledAmount || 0) + addExpenseDto.amount,
+            };
+          }
+          return event;
+        });
+
+        queryClient.setQueryData<AppEvent[]>(
+          ['fetchEvents', userId],
+          updatedEvents,
+        );
+      }
+
       // Return a context object with the snapshotted values
-      return { previousExpenses, previousCategories };
+      return { previousExpenses, previousCategories, previousEvents };
     },
 
     onError: (error, { userId, eventId }, context) => {
@@ -113,6 +138,12 @@ export const useAddExpenseMutation = (
           context.previousCategories,
         );
       }
+      if (context?.previousEvents) {
+        queryClient.setQueryData(
+          ['fetchEvents', userId],
+          context.previousEvents,
+        );
+      }
 
       console.error('Failed to add expense:', error);
       options?.onError?.(error);
@@ -124,6 +155,7 @@ export const useAddExpenseMutation = (
         queryKey: ['expenses', userId, eventId],
       });
       queryClient.invalidateQueries({ queryKey: ['categories', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['fetchEvents', userId] });
 
       options?.onSuccess?.(expenseId);
     },

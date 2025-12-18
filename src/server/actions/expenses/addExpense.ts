@@ -145,7 +145,7 @@ export const addExpense = withSentryServerAction(
       // Add the expense
       batch.set(newExpenseRef, newExpenseDocument);
 
-      // Update category scheduled amount (expenses are scheduled when created, not spent)
+      // Update category amounts
       const categoryData = categoryDoc.data();
       const currentScheduledAmount = categoryData?.scheduledAmount || 0;
       const newScheduledAmount = currentScheduledAmount + addExpenseDto.amount;
