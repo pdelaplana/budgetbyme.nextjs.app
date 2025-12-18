@@ -4,6 +4,7 @@ import {
   deleteExpense,
 } from '@/server/actions/expenses/deleteExpense';
 import type { BudgetCategory } from '@/types/BudgetCategory';
+import type { Event as AppEvent } from '@/types/Event';
 import type { Expense } from '@/types/Expense';
 
 interface UseDeleteExpenseMutationOptions {
@@ -29,6 +30,7 @@ export const useDeleteExpenseMutation = (
         queryKey: ['expenses', userId, eventId],
       });
       await queryClient.cancelQueries({ queryKey: ['categories', eventId] });
+      await queryClient.cancelQueries({ queryKey: ['fetchEvents', userId] });
 
       // Snapshot the previous values
       const previousExpenses = queryClient.getQueryData<Expense[]>([
@@ -78,8 +80,24 @@ export const useDeleteExpenseMutation = (
         );
       }
 
+      // Optimistically update events list (subtract from totalScheduledAmount)
+      const previousEvents = queryClient.getQueryData<AppEvent[]>(['fetchEvents', userId]);
+      if (previousEvents && expenseToDelete) {
+        const updatedEvents = previousEvents.map((event) => {
+          if (event.id === eventId) {
+            return {
+              ...event,
+              totalScheduledAmount: Math.max(0, (event.totalScheduledAmount || 0) - expenseToDelete.amount),
+            };
+          }
+          return event;
+        });
+
+        queryClient.setQueryData<AppEvent[]>(['fetchEvents', userId], updatedEvents);
+      }
+
       // Return a context object with the snapshotted values
-      return { previousExpenses, previousCategories };
+      return { previousExpenses, previousCategories, previousEvents };
     },
 
     onError: (error, { userId, eventId }, context) => {
@@ -96,6 +114,12 @@ export const useDeleteExpenseMutation = (
           context.previousCategories,
         );
       }
+      if (context?.previousEvents) {
+        queryClient.setQueryData(
+          ['fetchEvents', userId],
+          context.previousEvents,
+        );
+      }
 
       console.error('Failed to delete expense:', error);
       options?.onError?.(error);
@@ -107,6 +131,7 @@ export const useDeleteExpenseMutation = (
         queryKey: ['expenses', userId, eventId],
       });
       queryClient.invalidateQueries({ queryKey: ['categories', eventId] });
+      queryClient.invalidateQueries({ queryKey: ['fetchEvents', userId] });
 
       options?.onSuccess?.();
     },
