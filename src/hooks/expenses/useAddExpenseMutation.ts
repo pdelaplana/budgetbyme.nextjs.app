@@ -98,19 +98,26 @@ export const useAddExpenseMutation = (
       }
 
       // Optimistically update events list (update totalScheduledAmount)
-      const previousEvents = queryClient.getQueryData<AppEvent[]>(['fetchEvents', userId]);
+      const previousEvents = queryClient.getQueryData<AppEvent[]>([
+        'fetchEvents',
+        userId,
+      ]);
       if (previousEvents) {
         const updatedEvents = previousEvents.map((event) => {
           if (event.id === eventId) {
             return {
               ...event,
-              totalScheduledAmount: (event.totalScheduledAmount || 0) + addExpenseDto.amount,
+              totalScheduledAmount:
+                (event.totalScheduledAmount || 0) + addExpenseDto.amount,
             };
           }
-           return event;
+          return event;
         });
 
-        queryClient.setQueryData<AppEvent[]>(['fetchEvents', userId], updatedEvents);
+        queryClient.setQueryData<AppEvent[]>(
+          ['fetchEvents', userId],
+          updatedEvents,
+        );
       }
 
       // Return a context object with the snapshotted values

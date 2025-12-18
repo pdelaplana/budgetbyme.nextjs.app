@@ -155,7 +155,10 @@ export const useUpdateExpenseMutation = (
       }
 
       // Optimistically update events list (update totalScheduledAmount)
-      const previousEvents = queryClient.getQueryData<AppEvent[]>(['fetchEvents', userId]);
+      const previousEvents = queryClient.getQueryData<AppEvent[]>([
+        'fetchEvents',
+        userId,
+      ]);
       if (previousEvents && currentExpense) {
         const oldAmount = currentExpense.amount;
         const newAmount = updateExpenseDto.amount ?? oldAmount;
@@ -166,13 +169,19 @@ export const useUpdateExpenseMutation = (
             if (event.id === eventId) {
               return {
                 ...event,
-                totalScheduledAmount: Math.max(0, (event.totalScheduledAmount || 0) + amountDifference),
+                totalScheduledAmount: Math.max(
+                  0,
+                  (event.totalScheduledAmount || 0) + amountDifference,
+                ),
               };
             }
             return event;
           });
 
-          queryClient.setQueryData<AppEvent[]>(['fetchEvents', userId], updatedEvents);
+          queryClient.setQueryData<AppEvent[]>(
+            ['fetchEvents', userId],
+            updatedEvents,
+          );
         }
       }
 

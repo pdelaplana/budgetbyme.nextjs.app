@@ -81,19 +81,28 @@ export const useDeleteExpenseMutation = (
       }
 
       // Optimistically update events list (subtract from totalScheduledAmount)
-      const previousEvents = queryClient.getQueryData<AppEvent[]>(['fetchEvents', userId]);
+      const previousEvents = queryClient.getQueryData<AppEvent[]>([
+        'fetchEvents',
+        userId,
+      ]);
       if (previousEvents && expenseToDelete) {
         const updatedEvents = previousEvents.map((event) => {
           if (event.id === eventId) {
             return {
               ...event,
-              totalScheduledAmount: Math.max(0, (event.totalScheduledAmount || 0) - expenseToDelete.amount),
+              totalScheduledAmount: Math.max(
+                0,
+                (event.totalScheduledAmount || 0) - expenseToDelete.amount,
+              ),
             };
           }
           return event;
         });
 
-        queryClient.setQueryData<AppEvent[]>(['fetchEvents', userId], updatedEvents);
+        queryClient.setQueryData<AppEvent[]>(
+          ['fetchEvents', userId],
+          updatedEvents,
+        );
       }
 
       // Return a context object with the snapshotted values

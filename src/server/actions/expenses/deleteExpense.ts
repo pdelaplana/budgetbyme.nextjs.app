@@ -144,7 +144,7 @@ export const deleteExpense = withSentryServerAction(
             0,
             currentScheduledAmount - expenseAmount,
           );
-          
+
           const newSpentAmount = Math.max(
             0,
             currentSpentAmount - totalSpentAmount,
@@ -175,16 +175,18 @@ export const deleteExpense = withSentryServerAction(
             0,
             (eventData.totalScheduledAmount || 0) - expenseAmount,
           );
-          
+
           const newEventSpentAmount = Math.max(
             0,
             (eventData.totalSpentAmount || 0) - totalSpentAmount,
           );
-          
+
           const totalBudgetedAmount = eventData.totalBudgetedAmount || 0;
           let newSpentPercentage = 0;
           if (totalBudgetedAmount > 0) {
-            newSpentPercentage = Math.round((newEventSpentAmount / totalBudgetedAmount) * 100);
+            newSpentPercentage = Math.round(
+              (newEventSpentAmount / totalBudgetedAmount) * 100,
+            );
           }
 
           batch.update(eventRef, {
