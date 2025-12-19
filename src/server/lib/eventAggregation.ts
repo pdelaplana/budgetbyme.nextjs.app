@@ -112,9 +112,6 @@ export async function updateEventTotals(
       const expenseAmount = expenseData.amount || 0;
 
       if (categoryId && categoryTotals[categoryId]) {
-        // Add to scheduled amount
-        categoryTotals[categoryId].scheduled += expenseAmount;
-
         // Calculate spent amount from payments
         let expenseSpentAmount = 0;
         if (expenseData.hasPaymentSchedule && expenseData.paymentSchedule) {
@@ -131,6 +128,11 @@ export async function updateEventTotals(
         }
 
         categoryTotals[categoryId].spent += expenseSpentAmount;
+        // Scheduled amount should be total amount minus paid amount
+        categoryTotals[categoryId].scheduled += Math.max(
+          0,
+          expenseAmount - expenseSpentAmount,
+        );
       }
     });
 

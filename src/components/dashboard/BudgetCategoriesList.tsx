@@ -108,6 +108,14 @@ export default function BudgetCategoriesList({
                       />
                     </div>
 
+                    {/* Scheduled Amount */}
+                    <div className='mt-2 flex justify-between items-center'>
+                      <span className='text-xs text-gray-500'>Scheduled:</span>
+                      <span className='text-xs font-medium text-gray-700'>
+                        {formatCurrency(category.scheduledAmount || 0)}
+                      </span>
+                    </div>
+
                     {/* Remaining Amount */}
                     <div className='mt-2 flex justify-between items-center'>
                       <span className='text-xs text-gray-500'>

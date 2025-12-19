@@ -94,6 +94,10 @@ export function useCreateSinglePaymentMutation(
                 return {
                   ...cat,
                   spentAmount: (cat.spentAmount || 0) + amount,
+                  scheduledAmount: Math.max(
+                    0,
+                    (cat.scheduledAmount || 0) - amount,
+                  ),
                 };
               }
               return cat;
@@ -111,6 +115,10 @@ export function useCreateSinglePaymentMutation(
               return {
                 ...evt,
                 totalSpentAmount: (evt.totalSpentAmount || 0) + amount,
+                totalScheduledAmount: Math.max(
+                  0,
+                  (evt.totalScheduledAmount || 0) - amount,
+                ),
               };
             }
             return evt;
