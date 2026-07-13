@@ -19,17 +19,19 @@ const AddOrEditExpenseModal = dynamic(
   },
 );
 
+import {
+  type BreadcrumbItem,
+  Breadcrumbs,
+  BudgetOverviewCard,
+  createBudgetData,
+  ExpenseListItem,
+  LoadingSpinner,
+  NotFoundState,
+} from '@budgetbyme/ui';
 import CategoryErrorBoundary from '@/components/category/CategoryErrorBoundary';
 import CategoryErrorStates from '@/components/category/CategoryErrorStates';
 import CategoryHeader from '@/components/category/CategoryHeader';
 import EmptyExpensesState from '@/components/category/EmptyExpensesState';
-import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
-import BudgetOverviewCard, {
-  createBudgetData,
-} from '@/components/ui/BudgetOverviewCard';
-import ExpenseListItem from '@/components/ui/ExpenseListItem';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
-import NotFoundState from '@/components/ui/NotFoundState';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
 import { useCategoryData } from '@/hooks/category/useCategoryData';
@@ -39,7 +41,6 @@ import {
   transformCategoryForExpenseModal,
   transformCategoryForModal,
 } from '@/lib/categoryUtils';
-import type { Expense } from '@/types/Expense';
 
 const CategoryDeletionModal = dynamic(
   () => import('@/components/category/CategoryDeletionModal'),
@@ -85,7 +86,7 @@ export default function CategoryPage() {
 
   // Event handlers (must be before any early returns to follow Rules of Hooks)
   const handleExpenseClick = useCallback(
-    (expense: Expense) => {
+    (expense: { id: string }) => {
       router.push(`/events/${eventId}/expense/${expense.id}`);
     },
     [router, eventId],
@@ -215,7 +216,10 @@ export default function CategoryPage() {
         >
           {/* Breadcrumbs */}
           <div className='mb-3 sm:mb-4'>
-            <Breadcrumbs items={breadcrumbItems} />
+            <Breadcrumbs
+              items={breadcrumbItems}
+              onNavigate={(href) => router.push(href)}
+            />
           </div>
 
           {/* Category Header */}

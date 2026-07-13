@@ -26,7 +26,6 @@ describe('useModalState', () => {
       selectedPayment: null,
     });
     expect(result.current.state.editExpense.isOpen).toBe(false);
-    expect(result.current.state.actionDropdown.isOpen).toBe(false);
     expect(result.current.state.confirmDialogs).toEqual({
       deleteAttachment: {
         isOpen: false,
@@ -174,42 +173,6 @@ describe('useModalState', () => {
     });
   });
 
-  describe('action dropdown actions', () => {
-    it('should toggle action dropdown', () => {
-      const { result } = renderHook(() => useModalState());
-
-      expect(result.current.state.actionDropdown.isOpen).toBe(false);
-
-      act(() => {
-        result.current.actions.toggleActionDropdown();
-      });
-
-      expect(result.current.state.actionDropdown.isOpen).toBe(true);
-
-      act(() => {
-        result.current.actions.toggleActionDropdown();
-      });
-
-      expect(result.current.state.actionDropdown.isOpen).toBe(false);
-    });
-
-    it('should close action dropdown', () => {
-      const { result } = renderHook(() => useModalState());
-
-      act(() => {
-        result.current.actions.toggleActionDropdown();
-      });
-
-      expect(result.current.state.actionDropdown.isOpen).toBe(true);
-
-      act(() => {
-        result.current.actions.closeActionDropdown();
-      });
-
-      expect(result.current.state.actionDropdown.isOpen).toBe(false);
-    });
-  });
-
   describe('delete payments confirmation dialog actions', () => {
     it('should open delete payments confirmation', () => {
       const { result } = renderHook(() => useModalState());
@@ -334,12 +297,10 @@ describe('useModalState', () => {
       act(() => {
         result.current.actions.openPaymentSchedule('create');
         result.current.actions.openMarkAsPaid();
-        result.current.actions.toggleActionDropdown();
       });
 
       expect(result.current.state.paymentSchedule.isOpen).toBe(true);
       expect(result.current.state.markAsPaid.isOpen).toBe(true);
-      expect(result.current.state.actionDropdown.isOpen).toBe(true);
 
       // Close one modal, others should remain open
       act(() => {
@@ -348,7 +309,6 @@ describe('useModalState', () => {
 
       expect(result.current.state.paymentSchedule.isOpen).toBe(false);
       expect(result.current.state.markAsPaid.isOpen).toBe(true);
-      expect(result.current.state.actionDropdown.isOpen).toBe(true);
     });
   });
 });

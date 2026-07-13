@@ -1,5 +1,5 @@
+import { NotFoundState } from '@budgetbyme/ui';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import NotFoundState from '@/components/ui/NotFoundState';
 
 interface DashboardNotFoundProps {
   entityType: string; // 'Event', 'Category', 'Expense', etc.

@@ -49,10 +49,7 @@ interface ModalControls {
 
 // Dashboard actions return type based on actual useDashboardActions implementation
 interface DashboardActions {
-  toggleDropdown: () => void;
-  closeDropdown: () => void;
   handleDropdownAction: (actionId: string) => void;
-  isDropdownOpen: boolean;
   handleCategoryClick: (categoryId: string) => void;
   navigateToEvents: () => void;
   handleExpenseEdit: (expense: ExpenseDetail) => void;

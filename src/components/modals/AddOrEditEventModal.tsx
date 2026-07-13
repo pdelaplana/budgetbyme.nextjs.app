@@ -1,5 +1,6 @@
 'use client';
 
+import { CategorySelector } from '@budgetbyme/ui';
 import {
   CalendarIcon,
   CurrencyDollarIcon,
@@ -10,7 +11,6 @@ import {
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import CategorySelector from '@/components/ui/CategorySelector';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAddEventMutation, useUpdateEventMutation } from '@/hooks/events';
 import { sanitizeCurrencyInput } from '@/lib/formatters';

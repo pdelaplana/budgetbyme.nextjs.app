@@ -1,8 +1,8 @@
 'use client';
 
+import { ConfirmDialog } from '@budgetbyme/ui';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import ConfirmDialog from '@/components/modals/ConfirmDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useDeleteCategoryMutation } from '@/hooks/categories';

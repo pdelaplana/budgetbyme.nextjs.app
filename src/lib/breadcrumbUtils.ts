@@ -3,8 +3,8 @@
  * Centralized functions for creating consistent breadcrumb navigation
  */
 
+import type { BreadcrumbItem } from '@budgetbyme/ui';
 import { HomeIcon } from '@heroicons/react/24/outline';
-import type { BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 import { truncateForBreadcrumb } from '@/lib/textUtils';
 
 export interface Event {

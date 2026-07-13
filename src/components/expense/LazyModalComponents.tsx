@@ -1,7 +1,7 @@
 'use client';
 
+import { LoadingSpinner } from '@budgetbyme/ui';
 import { lazy, Suspense } from 'react';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 // Lazy load modal components for better bundle splitting
 const AddOrEditExpenseModal = lazy(
@@ -13,7 +13,9 @@ const PaymentScheduleModal = lazy(
 const MarkAsPaidModal = lazy(
   () => import('@/components/modals/MarkAsPaidModal'),
 );
-const ConfirmDialog = lazy(() => import('@/components/modals/ConfirmDialog'));
+const ConfirmDialog = lazy(() =>
+  import('@budgetbyme/ui').then((m) => ({ default: m.ConfirmDialog })),
+);
 
 // Wrapper components with loading states
 interface LazyModalWrapperProps {

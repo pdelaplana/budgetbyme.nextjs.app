@@ -1,7 +1,7 @@
 'use client';
 
+import { Logo } from '@budgetbyme/ui';
 import type React from 'react';
-import Logo from '@/components/ui/Logo';
 
 interface AuthLayoutProps {
   children: React.ReactNode;

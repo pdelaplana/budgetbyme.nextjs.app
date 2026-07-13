@@ -1,6 +1,6 @@
+import type { BreadcrumbItem } from '@budgetbyme/ui';
 import { HomeIcon } from '@heroicons/react/24/outline';
 import { useCallback, useMemo } from 'react';
-import type { BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 import type { ExpenseWithPayments } from '@/lib/paymentCalculations';
 import { calculatePaymentStatus } from '@/lib/paymentCalculations';
 import { truncateForBreadcrumb } from '@/lib/textUtils';

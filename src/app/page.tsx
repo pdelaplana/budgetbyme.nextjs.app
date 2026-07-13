@@ -1,7 +1,7 @@
 'use client';
 
+import { LoadingSpinner } from '@budgetbyme/ui';
 import { useEffect } from 'react';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEvents } from '@/contexts/EventsContext';
 

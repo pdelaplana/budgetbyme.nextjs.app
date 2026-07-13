@@ -1,7 +1,7 @@
 'use client';
 
+import { CategoryErrorRecovery } from '@budgetbyme/ui';
 import { useRouter } from 'next/navigation';
-import { CategoryErrorRecovery } from '@/components/ui/ErrorRecoveryCard';
 import type { ErrorState } from '@/hooks/category/useCategoryPageState';
 
 interface CategoryErrorStatesProps {

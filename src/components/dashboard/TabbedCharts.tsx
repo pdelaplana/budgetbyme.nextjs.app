@@ -1,16 +1,18 @@
 'use client';
 
 import {
+  BudgetGaugeChart,
+  CategoryBreakdownChart,
+  PaymentTimelineChart,
+  QuickStatsChart,
+} from '@budgetbyme/ui';
+import {
   CalendarIcon,
   ChartBarIcon,
   ChartPieIcon,
   PresentationChartLineIcon,
 } from '@heroicons/react/24/outline';
 import { useState } from 'react';
-import BudgetGaugeChart from '@/components/charts/BudgetGaugeChart';
-import CategoryBreakdownChart from '@/components/charts/CategoryBreakdownChart';
-import PaymentTimelineChart from '@/components/charts/PaymentTimelineChart';
-import QuickStatsChart from '@/components/charts/QuickStatsChart';
 
 interface CategoryData {
   id: string;

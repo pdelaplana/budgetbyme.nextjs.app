@@ -1,8 +1,8 @@
 'use client';
 
+import { ErrorBoundary } from '@budgetbyme/ui';
 import { useRouter } from 'next/navigation';
 import type React from 'react';
-import ErrorBoundary from '@/components/ui/ErrorBoundary';
 
 interface CategoryErrorBoundaryProps {
   children: React.ReactNode;

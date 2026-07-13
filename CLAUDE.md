@@ -46,6 +46,19 @@ BudgetByMe is a budgeting and expense tracking web application for life's major 
 ### Firebase Security Rules
 Implement Firestore rules ensuring users can only access their own events and related data.
 
+## Monorepo Structure: UI Package
+
+The `packages/ui` directory contains a standalone, independently-buildable presentational component library (`@budgetbyme/ui`). It exports 20+ reusable components (dropdowns, charts, expense forms, dialogs) plus formatting and text utilities, built with TypeScript and Tailwind CSS.
+
+**Key points:**
+- Consumed by the app via npm workspaces (`"@budgetbyme/ui": "*"` in root `package.json#dependencies`)
+- Built with `tsup` (esbuild), emitting ESM + TypeScript declarations
+- Peer dependencies on `react` and `react-dom` (not bundled); owns `@headlessui/react`, `@heroicons/react`, `recharts`, etc.
+- Styling: Tailwind CSS utility classes (consumer-provided, not bundled)
+- **New presentational components with zero Firebase/TanStack Query/routing/context coupling should go in `packages/ui`, not in `src/components/`**
+- Components like `Breadcrumbs` and `ExpenseHeader` take an `onNavigate` callback prop for routing (framework-agnostic)
+- See `packages/ui/README.md` for the full component export list and `packages/ui/tech-stack.md` for architectural rationale
+
 ## Development Commands
 
 - `npm run dev` - Development server with Turbopack (fast builds)

@@ -1,9 +1,8 @@
 'use client';
 
+import { AttachmentCard, FileUpload } from '@budgetbyme/ui';
 import { ArrowUpTrayIcon, PaperClipIcon } from '@heroicons/react/24/outline';
 import React from 'react';
-import AttachmentCard from '@/components/ui/AttachmentCard';
-import FileUpload from '@/components/ui/FileUpload';
 import type { AttachmentManager } from '@/hooks/useAttachmentManager';
 
 interface AttachmentsSectionProps {

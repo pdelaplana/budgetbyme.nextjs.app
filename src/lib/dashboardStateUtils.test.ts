@@ -8,16 +8,12 @@ import {
   isModalOpen,
   selectEditing,
   selectModals,
-  selectUI,
 } from './dashboardStateUtils';
 
 // Mock dashboard state for testing
 const createMockState = (
   overrides: Partial<DashboardState> = {},
 ): DashboardState => ({
-  ui: {
-    dropdownOpen: false,
-  },
   modals: {
     addExpense: false,
     expenseDetail: false,
@@ -136,7 +132,6 @@ describe('dashboardStateUtils', () => {
   describe('getDashboardUIState', () => {
     it('should return correct UI state summary', () => {
       const state = createMockState({
-        ui: { dropdownOpen: true },
         modals: {
           addExpense: true,
           expenseDetail: false,
@@ -155,7 +150,6 @@ describe('dashboardStateUtils', () => {
 
       const result = getDashboardUIState(state);
 
-      expect(result.hasDropdownOpen).toBe(true);
       expect(result.hasOpenModal).toBe(true);
       expect(result.openModals).toEqual(['addExpense']);
       expect(result.isEditing).toBe(true);
@@ -212,7 +206,6 @@ describe('dashboardStateUtils', () => {
   describe('selectors', () => {
     it('should extract correct state slices', () => {
       const state = createMockState({
-        ui: { dropdownOpen: true },
         modals: {
           addExpense: true,
           expenseDetail: false,
@@ -229,7 +222,6 @@ describe('dashboardStateUtils', () => {
         },
       });
 
-      expect(selectUI(state)).toEqual({ dropdownOpen: true });
       expect(selectModals(state).addExpense).toBe(true);
       expect(selectEditing(state).isEditCategoryMode).toBe(true);
     });

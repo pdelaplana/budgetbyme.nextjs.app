@@ -1,5 +1,6 @@
 'use client';
 
+import { ConfirmDialog, LoadingSpinner } from '@budgetbyme/ui';
 import {
   ArrowRightIcon,
   CalendarIcon,
@@ -13,8 +14,6 @@ import { toast } from 'sonner';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import RootLayout from '@/components/layouts/RootLayout';
 import AddOrEditEventModal from '@/components/modals/AddOrEditEventModal';
-import ConfirmDialog from '@/components/modals/ConfirmDialog';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEvents } from '@/contexts/EventsContext';
 import { useDeleteEventMutation } from '@/hooks/events';
