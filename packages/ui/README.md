@@ -7,7 +7,7 @@ A standalone presentational UI component library extracted from the BudgetByMe a
 This package is consumed by the BudgetByMe app as an npm workspace dependency. To use components:
 
 ```typescript
-import { Button, ExpenseListItem, BudgetGaugeChart } from '@budgetbyme/ui';
+import { ActionDropdown, ExpenseListItem, BudgetGaugeChart } from '@budgetbyme/ui';
 ```
 
 See `tech-stack.md` for architectural decisions and build details.
@@ -81,8 +81,8 @@ See `tech-stack.md` for architectural decisions and build details.
 ## Peer Dependencies
 
 This package requires a consuming app to provide:
-- **react** ≥ 19.1.1
-- **react-dom** ≥ 19.1.1
+- **react** ^19.1.1
+- **react-dom** ^19.1.1
 
 ## Styling
 

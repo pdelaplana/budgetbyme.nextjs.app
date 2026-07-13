@@ -48,7 +48,7 @@ Implement Firestore rules ensuring users can only access their own events and re
 
 ## Monorepo Structure: UI Package
 
-The `packages/ui` directory contains a standalone, independently-buildable presentational component library (`@budgetbyme/ui`). It exports ~20 reusable components (dropdowns, charts, expense forms, dialogs) plus formatting and text utilities, built with TypeScript and Tailwind CSS.
+The `packages/ui` directory contains a standalone, independently-buildable presentational component library (`@budgetbyme/ui`). It exports 20+ reusable components (dropdowns, charts, expense forms, dialogs) plus formatting and text utilities, built with TypeScript and Tailwind CSS.
 
 **Key points:**
 - Consumed by the app via npm workspaces (`"@budgetbyme/ui": "*"` in root `package.json#dependencies`)
