@@ -1,6 +1,7 @@
 /** biome-ignore-all lint/a11y/noLabelWithoutControl: <explanation> */
 'use client';
 
+import { IconSelector } from '@budgetbyme/ui';
 import {
   CurrencyDollarIcon,
   DocumentTextIcon,
@@ -11,7 +12,6 @@ import {
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import IconSelector from '@/components/ui/IconSelector';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import {

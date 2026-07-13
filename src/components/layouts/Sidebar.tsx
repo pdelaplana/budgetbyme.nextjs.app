@@ -1,5 +1,6 @@
 'use client';
 
+import { Logo } from '@budgetbyme/ui';
 import {
   ArrowRightOnRectangleIcon,
   CalendarIcon,
@@ -7,7 +8,6 @@ import {
   UserCircleIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import Logo from '@/components/ui/Logo';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEvents } from '@/contexts/EventsContext';
 import { getEventIcon, getEventStatusColor } from '@/lib/mockData/events';

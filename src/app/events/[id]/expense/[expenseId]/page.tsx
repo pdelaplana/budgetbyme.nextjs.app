@@ -1,6 +1,6 @@
 'use client';
 
-import { LoadingSpinner } from '@budgetbyme/ui';
+import { LoadingSpinner, NotFoundState } from '@budgetbyme/ui';
 import { useParams, useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { toast } from 'sonner';
@@ -14,7 +14,6 @@ import ExpenseHeader from '@/components/expense/ExpenseHeader';
 import { LazyModalComponents } from '@/components/expense/LazyModalComponents';
 import PaymentScheduleSection from '@/components/expense/PaymentScheduleSection';
 import VendorInformation from '@/components/expense/VendorInformation';
-import NotFoundState from '@/components/ui/NotFoundState';
 
 // Hooks and utilities
 import { useAuth } from '@/contexts/AuthContext';

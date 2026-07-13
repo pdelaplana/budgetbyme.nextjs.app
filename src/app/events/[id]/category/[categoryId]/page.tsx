@@ -19,7 +19,7 @@ const AddOrEditExpenseModal = dynamic(
   },
 );
 
-import { LoadingSpinner } from '@budgetbyme/ui';
+import { LoadingSpinner, NotFoundState } from '@budgetbyme/ui';
 import CategoryErrorBoundary from '@/components/category/CategoryErrorBoundary';
 import CategoryErrorStates from '@/components/category/CategoryErrorStates';
 import CategoryHeader from '@/components/category/CategoryHeader';
@@ -29,7 +29,6 @@ import BudgetOverviewCard, {
   createBudgetData,
 } from '@/components/ui/BudgetOverviewCard';
 import ExpenseListItem from '@/components/ui/ExpenseListItem';
-import NotFoundState from '@/components/ui/NotFoundState';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
 import { useCategoryData } from '@/hooks/category/useCategoryData';
