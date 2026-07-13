@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency } from './utils/formatters';
 
 interface TimelineDataPoint {
   date: string;

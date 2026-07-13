@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency } from './utils/formatters';
 
 interface CategoryData {
   id: string;
@@ -34,15 +34,20 @@ export default function CategoryBreakdownChart({
     return icons[name] || '🎉';
   };
 
-  // Prepare data for the pie chart
-  const totalBudget = data.reduce((sum, cat) => sum + cat.budgeted, 0);
-  const pieData = data.map((item) => ({
-    name: item.name,
-    value: item.budgeted,
-    spent: item.spent,
-    percentage: totalBudget > 0 ? (item.budgeted / totalBudget) * 100 : 0,
-    color: item.color,
-  }));
+  // Prepare data for the pie chart. Memoized so hover-driven activeIndex
+  // updates (which re-render this component) don't recompute these on
+  // every hover event — only when the `data` prop actually changes.
+  const { totalBudget, pieData } = useMemo(() => {
+    const totalBudget = data.reduce((sum, cat) => sum + cat.budgeted, 0);
+    const pieData = data.map((item) => ({
+      name: item.name,
+      value: item.budgeted,
+      spent: item.spent,
+      percentage: totalBudget > 0 ? (item.budgeted / totalBudget) * 100 : 0,
+      color: item.color,
+    }));
+    return { totalBudget, pieData };
+  }, [data]);
 
   interface TooltipProps {
     active?: boolean;

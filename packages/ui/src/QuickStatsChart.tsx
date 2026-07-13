@@ -1,6 +1,6 @@
 'use client';
 
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency } from './utils/formatters';
 
 interface QuickStatsData {
   totalBudget: number;

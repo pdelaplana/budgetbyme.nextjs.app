@@ -5,6 +5,7 @@ export type {
 export { default as ActionDropdown } from './ActionDropdown';
 export type { AttachmentCardProps } from './AttachmentCard';
 export { default as AttachmentCard } from './AttachmentCard';
+export { default as BudgetGaugeChart } from './BudgetGaugeChart';
 export type {
   BudgetData,
   BudgetOverviewCardProps,
@@ -13,6 +14,7 @@ export {
   createBudgetData,
   default as BudgetOverviewCard,
 } from './BudgetOverviewCard';
+export { default as CategoryBreakdownChart } from './CategoryBreakdownChart';
 export { default as CategorySelector } from './CategorySelector';
 export { default as ConfirmDialog } from './ConfirmDialog';
 export { default as ErrorBoundary } from './ErrorBoundary';
@@ -29,6 +31,8 @@ export { default as ImageCropModal } from './ImageCropModal';
 export { default as LoadingSpinner } from './LoadingSpinner';
 export { default as Logo } from './Logo';
 export { default as NotFoundState } from './NotFoundState';
+export { default as PaymentTimelineChart } from './PaymentTimelineChart';
+export { default as QuickStatsChart } from './QuickStatsChart';
 export type { EventType } from './types/Event';
 export type {
   Expense,
