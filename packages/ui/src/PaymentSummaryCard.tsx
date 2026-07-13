@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { formatCurrency } from '@/lib/formatters';
-import type { PaymentStatus } from '@/lib/paymentCalculations';
+import type { PaymentStatus } from './types/PaymentStatus';
+import { formatCurrency } from './utils/formatters';
 
 interface PaymentSummaryCardProps {
   paymentStatus: PaymentStatus;

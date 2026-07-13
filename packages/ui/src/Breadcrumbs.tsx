@@ -1,7 +1,6 @@
 'use client';
 
 import { ChevronRightIcon } from '@heroicons/react/24/outline';
-import { useRouter } from 'next/navigation';
 import type React from 'react';
 
 export interface BreadcrumbItem {
@@ -11,20 +10,20 @@ export interface BreadcrumbItem {
   current?: boolean;
 }
 
-interface BreadcrumbsProps {
+export interface BreadcrumbsProps {
   items: BreadcrumbItem[];
+  onNavigate: (href: string) => void;
   className?: string;
 }
 
 export default function Breadcrumbs({
   items,
+  onNavigate,
   className = '',
 }: BreadcrumbsProps) {
-  const router = useRouter();
-
   const handleClick = (href?: string) => {
     if (!href) return;
-    router.push(href);
+    onNavigate(href);
   };
 
   return (

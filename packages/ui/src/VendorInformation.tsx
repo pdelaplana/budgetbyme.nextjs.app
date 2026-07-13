@@ -6,7 +6,7 @@ import {
   MapPinIcon,
 } from '@heroicons/react/24/outline';
 import React from 'react';
-import type { Expense } from '@/types/Expense';
+import type { Expense } from './types/Expense';
 
 interface VendorInformationProps {
   vendor: Expense['vendor'];

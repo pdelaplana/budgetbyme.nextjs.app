@@ -6,8 +6,8 @@ import {
   TagIcon,
 } from '@heroicons/react/24/outline';
 import React from 'react';
-import { formatCurrency, formatDate } from '@/lib/formatters';
-import type { Expense } from '@/types/Expense';
+import type { Expense } from './types/Expense';
+import { formatCurrency, formatDate } from './utils/formatters';
 
 interface ExpenseBasicInfoProps {
   expense: Expense;

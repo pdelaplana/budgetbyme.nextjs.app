@@ -1,5 +1,6 @@
 'use client';
 
+import { PaymentSummaryCard } from '@budgetbyme/ui';
 import {
   CalendarDaysIcon,
   CheckCircleIcon,
@@ -16,7 +17,6 @@ import {
   calculatePaymentStatus,
   type ExpenseWithPayments,
 } from '@/lib/paymentCalculations';
-import PaymentSummaryCard from './PaymentSummaryCard';
 
 interface PaymentScheduleSectionProps {
   expense: ExpenseWithPayments;

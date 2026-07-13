@@ -20,6 +20,8 @@ const AddOrEditExpenseModal = dynamic(
 );
 
 import {
+  type BreadcrumbItem,
+  Breadcrumbs,
   BudgetOverviewCard,
   createBudgetData,
   ExpenseListItem,
@@ -30,7 +32,6 @@ import CategoryErrorBoundary from '@/components/category/CategoryErrorBoundary';
 import CategoryErrorStates from '@/components/category/CategoryErrorStates';
 import CategoryHeader from '@/components/category/CategoryHeader';
 import EmptyExpensesState from '@/components/category/EmptyExpensesState';
-import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
 import { useCategoryData } from '@/hooks/category/useCategoryData';
@@ -215,7 +216,10 @@ export default function CategoryPage() {
         >
           {/* Breadcrumbs */}
           <div className='mb-3 sm:mb-4'>
-            <Breadcrumbs items={breadcrumbItems} />
+            <Breadcrumbs
+              items={breadcrumbItems}
+              onNavigate={(href) => router.push(href)}
+            />
           </div>
 
           {/* Category Header */}

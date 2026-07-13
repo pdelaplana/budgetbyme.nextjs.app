@@ -5,6 +5,8 @@ export type {
 export { default as ActionDropdown } from './ActionDropdown';
 export type { AttachmentCardProps } from './AttachmentCard';
 export { default as AttachmentCard } from './AttachmentCard';
+export type { BreadcrumbItem, BreadcrumbsProps } from './Breadcrumbs';
+export { default as Breadcrumbs } from './Breadcrumbs';
 export { default as BudgetGaugeChart } from './BudgetGaugeChart';
 export type {
   BudgetData,
@@ -23,6 +25,8 @@ export {
   CategoryErrorRecovery,
   default as ErrorRecoveryCard,
 } from './ErrorRecoveryCard';
+export { default as ExpenseBasicInfo } from './ExpenseBasicInfo';
+export { default as ExpenseHeader } from './ExpenseHeader';
 export type { ExpenseListItemProps } from './ExpenseListItem';
 export { default as ExpenseListItem } from './ExpenseListItem';
 export { default as FileUpload } from './FileUpload';
@@ -31,9 +35,10 @@ export { default as ImageCropModal } from './ImageCropModal';
 export { default as LoadingSpinner } from './LoadingSpinner';
 export { default as Logo } from './Logo';
 export { default as NotFoundState } from './NotFoundState';
+export { default as PaymentSummaryCard } from './PaymentSummaryCard';
 export { default as PaymentTimelineChart } from './PaymentTimelineChart';
 export { default as QuickStatsChart } from './QuickStatsChart';
-export type { EventType } from './types/Event';
+export type { Event, EventType } from './types/Event';
 export type {
   Expense,
   ExpenseCategory,
@@ -48,3 +53,4 @@ export {
   truncateForMobile,
   truncateText,
 } from './utils/textUtils';
+export { default as VendorInformation } from './VendorInformation';

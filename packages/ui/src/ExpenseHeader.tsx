@@ -1,13 +1,13 @@
 'use client';
 
-import { ActionDropdown } from '@budgetbyme/ui';
 import { HomeIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import React from 'react';
-import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
-import { formatDate } from '@/lib/formatters';
-import { truncateForBreadcrumb } from '@/lib/textUtils';
-import type { Event } from '@/types/Event';
-import type { Expense } from '@/types/Expense';
+import ActionDropdown from './ActionDropdown';
+import Breadcrumbs, { type BreadcrumbItem } from './Breadcrumbs';
+import type { Event } from './types/Event';
+import type { Expense } from './types/Expense';
+import { formatDate } from './utils/formatters';
+import { truncateForBreadcrumb } from './utils/textUtils';
 
 interface ExpenseHeaderProps {
   expense: Expense;
@@ -15,10 +15,11 @@ interface ExpenseHeaderProps {
   eventId: string;
   onEdit: () => void;
   onDelete: () => void;
+  onNavigate: (href: string) => void;
 }
 
 const ExpenseHeader = React.memo<ExpenseHeaderProps>(
-  ({ expense, currentEvent, eventId, onEdit, onDelete }) => {
+  ({ expense, currentEvent, eventId, onEdit, onDelete, onNavigate }) => {
     // Breadcrumb items with mobile-friendly labels
     const breadcrumbItems: BreadcrumbItem[] = [
       {
@@ -41,7 +42,7 @@ const ExpenseHeader = React.memo<ExpenseHeaderProps>(
         {/* Breadcrumbs */}
         <div className='mb-3 sm:mb-4 overflow-hidden'>
           <div className='w-full' style={{ overflowX: 'hidden' }}>
-            <Breadcrumbs items={breadcrumbItems} />
+            <Breadcrumbs items={breadcrumbItems} onNavigate={onNavigate} />
           </div>
         </div>
 
