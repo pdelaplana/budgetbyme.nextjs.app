@@ -1,5 +1,6 @@
 'use client';
 
+import { ConfirmDialog } from '@budgetbyme/ui';
 import {
   ArrowDownTrayIcon,
   ArrowRightOnRectangleIcon,
@@ -15,7 +16,6 @@ import { useEffect, useState } from 'react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import AccountLayout from '@/components/layouts/AccountLayout';
 import ChangePasswordModal from '@/components/modals/ChangePasswordModal';
-import ConfirmDialog from '@/components/modals/ConfirmDialog';
 import DeleteAccountModal from '@/components/modals/DeleteAccountModal';
 import ExportDataModal from '@/components/modals/ExportDataModal';
 import ReAuthModal from '@/components/modals/ReAuthModal';

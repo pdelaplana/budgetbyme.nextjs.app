@@ -16,13 +16,12 @@
  * - Responsive design with external button positioning
  */
 
+import { ConfirmDialog, ImageCropModal } from '@budgetbyme/ui';
 import { CameraIcon, TrashIcon } from '@heroicons/react/24/outline';
 import type { User } from 'firebase/auth';
 import Image from 'next/image';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import ConfirmDialog from '@/components/modals/ConfirmDialog';
-import ImageCropModal from '@/components/modals/ImageCropModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePhotoUpload } from '@/hooks/media';
 import { useCamera } from '@/hooks/media/useCamera';

@@ -13,7 +13,9 @@ const PaymentScheduleModal = lazy(
 const MarkAsPaidModal = lazy(
   () => import('@/components/modals/MarkAsPaidModal'),
 );
-const ConfirmDialog = lazy(() => import('@/components/modals/ConfirmDialog'));
+const ConfirmDialog = lazy(() =>
+  import('@budgetbyme/ui').then((m) => ({ default: m.ConfirmDialog })),
+);
 
 // Wrapper components with loading states
 interface LazyModalWrapperProps {

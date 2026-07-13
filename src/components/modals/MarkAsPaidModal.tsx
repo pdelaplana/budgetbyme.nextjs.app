@@ -1,5 +1,6 @@
 'use client';
 
+import { FileUpload } from '@budgetbyme/ui';
 import {
   CalendarIcon,
   CheckCircleIcon,
@@ -10,7 +11,6 @@ import {
 } from '@heroicons/react/24/outline';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import FileUpload from '@/components/ui/FileUpload';
 import { useAuth } from '@/contexts/AuthContext';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useFetchExpenses, useUpdateExpenseMutation } from '@/hooks/expenses';

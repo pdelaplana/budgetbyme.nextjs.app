@@ -1,9 +1,9 @@
 'use client';
 
+import { ConfirmDialog } from '@budgetbyme/ui';
 import AddOrEditCategoryModal from '@/components/modals/AddOrEditCategoryModal';
 import AddOrEditEventModal from '@/components/modals/AddOrEditEventModal';
 import AddOrEditExpenseModal from '@/components/modals/AddOrEditExpenseModal';
-import ConfirmDialog from '@/components/modals/ConfirmDialog';
 import ConfirmRecalculateModal from '@/components/modals/ConfirmRecalculateModal';
 import ExpenseDetailModal from '@/components/modals/ExpenseDetailModal';
 import type { useEventDashboard } from '@/hooks/dashboard';
