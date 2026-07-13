@@ -1,3 +1,8 @@
+export type {
+  ActionDropdownOption,
+  ActionDropdownProps,
+} from './ActionDropdown';
+export { default as ActionDropdown } from './ActionDropdown';
 export { default as ConfirmDialog } from './ConfirmDialog';
 export { default as ErrorBoundary } from './ErrorBoundary';
 export type { ErrorRecoveryCardProps } from './ErrorRecoveryCard';
