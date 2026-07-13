@@ -32,6 +32,28 @@ any other package, not through a TS path alias into `src/`.
   `sonner`) are declared directly on the package so it can be built and
   typechecked independently of the app.
 
+## Shared utilities and minimal domain types (Task 9)
+
+- `src/lib/formatters.ts` and `src/lib/textUtils.ts` in the app have ~26
+  call sites combined (22 + 4) — too many to safely rewrite to import
+  from `@budgetbyme/ui` directly in one task. Both files are pure and
+  zero-dependency, so they were moved **wholesale** into
+  `packages/ui/src/utils/formatters.ts` and `packages/ui/src/utils/textUtils.ts`,
+  with their tests ported alongside. The app's original
+  `src/lib/formatters.ts` / `src/lib/textUtils.ts` now just
+  `export { ... } from '@budgetbyme/ui'`, so all existing app call sites
+  (`@/lib/formatters`, `@/lib/textUtils`) keep working unchanged. Both
+  are also exported from the package barrel (`src/index.ts`) for future
+  consumers.
+- Minimal, package-local `Expense`, `EventType`, and `PaymentStatus`
+  type shapes live in `packages/ui/src/types/`. These are
+  structurally-compatible subsets of the app's full domain types
+  (`src/types/Expense.ts`, `src/types/Event.ts`,
+  `src/lib/paymentCalculations.ts`), containing only the fields actually
+  consumed by the components slated for the next three extraction tasks
+  (10/11/12). They are type-only — no runtime import from the app's
+  types — to avoid coupling the package to the app's domain model.
+
 ## Build output
 
 - `npm run build` (in `packages/ui`) runs `tsup`, producing:

@@ -16,3 +16,18 @@ export { default as ImageCropModal } from './ImageCropModal';
 export { default as LoadingSpinner } from './LoadingSpinner';
 export { default as Logo } from './Logo';
 export { default as NotFoundState } from './NotFoundState';
+export type { EventType } from './types/Event';
+export type {
+  Expense,
+  ExpenseCategory,
+  ExpensePaymentScheduleItem,
+  ExpenseVendor,
+} from './types/Expense';
+export type { PaymentStatus } from './types/PaymentStatus';
+export * from './utils/formatters';
+export type { TruncateOptions } from './utils/textUtils';
+export {
+  truncateForBreadcrumb,
+  truncateForMobile,
+  truncateText,
+} from './utils/textUtils';
