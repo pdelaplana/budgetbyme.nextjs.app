@@ -1,12 +1,11 @@
 'use client';
 
-import { FileUpload } from '@budgetbyme/ui';
+import { AttachmentCard, FileUpload } from '@budgetbyme/ui';
 import { PaperClipIcon, PlusIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { deleteExpenseAttachment } from '@/server/actions/expenses/deleteExpenseAttachment';
-import AttachmentCard from './AttachmentCard';
 
 export interface AttachmentData {
   url: string;

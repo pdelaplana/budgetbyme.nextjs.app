@@ -19,16 +19,18 @@ const AddOrEditExpenseModal = dynamic(
   },
 );
 
-import { LoadingSpinner, NotFoundState } from '@budgetbyme/ui';
+import {
+  BudgetOverviewCard,
+  createBudgetData,
+  ExpenseListItem,
+  LoadingSpinner,
+  NotFoundState,
+} from '@budgetbyme/ui';
 import CategoryErrorBoundary from '@/components/category/CategoryErrorBoundary';
 import CategoryErrorStates from '@/components/category/CategoryErrorStates';
 import CategoryHeader from '@/components/category/CategoryHeader';
 import EmptyExpensesState from '@/components/category/EmptyExpensesState';
 import Breadcrumbs, { type BreadcrumbItem } from '@/components/ui/Breadcrumbs';
-import BudgetOverviewCard, {
-  createBudgetData,
-} from '@/components/ui/BudgetOverviewCard';
-import ExpenseListItem from '@/components/ui/ExpenseListItem';
 import { useEventDetails } from '@/contexts/EventDetailsContext';
 import { useEvents } from '@/contexts/EventsContext';
 import { useCategoryData } from '@/hooks/category/useCategoryData';
@@ -38,7 +40,6 @@ import {
   transformCategoryForExpenseModal,
   transformCategoryForModal,
 } from '@/lib/categoryUtils';
-import type { Expense } from '@/types/Expense';
 
 const CategoryDeletionModal = dynamic(
   () => import('@/components/category/CategoryDeletionModal'),
@@ -84,7 +85,7 @@ export default function CategoryPage() {
 
   // Event handlers (must be before any early returns to follow Rules of Hooks)
   const handleExpenseClick = useCallback(
-    (expense: Expense) => {
+    (expense: { id: string }) => {
       router.push(`/events/${eventId}/expense/${expense.id}`);
     },
     [router, eventId],

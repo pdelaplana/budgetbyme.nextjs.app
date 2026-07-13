@@ -4,7 +4,7 @@ import type { BudgetData } from './BudgetOverviewCard';
 import BudgetOverviewCard, { createBudgetData } from './BudgetOverviewCard';
 
 // Mock the formatters
-vi.mock('@/lib/formatters', () => ({
+vi.mock('./utils/formatters', () => ({
   formatCurrency: (amount: number) => `$${amount.toFixed(0)}`,
 }));
 

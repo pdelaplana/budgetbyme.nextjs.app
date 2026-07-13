@@ -5,11 +5,11 @@ import {
   RectangleStackIcon,
 } from '@heroicons/react/24/outline';
 import { useState } from 'react';
+import type { EventType } from './types/Event';
 import {
   type CategoryTemplate,
   getCategoryTemplates,
-} from '@/lib/categoryTemplates';
-import type { EventType } from '@/types/Event';
+} from './utils/categoryTemplates';
 
 interface CategorySelectorProps {
   eventType: EventType;

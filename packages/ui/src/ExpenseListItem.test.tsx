@@ -4,13 +4,13 @@ import type { ExpenseListItemProps } from './ExpenseListItem';
 import ExpenseListItem from './ExpenseListItem';
 
 // Mock the formatters
-vi.mock('@/lib/formatters', () => ({
+vi.mock('./utils/formatters', () => ({
   formatCurrency: (amount: number) => `$${amount.toFixed(0)}`,
   formatDate: (_date: string | Date) => 'Jan 15, 2025',
 }));
 
 // Mock the payment calculations
-vi.mock('@/lib/paymentCalculations', () => ({
+vi.mock('./utils/paymentCalculations', () => ({
   calculatePaymentStatus: () => ({
     hasPayments: true,
     totalScheduled: 1000,
@@ -35,23 +35,14 @@ describe('ExpenseListItem', () => {
     name: 'Test Expense',
     description: 'A test expense',
     amount: 1000,
-    currency: { code: 'USD', symbol: '$' },
     date: new Date('2025-01-15'),
     notes: '',
-    tags: [],
-    attachments: [],
     category: {
-      id: 'cat-1',
       name: 'Test Category',
       color: '#3B82F6',
-      icon: 'ShoppingBag',
     },
     vendor: { name: '', address: '', website: '', email: '' },
     hasPaymentSchedule: false,
-    _createdDate: new Date(),
-    _createdBy: 'user123',
-    _updatedDate: new Date(),
-    _updatedBy: 'user123',
   };
 
   const mockOnClick = vi.fn();

@@ -3,6 +3,17 @@ export type {
   ActionDropdownProps,
 } from './ActionDropdown';
 export { default as ActionDropdown } from './ActionDropdown';
+export type { AttachmentCardProps } from './AttachmentCard';
+export { default as AttachmentCard } from './AttachmentCard';
+export type {
+  BudgetData,
+  BudgetOverviewCardProps,
+} from './BudgetOverviewCard';
+export {
+  createBudgetData,
+  default as BudgetOverviewCard,
+} from './BudgetOverviewCard';
+export { default as CategorySelector } from './CategorySelector';
 export { default as ConfirmDialog } from './ConfirmDialog';
 export { default as ErrorBoundary } from './ErrorBoundary';
 export type { ErrorRecoveryCardProps } from './ErrorRecoveryCard';
@@ -10,6 +21,8 @@ export {
   CategoryErrorRecovery,
   default as ErrorRecoveryCard,
 } from './ErrorRecoveryCard';
+export type { ExpenseListItemProps } from './ExpenseListItem';
+export { default as ExpenseListItem } from './ExpenseListItem';
 export { default as FileUpload } from './FileUpload';
 export { default as IconSelector } from './IconSelector';
 export { default as ImageCropModal } from './ImageCropModal';

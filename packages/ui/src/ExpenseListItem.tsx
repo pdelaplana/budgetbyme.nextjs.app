@@ -7,12 +7,12 @@ import {
 } from '@heroicons/react/24/outline';
 import type React from 'react';
 import { memo } from 'react';
-import { formatCurrency, formatDate } from '@/lib/formatters';
+import type { Expense } from './types/Expense';
+import { formatCurrency, formatDate } from './utils/formatters';
 import {
   calculatePaymentStatus,
   getPaymentStatusText,
-} from '@/lib/paymentCalculations';
-import type { Expense } from '@/types/Expense';
+} from './utils/paymentCalculations';
 
 export interface ExpenseListItemProps {
   expense: Expense;
