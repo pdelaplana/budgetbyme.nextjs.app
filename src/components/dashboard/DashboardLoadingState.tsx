@@ -1,5 +1,5 @@
+import { LoadingSpinner } from '@budgetbyme/ui';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface DashboardLoadingStateProps {
   title?: string;

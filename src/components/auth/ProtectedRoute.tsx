@@ -1,9 +1,9 @@
 'use client';
 
+import { LoadingSpinner } from '@budgetbyme/ui';
 import { useRouter } from 'next/navigation';
 import type React from 'react';
 import { useEffect } from 'react';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {

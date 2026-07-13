@@ -1,7 +1,7 @@
 'use client';
 
+import { LoadingSpinner } from '@budgetbyme/ui';
 import { lazy, Suspense } from 'react';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 // Lazy load modal components for better bundle splitting
 const AddOrEditExpenseModal = lazy(

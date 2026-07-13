@@ -1,21 +1,19 @@
 'use client';
 
+import { LoadingSpinner } from '@budgetbyme/ui';
 import { useParams, useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { toast } from 'sonner';
-
 // Layout and UI components
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import AttachmentsSection from '@/components/expense/AttachmentsSection';
 import ExpenseBasicInfo from '@/components/expense/ExpenseBasicInfo';
-
 // Refactored components
 import ExpenseHeader from '@/components/expense/ExpenseHeader';
 // Lazy-loaded modals
 import { LazyModalComponents } from '@/components/expense/LazyModalComponents';
 import PaymentScheduleSection from '@/components/expense/PaymentScheduleSection';
 import VendorInformation from '@/components/expense/VendorInformation';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import NotFoundState from '@/components/ui/NotFoundState';
 
 // Hooks and utilities
