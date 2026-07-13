@@ -1,7 +1,7 @@
 'use client';
 
+import { ActionDropdown } from '@budgetbyme/ui';
 import { PencilIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
-import ActionDropdown from '@/components/ui/ActionDropdown';
 import type { BudgetCategory } from '@/types/BudgetCategory';
 
 export interface CategoryHeaderProps {

@@ -47,7 +47,6 @@ export const isInEditingMode = (state: DashboardState): boolean => {
  */
 export const getDashboardUIState = (state: DashboardState) => {
   return {
-    hasDropdownOpen: state.ui.dropdownOpen,
     hasOpenModal: hasOpenModal(state),
     openModals: getOpenModals(state),
     isEditing: isInEditingMode(state),
@@ -86,6 +85,5 @@ export const createDashboardSelector = <T>(
 };
 
 // Pre-built selectors for common use cases
-export const selectUI = createDashboardSelector((state) => state.ui);
 export const selectModals = createDashboardSelector((state) => state.modals);
 export const selectEditing = createDashboardSelector((state) => state.editing);

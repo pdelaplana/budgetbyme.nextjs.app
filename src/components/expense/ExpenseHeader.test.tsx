@@ -1,5 +1,6 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Event } from '@/types/Event';
 import type { Expense } from '@/types/Expense';
 import ExpenseHeader from './ExpenseHeader';
@@ -17,6 +18,25 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/events/event-1/expense/expense-1',
   useSearchParams: () => new URLSearchParams(),
 }));
+
+// HeadlessUI's Menu observes its layout via ResizeObserver, which jsdom does
+// not implement. Provide a no-op stub so the component can mount in tests.
+beforeAll(() => {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {
+        // no-op
+      }
+      unobserve() {
+        // no-op
+      }
+      disconnect() {
+        // no-op
+      }
+    },
+  );
+});
 
 const mockExpense: Expense = {
   id: 'expense-1',
@@ -65,11 +85,8 @@ describe('ExpenseHeader', () => {
     expense: mockExpense,
     currentEvent: mockEvent,
     eventId: 'event-1',
-    showActionDropdown: false,
     onEdit: vi.fn(),
     onDelete: vi.fn(),
-    onToggleActionDropdown: vi.fn(),
-    onCloseActionDropdown: vi.fn(),
   };
 
   beforeEach(() => {
@@ -102,7 +119,7 @@ describe('ExpenseHeader', () => {
     render(<ExpenseHeader {...defaultProps} />);
 
     // Should have Edit button and More actions dropdown button
-    expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /more actions/i }),
     ).toBeInTheDocument();
@@ -113,49 +130,49 @@ describe('ExpenseHeader', () => {
 
     // Should have mobile menu button (hidden on larger screens)
     const mobileButton = screen.getByRole('button', {
-      name: /open action menu/i,
+      name: /toggle actions menu/i,
     });
     expect(mobileButton).toBeInTheDocument();
   });
 
-  it('should call onEdit when edit button is clicked', () => {
+  it('should call onEdit when edit button is clicked', async () => {
+    const user = userEvent.setup();
     render(<ExpenseHeader {...defaultProps} />);
 
-    const editButton = screen.getByRole('button', { name: /edit/i });
-    fireEvent.click(editButton);
+    const editButton = screen.getByRole('button', { name: 'Edit' });
+    await user.click(editButton);
 
     expect(defaultProps.onEdit).toHaveBeenCalledTimes(1);
   });
 
-  it('should call onDelete when delete option is clicked', () => {
-    render(<ExpenseHeader {...defaultProps} showActionDropdown={true} />);
+  it('should call onDelete when delete option is clicked from desktop dropdown', async () => {
+    const user = userEvent.setup();
+    render(<ExpenseHeader {...defaultProps} />);
 
-    // Delete is in the dropdown menu
-    const deleteButton = screen.getByRole('button', {
+    await user.click(screen.getByRole('button', { name: /more actions/i }));
+    const deleteButton = screen.getByRole('menuitem', {
       name: /delete expense/i,
     });
-    fireEvent.click(deleteButton);
+    await user.click(deleteButton);
 
     expect(defaultProps.onDelete).toHaveBeenCalledTimes(1);
   });
 
-  it('should call onToggleActionDropdown when mobile menu button is clicked', () => {
+  it('should open the mobile dropdown and call onEdit / onDelete from it', async () => {
+    const user = userEvent.setup();
     render(<ExpenseHeader {...defaultProps} />);
 
     const mobileButton = screen.getByRole('button', {
-      name: /open action menu/i,
+      name: /toggle actions menu/i,
     });
-    fireEvent.click(mobileButton);
+    await user.click(mobileButton);
 
-    expect(defaultProps.onToggleActionDropdown).toHaveBeenCalledTimes(1);
-  });
+    const items = screen.getAllByRole('menuitem');
+    expect(items[0]).toHaveTextContent('Edit');
+    expect(items[1]).toHaveTextContent('Delete Expense');
 
-  it('should render ActionDropdown when showActionDropdown is true', () => {
-    render(<ExpenseHeader {...defaultProps} showActionDropdown={true} />);
-
-    // ActionDropdown should be rendered (we'll test its internal functionality in its own test)
-    // For now, we just check that it receives the correct props
-    expect(defaultProps.onCloseActionDropdown).toBeDefined();
+    await user.click(screen.getByRole('menuitem', { name: 'Edit' }));
+    expect(defaultProps.onEdit).toHaveBeenCalledTimes(1);
   });
 
   it('should handle long expense names in breadcrumbs', () => {
@@ -205,15 +222,15 @@ describe('ExpenseHeader', () => {
       screen.getByRole('button', { name: /more actions/i }),
     ).toHaveAttribute('aria-label');
     expect(
-      screen.getByRole('button', { name: /open action menu/i }),
+      screen.getByRole('button', { name: /toggle actions menu/i }),
     ).toHaveAttribute('aria-label');
   });
 
   it('should have proper responsive classes', () => {
     const { container } = render(<ExpenseHeader {...defaultProps} />);
 
-    // Desktop buttons container should have hidden and sm:flex classes
-    const desktopContainer = container.querySelector('.hidden.sm\\:flex');
+    // Desktop buttons container should have hidden and sm:block classes
+    const desktopContainer = container.querySelector('.hidden.sm\\:block');
     expect(desktopContainer).toBeInTheDocument();
 
     // Mobile button container should have sm:hidden class
@@ -225,13 +242,13 @@ describe('ExpenseHeader', () => {
     const { rerender } = render(<ExpenseHeader {...defaultProps} />);
 
     // Get initial render count (this is conceptual - React.memo prevents unnecessary renders)
-    const _initialEditButton = screen.getByRole('button', { name: /edit/i });
+    const _initialEditButton = screen.getByRole('button', { name: 'Edit' });
 
     // Re-render with same props
     rerender(<ExpenseHeader {...defaultProps} />);
 
     // Button should still be there (component should have memoized properly)
-    expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
   });
 
   it('should update when expense changes', () => {

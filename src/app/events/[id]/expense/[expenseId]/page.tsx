@@ -275,11 +275,8 @@ export default function ExpenseDetailPage() {
         expense={expense}
         currentEvent={currentEvent}
         eventId={eventId}
-        showActionDropdown={modalState.state.actionDropdown.isOpen}
         onEdit={handleEdit}
         onDelete={handleDelete}
-        onToggleActionDropdown={modalState.actions.toggleActionDropdown}
-        onCloseActionDropdown={modalState.actions.closeActionDropdown}
       />
 
       <div className='space-y-6'>

@@ -1,20 +1,12 @@
 'use client';
 
-import ActionDropdown from './ActionDropdown';
-
-interface DropdownItem {
-  id: string;
-  label: string;
-  icon: string;
-}
+import { ActionDropdown, type ActionDropdownOption } from '@budgetbyme/ui';
+import type { DashboardAction } from '@/constants/dashboardActions';
 
 interface DashboardHeaderProps {
   title?: string;
   subtitle?: string;
-  dropdownItems: DropdownItem[];
-  isDropdownOpen: boolean;
-  onDropdownToggle: () => void;
-  onDropdownClose: () => void;
+  dropdownItems: DashboardAction[];
   onDropdownAction: (actionId: string) => void;
   isRecalculatingTotals?: boolean;
 }
@@ -23,12 +15,21 @@ export default function DashboardHeader({
   title = 'Dashboard',
   subtitle = 'Track your progress and manage your budget',
   dropdownItems,
-  isDropdownOpen,
-  onDropdownToggle,
-  onDropdownClose,
   onDropdownAction,
   isRecalculatingTotals = false,
 }: DashboardHeaderProps) {
+  const options: ActionDropdownOption[] = dropdownItems.map((item) => {
+    const isRecalculate = item.id === 'recalculate-totals';
+    return {
+      id: item.id,
+      label: item.label,
+      icon: item.icon,
+      onClick: () => onDropdownAction(item.id),
+      loading: isRecalculate ? isRecalculatingTotals : undefined,
+      loadingLabel: isRecalculate ? 'Recalculating...' : undefined,
+    };
+  });
+
   return (
     <div className='bg-slate-100 border-b border-gray-200 mb-4'>
       <div className='py-4'>
@@ -41,12 +42,9 @@ export default function DashboardHeader({
           </div>
 
           <ActionDropdown
-            isOpen={isDropdownOpen}
-            onToggle={onDropdownToggle}
-            onClose={onDropdownClose}
-            onActionSelect={onDropdownAction}
-            items={dropdownItems}
-            isRecalculatingTotals={isRecalculatingTotals}
+            variant='single'
+            triggerLabel='Actions'
+            options={options}
           />
         </div>
       </div>

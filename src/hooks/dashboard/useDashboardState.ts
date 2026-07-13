@@ -22,9 +22,6 @@ export interface ExpenseDetail {
 
 // Dashboard state interfaces
 export interface DashboardState {
-  ui: {
-    dropdownOpen: boolean;
-  };
   modals: {
     addExpense: boolean;
     expenseDetail: boolean;
@@ -42,8 +39,6 @@ export interface DashboardState {
 }
 
 export type DashboardAction =
-  | { type: 'TOGGLE_DROPDOWN' }
-  | { type: 'CLOSE_DROPDOWN' }
   | { type: 'OPEN_MODAL'; modal: keyof DashboardState['modals'] }
   | { type: 'CLOSE_MODAL'; modal: keyof DashboardState['modals'] }
   | { type: 'SET_SELECTED_EXPENSE'; expense: ExpenseDetail | null }
@@ -56,9 +51,6 @@ export type DashboardAction =
   | { type: 'RESET_EDITING_STATE' };
 
 const initialDashboardState: DashboardState = {
-  ui: {
-    dropdownOpen: false,
-  },
   modals: {
     addExpense: false,
     expenseDetail: false,
@@ -80,21 +72,10 @@ function dashboardReducer(
   action: DashboardAction,
 ): DashboardState {
   switch (action.type) {
-    case 'TOGGLE_DROPDOWN':
-      return {
-        ...state,
-        ui: { ...state.ui, dropdownOpen: !state.ui.dropdownOpen },
-      };
-    case 'CLOSE_DROPDOWN':
-      return {
-        ...state,
-        ui: { ...state.ui, dropdownOpen: false },
-      };
     case 'OPEN_MODAL':
       return {
         ...state,
         modals: { ...state.modals, [action.modal]: true },
-        ui: { ...state.ui, dropdownOpen: false },
       };
     case 'CLOSE_MODAL':
       return {

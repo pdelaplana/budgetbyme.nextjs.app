@@ -6,19 +6,10 @@ export interface DashboardActionsProps extends ModalControlsProps {
 }
 
 export function useDashboardActions({
-  state,
   dispatch,
   eventId,
 }: DashboardActionsProps) {
   const router = useRouter();
-
-  const toggleDropdown = () => {
-    dispatch({ type: 'TOGGLE_DROPDOWN' });
-  };
-
-  const closeDropdown = () => {
-    dispatch({ type: 'CLOSE_DROPDOWN' });
-  };
 
   const handleDropdownAction = (actionId: string) => {
     switch (actionId) {
@@ -29,7 +20,6 @@ export function useDashboardActions({
         dispatch({ type: 'OPEN_MODAL', modal: 'addExpense' });
         break;
       case 'add-payment':
-        dispatch({ type: 'CLOSE_DROPDOWN' });
         console.log('Record Payment clicked');
         break;
       case 'add-category':
@@ -39,14 +29,12 @@ export function useDashboardActions({
         dispatch({ type: 'OPEN_MODAL', modal: 'recalculate' });
         break;
       case 'import-data':
-        dispatch({ type: 'CLOSE_DROPDOWN' });
         console.log('Import Data clicked');
         break;
       case 'delete-event':
         dispatch({ type: 'OPEN_MODAL', modal: 'deleteEventConfirm' });
         break;
       default:
-        dispatch({ type: 'CLOSE_DROPDOWN' });
         console.log(`Unknown action: ${actionId}`);
     }
   };
@@ -72,10 +60,7 @@ export function useDashboardActions({
 
   return {
     // Dropdown controls
-    toggleDropdown,
-    closeDropdown,
     handleDropdownAction,
-    isDropdownOpen: state.ui.dropdownOpen,
 
     // Navigation
     handleCategoryClick,

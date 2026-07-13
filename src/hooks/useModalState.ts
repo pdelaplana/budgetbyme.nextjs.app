@@ -27,7 +27,6 @@ export interface ModalState {
   markAsPaid: MarkAsPaidModalState;
   markPaymentAsPaid: MarkAsPaidModalState;
   editExpense: { isOpen: boolean };
-  actionDropdown: { isOpen: boolean };
   confirmDialogs: {
     deletePayments: ConfirmDialogState;
     deleteExpense: ConfirmDialogState;
@@ -50,10 +49,6 @@ type ModalAction =
   // Edit Expense Modal
   | { type: 'OPEN_EDIT_EXPENSE' }
   | { type: 'CLOSE_EDIT_EXPENSE' }
-
-  // Action Dropdown
-  | { type: 'TOGGLE_ACTION_DROPDOWN' }
-  | { type: 'CLOSE_ACTION_DROPDOWN' }
 
   // Confirm Dialogs
   | { type: 'OPEN_DELETE_PAYMENTS_CONFIRM' }
@@ -83,9 +78,6 @@ const initialState: ModalState = {
     selectedPayment: null,
   },
   editExpense: {
-    isOpen: false,
-  },
-  actionDropdown: {
     isOpen: false,
   },
   confirmDialogs: {
@@ -173,30 +165,11 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
         editExpense: {
           isOpen: true,
         },
-        actionDropdown: {
-          isOpen: false, // Close dropdown when opening edit
-        },
       };
     case 'CLOSE_EDIT_EXPENSE':
       return {
         ...state,
         editExpense: {
-          isOpen: false,
-        },
-      };
-
-    // Action Dropdown
-    case 'TOGGLE_ACTION_DROPDOWN':
-      return {
-        ...state,
-        actionDropdown: {
-          isOpen: !state.actionDropdown.isOpen,
-        },
-      };
-    case 'CLOSE_ACTION_DROPDOWN':
-      return {
-        ...state,
-        actionDropdown: {
           isOpen: false,
         },
       };
@@ -211,9 +184,6 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
             isOpen: true,
             isLoading: false,
           },
-        },
-        actionDropdown: {
-          isOpen: false, // Close dropdown
         },
       };
     case 'CLOSE_DELETE_PAYMENTS_CONFIRM':
@@ -249,9 +219,6 @@ function modalReducer(state: ModalState, action: ModalAction): ModalState {
             isOpen: true,
             isLoading: false,
           },
-        },
-        actionDropdown: {
-          isOpen: false, // Close dropdown
         },
       };
     case 'CLOSE_DELETE_EXPENSE_CONFIRM':
@@ -355,14 +322,6 @@ export function useModalState() {
     }, []),
     closeEditExpense: useCallback(() => {
       dispatch({ type: 'CLOSE_EDIT_EXPENSE' });
-    }, []),
-
-    // Action Dropdown
-    toggleActionDropdown: useCallback(() => {
-      dispatch({ type: 'TOGGLE_ACTION_DROPDOWN' });
-    }, []),
-    closeActionDropdown: useCallback(() => {
-      dispatch({ type: 'CLOSE_ACTION_DROPDOWN' });
     }, []),
 
     // Confirm Dialogs

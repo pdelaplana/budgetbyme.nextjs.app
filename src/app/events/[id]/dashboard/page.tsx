@@ -91,9 +91,6 @@ export default function EventDashboardPage() {
     <DashboardLayout>
       <DashboardHeader
         dropdownItems={stableDropdownItems}
-        isDropdownOpen={actions.isDropdownOpen}
-        onDropdownToggle={actions.toggleDropdown}
-        onDropdownClose={actions.closeDropdown}
         onDropdownAction={actions.handleDropdownAction}
         isRecalculatingTotals={isRecalculatingTotals}
       />
